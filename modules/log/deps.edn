@@ -1,1 +1,2 @@
-{:deps {com.lambdaisland/glogi {:mvn/version "1.0.128"}}}
+{:deps {io.pedestal/pedestal.log {:mvn/version "0.5.9"}
+        com.lambdaisland/glogi {:mvn/version "1.0.128"}}}
