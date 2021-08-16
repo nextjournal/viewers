@@ -1,24 +1,27 @@
 (ns nextjournal.devcards.routes
-  (:require [clojure.string :as str]))
+  (:require [nextjournal.devcards-ui :as devcards-ui]
+            [reagent.core :as r]
+            [reitit.frontend :as rf]
+            [reitit.frontend.history :as rfh]
+            [reitit.frontend.easy :as rfe]))
+
+(def use-fragment? (atom true))
 
 (def routes
-  {"/nextjournal/devcards" :devcards/root
-   "/nextjournal/devcards/:ns" :devcards/by-namespace
-   "/nextjournal/devcards/:ns/:name" :devcards/by-name})
+  [["/devcards" {:name :devcards/root :view devcards-ui/root}]
+   ["/devcards/:ns" {:name :devcards/by-namespace :view devcards-ui/by-namespace}]
+   ["/devcards/:ns/:name" {:name :devcards/by-name :view devcards-ui/by-name}]])
 
-(def routes-reverse (zipmap (vals routes) (keys routes)))
+(defn navigate-to
+  "Navigate to the given path, then trigger routing."
+  [new-path]
+  (.pushState js/window.history nil "" new-path)
+  (rfh/-on-navigate @rfe/history new-path))
 
-(defn replace-in-string
-  "returns s with replacements - for each k-v in params, replaces (str k) with v"
-  [s replacements]
-  (reduce-kv (fn [s k v]
-               (str/replace s (str k) v)) s replacements))
+(def router
+  (rf/router routes))
 
-(defn url-for
-  ([name]
-   (url-for name {}))
-  ([name params]
-   (-> (routes-reverse name)
-       (replace-in-string params))))
+(defonce match (r/atom nil))
 
-
+(defn ^:export start []
+  (rfe/start! router #(reset! match %1) {:use-fragment @use-fragment?}))
