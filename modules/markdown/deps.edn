@@ -1,0 +1,1 @@
+{:deps {applied-science/js-interop {:mvn/version "0.2.6"}}}

@@ -1,0 +1,20 @@
+/db
+/*.ez
+.DS_Store
+.sw*
+.nrepl-port
+.nrepl-history
+
+/.shadow-cljs/
+/.calva/
+
+modules/*/.cpcache
+
+
+# intellij/cursive
+/*.iml
+/.idea/
+
+# VSCode/Calva
+.lsp/
+.calva/

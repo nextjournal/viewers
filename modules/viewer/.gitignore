@@ -1,0 +1,5 @@
+/.shadow-cljs
+/node_modules
+/public/js
+/js
+/release

@@ -1,0 +1,22 @@
+{:paths ["src"]
+ :deps  {io.github.nextjournal/clojure-mode {:git/sha "a83c87cd2bd2049b70613f360336a096d15c5518"}
+         nextjournal/cljs-extensions {:local/root "../cljs-extensions"}
+         nextjournal/markdown        {:local/root "../markdown"}
+         nextjournal/log             {:local/root "../log"}
+         nextjournal/devcards        {:local/root "../devcards"}
+
+         borkdude/sci                {:mvn/version "0.2.4"}
+         applied-science/js-interop  {:mvn/version "0.2.6"}
+         com.cognitect/transit-cljs  {:mvn/version "0.8.264"}}
+
+ :aliases
+ {:dev
+  {:extra-deps {org.clojure/clojure       {:mvn/version "1.10.3"}
+                #_#_ ;; brought in by shadow-cljs
+                org.clojure/clojurescript {:mvn/version "1.10.866"}
+                thheller/shadow-cljs      {:mvn/version "2.14.2"}
+
+                io.pedestal/pedestal.log {:git/url "https://github.com/nextjournal/pedestal" :sha "5ab1c9770472694f94d0835cda412ba753b28809"}
+
+                reagent/reagent {:mvn/version "1.0.0"
+                                 :exclusions  [cljsjs/react cljsjs/react-dom cljsjs/react-dom-server]}}}}}

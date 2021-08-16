@@ -1,0 +1,18 @@
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdn.nextjournal.com/data/QmRqugy58UfVG5j9Lo2ccKpkV6tJ2pDDfrZXViRApUKG4v?filename=viewer-a098a51e8ec9999fae7673b325889dbccafad583.css&content-type=text/css"/>
+    <script src="../js/out/main.js"></script>
+    <!--
+    <script src="../../release/js/main.js"></script>
+    <script src='https://cdn.nextjournal.com/data/QmPxet4ijyt6s3pRrkqKn1JfV9DEvMTVhQ6p5qz1DhGjEF?filename=viewer.js&content-type=application/x-javascript'></script>
+    -->
+  </head>
+  <body>
+    <div id="doc"></div>
+    <script>
+     nextjournal.viewer.inspect_into(document.getElementById("doc"),
+                                     nextjournal.viewer.read_string("^{:nextjournal/viewer :flex-col} [{:nextjournal/viewer :markdown, :nextjournal/value \" # Observator Demo!!\\n\"} ^{:nextjournal/viewer :hiccup} [:pre.code \"(ns observator.demo\\n  (:require [clojure.string :as str]\\n            [observator.lib :as obs.lib]))\"] nil {:nextjournal/viewer :markdown, :nextjournal/value \" **Dogfooding** the system while constructing it, I'll try to make a\\n little bit of literate commentary. This is *literate* programming.\\n\"} ^{:nextjournal/viewer :hiccup} [:pre.code \"(defn fix-case [s]\\n  (obs.lib/fix-case s))\"] ^{:arglists ([s]), :line 83, :column 3, :file \"/Users/mk/dev/observator/src/observator/webview.clj\", :name ^{:arglists ([s]), :file \"/Users/mk/dev/observator/src/observator/webview.clj\"} fix-case, :ns #namespace[observator.demo]} #'observator.demo/fix-case ^{:nextjournal/viewer :hiccup} [:pre.code \"(def long-thing\\n  (do\\n    (Thread/sleep 1000)\\n    (take 40 (map fix-case (str/split-lines (slurp \\\"/usr/share/dict/words\\\"))))))\"] (\"a\" \"a\" \"aa\" \"aal\" \"aalii\" \"aam\" \"aani\" \"aardvark\" \"aardwolf\" \"aaron\" \"aaronic\" \"aaronical\" \"aaronite\" \"aaronitic\" \"aaru\" \"ab\" \"aba\" \"ababdeh\" \"ababua\" \"abac\" \"abaca\" \"abacate\" \"abacay\" \"abacinate\" \"abacination\" \"abaciscus\" \"abacist\" \"aback\" \"abactinal\" \"abactinally\" \"abaction\" \"abactor\" \"abaculus\" \"abacus\" \"abadite\" \"abaff\" \"abaft\" \"abaisance\" \"abaiser\" \"abaissed\") ^{:nextjournal/viewer :hiccup} [:pre.code \"(count long-thing)\"] 40 ^{:nextjournal/viewer :hiccup} [:pre.code \"(do ;; slow as well\\n  (Thread/sleep 1000)\\n  42)\"] 42 ^{:nextjournal/viewer :hiccup} [:pre.code \"(def ^:observator/no-cache random-thing\\n  (rand-int 1000))\"] 775 ^{:nextjournal/viewer :hiccup} [:pre.code \"(def random-cached-thing\\n  (rand-int 1000))\"] 57 ^{:nextjournal/viewer :hiccup} [:pre.code \"(range 30)\"] (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29) ^{:nextjournal/viewer :hiccup} [:pre.code \"(comment\\n  (require '[observator.core :as obs])\\n  (binding [*ns* (find-ns 'observator.demo)]\\n    (->> '(defn fix-case [s]\\n            (obs.lib/fix-case s))\\n         (obs/hash-dependencies {}))))\"] nil]"))
+    </script>
+  </body>
+</html>

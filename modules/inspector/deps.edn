@@ -1,0 +1,3 @@
+{:deps {nextjournal/command-palette {:local/root "../command-palette"}
+        nextjournal/cljs-extensions {:local/root "../cljs-extensions"}
+        nextjournal/log             {:local/root "../log"}}}
