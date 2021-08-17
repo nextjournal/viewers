@@ -9,9 +9,9 @@
 (def use-fragment? (atom true))
 
 (def routes
-  [["/devcards" {:name :devcards/root :view devcards-ui/root}]
-   ["/devcards/:ns" {:name :devcards/by-namespace :view devcards-ui/by-namespace}]
-   ["/devcards/:ns/:name" {:name :devcards/by-name :view devcards-ui/by-name}]])
+  [["/" {:name :devcards/root :view devcards-ui/root}]
+   ["/:ns" {:name :devcards/by-namespace :view devcards-ui/by-namespace}]
+   ["/:ns/:name" {:name :devcards/by-name :view devcards-ui/by-name}]])
 
 (defn navigate-to
   "Navigate to the given path, then trigger routing."
