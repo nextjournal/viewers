@@ -2,6 +2,7 @@
  :deps { io.github.nextjournal/viewer {:local/root "modules/viewer"}}
 
  :aliases
- {:shadow {:extra-deps {thheller/shadow-cljs {:mvn/version "2.15.3"}}
+ {:shadow {:extra-deps {thheller/shadow-cljs {:mvn/version "2.15.3"}
+                        cider/cider-nrepl    {:mvn/version "0.26.0"}}
            :main-opts ["-m" "shadow.cljs.devtools.cli"]}
   :examples {:extra-deps {metosin/reitit-frontend {:mvn/version "0.5.15"}}}}}
