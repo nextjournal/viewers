@@ -1,3 +1,11 @@
-{:tasks {watch {:doc "Starts shadow-cljs server"
-                :task (clojure "-M:examples:shadow" "server" "browser")}}
+{:tasks
+ {watch     {:doc  "Starts shadow-cljs server"
+             :task (clojure "-M:examples:shadow" "watch" "browser")}
+  watch-css {:doc  "Starts a watcher for css files"
+             :task (shell "npx tailwindcss --input app.css --output public/app.css --watch")}
+
+  -dev {:depends [watch watch-css]}
+  dev  {:doc  "Start app in dev mode, compiles cljs and css, starts an nrepl "
+        :task (run '-dev {:parallel true})}}
+
  :min-bb-version "0.5.1"}
