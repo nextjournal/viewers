@@ -5,6 +5,7 @@
 .nrepl-port
 .nrepl-history
 
+/.lsp/sqlite.db
 /.shadow-cljs/
 /.calva/
 /public/js/
@@ -20,5 +21,4 @@
 /.idea/
 
 # VSCode/Calva
-.lsp/
 .calva/
