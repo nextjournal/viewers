@@ -1,4 +1,4 @@
-{:deps true
+{:deps {:aliases [:shadow :examples]}
  :dev-http {7779 "public"}
  :builds {:browser {:target     :browser
                     :output-to  "public/js/viewer.js"
