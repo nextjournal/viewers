@@ -24,10 +24,13 @@
 
 (defonce match (r/atom nil))
 
+(defn match->props [m]
+  (:path-params m))
+
 (defn devcards []
   (if-let [{:keys [data]} @match]
     (let [{:keys [view ]} data]
-      [view @match])
+      [view (match->props @match)])
     [:pre "no match!"]))
 
 (defn ^:export start []
