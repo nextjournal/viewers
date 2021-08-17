@@ -1,3 +1,3 @@
 {:tasks {watch {:doc "Starts shadow-cljs watch"
                 :task (clojure "-M:examples:shadow" "watch" "browser")}}
- :bb-min-version-key "0.5.1"}
+ :min-bb-version "0.5.1"}
