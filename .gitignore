@@ -7,9 +7,12 @@
 
 /.shadow-cljs/
 /.calva/
-
-modules/*/.cpcache
-
+/public/js/
+/node_modules/
+/.cpcache
+/modules/*/.cpcache
+/yarn.lock
+/package-lock.json
 
 # intellij/cursive
 /*.iml

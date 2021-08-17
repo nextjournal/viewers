@@ -4,6 +4,7 @@
             [reitit.frontend :as rf]
             [reitit.frontend.history :as rfh]
             [reitit.frontend.easy :as rfe]))
+;;todo rename to router
 
 (def use-fragment? (atom true))
 
@@ -23,5 +24,12 @@
 
 (defonce match (r/atom nil))
 
+(defn devcards []
+  (if-let [{:keys [data]} @match]
+    (let [{:keys [view ]} data]
+      [view @match])
+    [:pre "no match!"]))
+
 (defn ^:export start []
-  (rfe/start! router #(reset! match %1) {:use-fragment @use-fragment?}))
+  (rfe/start! router #(reset! match %1) {:use-fragment @use-fragment?})
+  (r/render [devcards] (js/document.getElementById "app")))
