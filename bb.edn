@@ -1,8 +1,13 @@
 {:tasks
- {watch     {:doc  "Starts shadow-cljs server"
-             :task (clojure "-M:examples:shadow" "watch" "browser")}
+ {yarn-install {:doc "Installs and updates npm dependencies"
+                :task (shell "yarn install")}
+
+  watch     {:doc  "Starts shadow-cljs server"
+             :task (clojure "-M:examples:shadow" "watch" "browser")
+             :depends [yarn-install]}
   watch-css {:doc  "Starts a watcher for css files"
-             :task (shell "npx tailwindcss --input viewer.css --output public/viewer.css --watch")}
+             :task (shell "npx tailwindcss --input viewer.css --output public/viewer.css --watch")
+             :depends [yarn-install]}
 
   -dev {:depends [watch watch-css]}
   dev  {:doc  "Start app in dev mode, compiles cljs and css, starts an nrepl "
