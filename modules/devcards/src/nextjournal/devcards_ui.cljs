@@ -225,16 +225,13 @@
    [show-card (-> props
                   (merge (get-in @dc/registry [ns name])))]])
 
-(def handlers {:devcards/root root
-               :devcards/by-namespace by-namespace
-               :devcards/by-name by-name})
 
-(v/defview view [{:keys [::v/props route-name ns]}]
+(v/defview layout [{:keys [::v/props view ns]}]
   [:div.flex.h-screen
    {:style {:background "#f8f8f8"}}
    [toc {:current-ns ns}]
    [:div.h-screen.overflow-y-auto.flex-auto.devcards-content
-    [(handlers route-name) props]]])
+    [view props]]])
 
 
 (dc/when-enabled
