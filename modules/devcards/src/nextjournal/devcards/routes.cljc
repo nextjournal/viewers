@@ -9,9 +9,9 @@
 (def use-fragment? (atom true))
 
 (def routes
-  [["/" {:name :devcards/root :view devcards-ui/root}]
-   ["/:ns" {:name :devcards/by-namespace :view devcards-ui/by-namespace}]
-   ["/:ns/:name" {:name :devcards/by-name :view devcards-ui/by-name}]])
+  [["/" {:name :devcards/root }]
+   ["/:ns" {:name :devcards/by-namespace}]
+   ["/:ns/:name" {:name :devcards/by-name}]])
 
 (defn navigate-to
   "Navigate to the given path, then trigger routing."
@@ -25,12 +25,15 @@
 (defonce match (r/atom nil))
 
 (defn match->props [m]
-  (:path-params m))
+  (let [{:keys [data]} m
+        {:keys [name]} data]
+    (merge
+     (:path-params m)
+     {:route-name name})))
 
 (defn devcards []
   (if-let [{:keys [data]} @match]
-    (let [{:keys [view ]} data]
-      [view (match->props @match)])
+    [devcards-ui/view (match->props @match)]
     [:pre "no match!"]))
 
 (defn ^:export ^:dev/after-load start []
