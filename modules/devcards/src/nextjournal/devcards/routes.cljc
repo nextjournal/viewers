@@ -33,6 +33,6 @@
       [view (match->props @match)])
     [:pre "no match!"]))
 
-(defn ^:export start []
+(defn ^:export ^:dev/after-load start []
   (rfe/start! router #(reset! match %1) {:use-fragment @use-fragment?})
   (r/render [devcards] (js/document.getElementById "app")))
