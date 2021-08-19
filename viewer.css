@@ -426,29 +426,6 @@ h3 {
 .browsify-button:hover {
   box-shadow: -2px 0 0 2px #edf2f7;
 }
-.viewer-code {
-  background: var(--gray-panel-color);
-  border-radius: 2px;
-  font-family: var(--code-font);
-  padding: 1rem 1.8rem;
-  margin-left: -1.8rem;
-  margin-right: -1.8rem;
-}
-@media (min-width: 960px) {
-  .viewer-code {
-    padding: 1rem;
-    margin-left: -1rem;
-    margin-right: -1rem;
-  }
-}
-@media (min-width: 1024px) {
-  .viewer-code {
-    padding: 1rem 0 1rem 3rem;
-    margin-left: -3rem;
-    margin-right: -3rem;
-  }
-}
-
 /* Disclose */
 /* --------------------------------------------------------------- */
 
