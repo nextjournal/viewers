@@ -1,7 +1,3 @@
-@import "tailwindcss/base";
-@import "tailwindcss/components";
-@import "tailwindcss/utilities";
-
 /* Fonts */
 /* --------------------------------------------------------------- */
 
@@ -323,10 +319,7 @@ body {
 h1 {
   counter-reset: h2-counter;
 }
-.nj-doc--numbered h2:not(.nj-subtitle)::before {
-  content: counter(h2-counter) ".\0000a0";
-  counter-increment: h2-counter;
-}
+
 h2 {
   counter-reset: h3-counter;
 }
@@ -337,11 +330,6 @@ h2 {
 h3 {
   counter-reset: h4-counter;
 }
-.nj-doc--numbered h4::before {
-  content: counter(h2-counter) "." counter(h3-counter) "." counter(h4-counter) ".\0000a0";
-  counter-increment: h4-counter;
-}
-
 
 /* Data Viewer */
 /* --------------------------------------------------------------- */
@@ -398,16 +386,15 @@ h3 {
 .syntax-untyped {
   white-space: nowrap;
 }
-.result-data,
-.result-text {
+.result-data {
   font-family: var(--code-font);
   font-size: 14px;
   overflow-x: auto;
   line-height: 1.5;
-}
-.result-data {
   white-space: nowrap;
+
 }
+
 .result-data::-webkit-scrollbar,
 .path-nav::-webkit-scrollbar {
   height: 0;
@@ -456,18 +443,6 @@ h3 {
     margin-right: -3rem;
   }
 }
-.viewer {
-  @apply mt-4;
-}
-.viewer-code + .viewer.viewer-data,
-.viewer-code + .viewer.viewer-plot {
-  @apply mt-1;
-}
-.viewer-markdown ul ul,
-.viewer-markdown ol ol {
-  margin-left: 1.5rem;
-}
-
 
 /* Disclose */
 /* --------------------------------------------------------------- */
