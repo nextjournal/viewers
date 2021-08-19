@@ -3,17 +3,17 @@
                 :task (shell "yarn install")}
 
   watch     {:doc  "Starts shadow-cljs server"
-             :task (clojure "-M:examples:shadow" "watch" "browser")
+             :task (clojure "-M:examples:shadow watch browser")
              :depends [yarn-install]}
 
-  watch-css-tailwind {:doc  "Starts a watcher for css files tailwindcss"
+  watch:css:tailwind {:doc  "Starts a watcher for css files tailwindcss"
                       :task (shell "npx tailwindcss --input viewer.css --output public/viewer.css --watch")
                       :depends [yarn-install]}
 
-  watch-css-girouette {:doc  "Starts a watcher for css using girouette"
+  watch:css:girouette {:doc  "Starts a watcher for css using girouette"
                        :task (clojure "-X:girouette")}
 
-  -dev {:depends [watch watch-css-tailwind watch-css-girouette]}
+  -dev {:depends [watch watch:css:tailwind watch:css:girouette]}
   dev  {:doc  "Start app in dev mode, compiles cljs and css, starts an nrepl "
         :task (run '-dev {:parallel true})}}
 
