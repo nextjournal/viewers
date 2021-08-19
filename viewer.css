@@ -188,6 +188,7 @@
 
 html {
   font-size: 18px;
+  background: #f8f8f8;
 }
 @media (max-width: 600px) {
   html {
@@ -221,6 +222,10 @@ body {
   font-family: var(--inter-font);
 }
 
+:root {
+--page-inset: 3rem;
+--page-width: 64rem;
+}
 /* Colors */
 /* --------------------------------------------------------------- */
 
@@ -465,3 +470,17 @@ h3 {
 .disclose.collapsed {
   transform: rotate(-90deg);
 }
+
+/* Additional styles */
+
+.page {
+  max-width: var(--page-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--page-inset);
+  padding-right: var(--page-inset);
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+
