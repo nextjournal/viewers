@@ -258,6 +258,7 @@ h3 {
 .browsify-button:hover {
   box-shadow: -2px 0 0 2px #edf2f7;
 }
+
 /* Disclose */
 /* --------------------------------------------------------------- */
 
@@ -280,8 +281,7 @@ h3 {
   transform: rotate(-90deg);
 }
 
-/* Additional styles */
-
+/* Layout */
 .page {
   max-width: var(--page-width);
   margin-left: auto;
@@ -291,6 +291,18 @@ h3 {
   box-sizing: border-box;
   flex-shrink: 0;
 }
+
+/* Katex */
+.katex * {
+  border-color: black;
+}
+
+/* Hopefully temporary workaround for vega viewer resizing into infinity */
+.vega-embed .chart-wrapper {
+  height: auto;
+}
+
+/* List styles */
 
 .list-disc {
     list-style-type: disc;
@@ -429,6 +441,26 @@ h3 {
   text-decoration: underline;
 }
 
-.katex * {
-  border-color: black;
+/* Code */
+
+.code,
+code {
+  font-family: var(--code-font);
+  font-size: 0.85em;
+  color: var(--text-color);
+  background-color: var(--gray-panel-color);
+  padding: 1px 2px;
+  border-radius: 2px;
 }
+strong {
+  font-weight: bold;
+}
+em {
+  font-style: italic;
+}
+pre {
+  margin: 0;
+  font-family: var(--code-font);
+}
+
+
