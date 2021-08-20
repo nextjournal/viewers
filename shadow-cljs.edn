@@ -6,6 +6,7 @@
                     #_#_
                     :asset-path "/js/out"
                     :modules    {:viewer {:entries [nextjournal.viewer
+                                                    nextjournal.viewer.notebook
                                                     nextjournal.devcards.routes]}}
 
                     :js-options {:output-feature-set :es8}
