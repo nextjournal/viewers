@@ -3,13 +3,13 @@
             [kitchen-async.promise :as p]
             [nextjournal.commands.core :as commands]
             [nextjournal.devcards :as dc]
-            [nextjournal.devcards.routes :as routes]
             [nextjournal.log :as log]
             [nextjournal.ui.components.icon :as icon]
             [nextjournal.ui.components.promises :as promises]
             [nextjournal.markdown :refer [Markdown]]
             [nextjournal.view :as v]
             [nextjournal.viewer :as data]
+            [reitit.frontend.easy :as rfe]
             [re-frame.context :as rf]
             [re-frame.frame :as rf.frame]
             [reagent.core :as r]))
@@ -23,16 +23,16 @@
 
 (def divider [:span.black-20.text-md.px-1 "/"])
 
-(def cards-link
-  [:a.black-50.hover:text-gray-900.hover:underline {:href (routes/url-for :devcards/root)} "cards"])
+(defn cards-link []
+  [:a.black-50.hover:text-gray-900.hover:underline {:href (rfe/href :devcards/root)} "cards"])
 
 (defn shorten-ns [ns] (str/replace ns "nextjournal." ""))
 
 (defn ns-link [ns]
-  [:a.black-50.hover:text-gray-900.hover:underline {:href (routes/url-for :devcards/by-namespace {:ns ns})} (shorten-ns ns)])
+  [:a.black-50.hover:text-gray-900.hover:underline {:href (rfe/href :devcards/by-namespace {:ns ns})} (shorten-ns ns)])
 
 (defn name-link [ns name]
-  [:a.text-near-black {:href (routes/url-for :devcards/card {:ns ns :name name})} name])
+  [:a.text-near-black {:href (rfe/href :devcards/card {:ns ns :name name})} name])
 
 (defn ns-listing []
   (->> (seq @dc/registry)
@@ -75,7 +75,7 @@
       [:div.toc-header
        {:style {:color "var(--near-black-color)"}}
        [:a {:style {:color "inherit"}
-            :href (routes/url-for :devcards/root)} label]
+            :href (rfe/href :devcards/root)} label]
        [:div.toc-pin
         {:on-click #(swap! pinned? not)}
         (if @pinned? "Unpin" "Pin")]]
@@ -92,7 +92,7 @@
              {:style {:font-size 14}}
              (shorten-ns ns-parent)])
           [:a.flex-auto.flex.items-center.pl-8.pr-3
-           {:href (routes/url-for :devcards/by-namespace {:ns ns})
+           {:href (rfe/href :devcards/by-namespace {:ns ns})
             :style (cond-> {:font-size 14
                             :padding-top "2px"
                             :padding-bottom "2px"
@@ -148,7 +148,7 @@
     [:div.mb-8
      [:div.page.mb-3.sans-serif.text-lg
       [:a.font-bold.text-near-black.text-md.sans-serif
-       {:href (routes/url-for :devcards/by-name {:ns ns :name name})} name]
+       {:href (rfe/href :devcards/by-name {:ns ns :name name})} name]
 
       (when doc
         [render-md doc])]
@@ -188,7 +188,7 @@
     [:<>
      [:div.page.mt-3.mb-8.sans-serif
       {:style {:font-size 14}}
-      cards-link divider (ns-link ns)]
+      (cards-link) divider (ns-link ns)]
      (doall
       (for [[name card] cards]
         ^{:key name} [show-card card]))]))
@@ -207,7 +207,7 @@
          [:div.mt-8.text-md.mb-2 (shorten-ns ns-parent)])
        [:div.ml-6
         [:a.flex-auto.text-near-black.flex.items-center
-         {:href (routes/url-for :devcards/by-namespace {:ns ns})}
+         {:href (rfe/href :devcards/by-namespace {:ns ns})}
          [:span.font-bold ns-name]
          [:span.rounded.bg-black-05.black-60.ml-2
           {:style {:font-size 12 :padding "3px 4px" :line-height 1}}
@@ -221,20 +221,17 @@
   [:<>
    [:div.page.mt-3.mb-8.sans-serif
     {:style {:font-size 14}}
-    cards-link divider (ns-link ns)]
+    (cards-link) divider (ns-link ns)]
    [show-card (-> props
                   (merge (get-in @dc/registry [ns name])))]])
 
-(def handlers {:devcards/root root
-               :devcards/by-namespace by-namespace
-               :devcards/by-name by-name})
 
-(v/defview view [{:keys [::v/props route-name ns]}]
+(v/defview layout [{:keys [::v/props view ns]}]
   [:div.flex.h-screen
    {:style {:background "#f8f8f8"}}
    [toc {:current-ns ns}]
    [:div.h-screen.overflow-y-auto.flex-auto.devcards-content
-    [(handlers route-name) props]]])
+    [view props]]])
 
 
 (dc/when-enabled

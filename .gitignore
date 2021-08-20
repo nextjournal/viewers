@@ -5,16 +5,21 @@
 .nrepl-port
 .nrepl-history
 
+/.lsp/sqlite.db
 /.shadow-cljs/
 /.calva/
-
-modules/*/.cpcache
-
+/public/js/
+/node_modules/
+/.cpcache
+/modules/*/.cpcache
+/yarn.lock
+/package-lock.json
+.cache
 
 # intellij/cursive
 /*.iml
 /.idea/
 
 # VSCode/Calva
-.lsp/
 .calva/
+/public/*.css

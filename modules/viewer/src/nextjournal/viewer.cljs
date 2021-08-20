@@ -638,7 +638,7 @@
                      :encoding
                      {:color {:field "rate" :type "quantitative"}}})])
 
-(dc/defcard viewer-plolty
+(dc/defcard viewer-plotly
   [inspect (view-as :plotly
                     {:data [{:y (shuffle (range 10)) :name "The Federation" }
                             {:y (shuffle (range 10)) :name "The Empire"}]})])
@@ -673,7 +673,7 @@
 ;; TODO add svg viewer
 
 (dc/defcard progress-bar
-  "Show how to use a function as a viewer, supports both one and two artity versions."
+  "Show how to use a function as a viewer, supports both one and two arity versions."
   [:div
    [inspect (with-viewer 0.33
               #(view-as :hiccup
