@@ -299,7 +299,7 @@ h3 {
 
 /* Hopefully temporary workaround for vega viewer resizing into infinity */
 .vega-embed .chart-wrapper {
-  height: auto;
+  height: auto !important;
 }
 
 /* List styles */
@@ -462,5 +462,3 @@ pre {
   margin: 0;
   font-family: var(--code-font);
 }
-
-
