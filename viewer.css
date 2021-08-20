@@ -188,7 +188,6 @@
 
 html {
   font-size: 18px;
-  background: #f8f8f8;
 }
 @media (max-width: 600px) {
   html {
@@ -236,6 +235,8 @@ body {
   --dark-blue-60-color: rgba(28, 42, 56, 0.6);
   --gray-panel-color: rgba(239, 241, 245, 1.000);
   --brand-color: var(--dark-blue-color);
+  --tw-text-opacity: 1;
+  --tw-border-opacity: 1;
 }
 
 .bg-dark-blue { background: var(--dark-blue-color); }
@@ -480,8 +481,6 @@ h3 {
 .contains-task-list input[type="checkbox"] {
   height: 1rem;
   width: 1rem;
-  --tw-text-opacity: 1;
-  --tw-border-opacity: 1;
   color: rgba(79, 70, 229, var(--tw-text-opacity));
   border-color: rgba(209, 213, 219, var(--tw-border-opacity));
   border-radius: 0.25rem;
@@ -503,3 +502,98 @@ h3 {
   list-style: none;
 }
 
+/* TOC */
+.toc {
+  position: fixed;
+  top: 48px;
+  bottom: 0;
+  right: 0;
+  width: 50px;
+  z-index: 999;
+}
+
+.toc-content {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateX(110%) translateY(-50%);
+  width: 220px;
+  opacity: 0;
+  font-size: 12px;
+  font-family: var(--sans-serif-font);
+  transition: all 0.3s ease-in-out;
+  background: #fbfbfc;
+  padding: 14px 7px 14px 0;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+.toc-content a {
+  color: rgba(0,0,0,.5);
+}
+.toc-content a:hover {
+  opacity: 1;
+  color: rgba(0,0,0,.7);
+  text-decoration: underline;
+}
+
+.toc-button {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  opacity: 1;
+  transition: all 0.3s ease-in-out;
+  width: 0;
+  height: 0;
+  transform: rotate(-90deg);
+  transform-origin: right top 0;
+}
+
+.toc-label {
+  font-size: 16px;
+  color: rgba(0,0,0,.3);
+  font-weight: bold;
+  text-align: center;
+  white-space: nowrap;
+  left: 0;
+  top: 0;
+  width: 200px;
+  margin-left: -100px;
+  margin-top: 15px;
+}
+
+.toc:hover .toc-content,
+.toc.pinned .toc-content {
+  transform: translateX(0) translateY(-50%);
+  opacity: 1;
+}
+
+.toc:hover .toc-button,
+.toc.pinned .toc-button {
+  transform: translateX(-110px) rotate(-90deg);
+  opacity: 0;
+}
+
+.toc-header {
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  color: rgba(0,0,0,.5);
+  margin-left: 15px;
+  margin-bottom: 7px;
+}
+
+.toc-pin {
+  font-weight: normal;
+  font-size: 11px;
+  margin-top: 3px;
+  margin-left: 7px;
+  color: rgba(0,0,0,.3);
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.toc-pin:hover {
+  color: rgba(0,0,0,.7);
+  text-decoration: underline;
+}
