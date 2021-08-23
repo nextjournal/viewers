@@ -462,3 +462,34 @@ pre {
   margin: 0;
   font-family: var(--code-font);
 }
+
+.viewer-data,
+.viewer-markdown {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 768px) {
+.viewer-markdown {
+  max-width: 42rem;
+}
+}
+
+.viewer-code {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  background: var(--gray-panel-color);
+  padding: 1rem;
+}
+
+@media (min-width: 768px) {
+.viewer-code {
+  max-width: 42rem;
+}
+}
+
+.viewer + .viewer {
+  margin-top: 1.5rem;
+}
