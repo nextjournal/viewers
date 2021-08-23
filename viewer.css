@@ -305,11 +305,11 @@ h3 {
 /* List styles */
 
 .list-disc {
-    list-style-type: disc;
+  list-style-type: disc;
 }
 
 .list-inside {
-    list-style-position: inside;
+  list-style-position: inside;
 }
 
 .list-decimal {
@@ -463,33 +463,50 @@ pre {
   font-family: var(--code-font);
 }
 
+/* Viewers */
+
 .viewer-data,
 .viewer-markdown {
   width: 100%;
-  margin-left: auto;
-  margin-right: auto;
 }
-
-@media (min-width: 768px) {
-.viewer-markdown {
-  max-width: 42rem;
-}
-}
-
 .viewer-code {
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
   background: var(--gray-panel-color);
-  padding: 1rem;
+  border-radius: 2px;
+  font-family: var(--code-font);
+  padding: 1rem 1.8rem;
 }
-
+.notebook-viewer .viewer-code {
+  margin-left: -1.8rem;
+  margin-right: -1.8rem;
+}
+.viewer-markdown ul ul,
+.viewer-markdown ol ol {
+  margin-left: 1.5rem;
+}
+.viewer-markdown p,
+.viewer-markdown ul,
+.viewer-markdown ol {
+  line-height: 1.4;
+  margin-top: 1rem;
+}
+.viewer-markdown h2,
+.viewer-markdown h3,
+.viewer-markdown h4,
+.viewer-markdown h5,
+.viewer-markdown h6 {
+  margin-top: 2rem;
+}
 @media (min-width: 768px) {
-.viewer-code {
-  max-width: 42rem;
+  .viewer-code > div,
+  .viewer-data,
+  .viewer-markdown {
+    max-width: 42rem;
+    margin: 0 auto;
+  }
+  .viewer-plot {
+    margin: 0 auto;
+  }
 }
-}
-
 .viewer + .viewer {
   margin-top: 1.5rem;
 }
