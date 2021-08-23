@@ -1,6 +1,6 @@
-{
- :deps {io.github.nextjournal/viewer {:local/root "modules/viewer"}
-        girouette/girouette          {:mvn/version "0.0.4"}}
+{:deps {io.github.nextjournal/viewer {:local/root "modules/viewer"}
+        io.github.nextjournal/inspector {:local/root "modules/inspector"}
+        girouette/girouette {:mvn/version "0.0.4"}}
 
  :aliases
  {:shadow {:extra-deps {thheller/shadow-cljs {:mvn/version "2.15.3"}
