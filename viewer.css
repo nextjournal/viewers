@@ -506,6 +506,10 @@ pre {
   .viewer-plot {
     margin: 0 auto;
   }
+  .devcard-desc > div {
+    max-width: 100%;
+    margin: 0;
+  }
 }
 .viewer + .viewer {
   margin-top: 1.5rem;

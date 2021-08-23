@@ -15,11 +15,8 @@
             [reagent.core :as r]))
 
 (defn render-md [md-str]
-  [:div.leading-normal
-   {:style {:margin "15px 0"
-            :font-size 15}
-    :dangerouslySetInnerHTML
-    {:__html (.render ^js @Markdown md-str)}}])
+  [:div.devcard-desc.text-sm
+   [:div.viewer-markdown [data/inspect (data/view-as :markdown md-str)]]])
 
 (def divider [:span.black-20.text-md.px-1 "/"])
 
