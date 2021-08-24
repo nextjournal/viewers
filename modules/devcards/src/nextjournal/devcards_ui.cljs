@@ -18,15 +18,22 @@
   [:div.devcard-desc.text-sm
    [:div.viewer-markdown [data/inspect (data/view-as :markdown md-str)]]])
 
-(def divider [:span.black-20.text-md.px-1 "/"])
+(def divider
+  [:svg.flex-shrink-0.h-5.w-5.text-gray-300 {:xmlns "http://www.w3.org/2000/svg" :fill "currentColor" :viewBox "0 0 20 20" :aria-hidden "true"}
+   [:path {:d "M5.555 17.776l8-16 .894.448-8 16-.894-.448z"}]])
 
 (defn cards-link []
-  [:a.black-50.hover:text-gray-900.hover:underline {:href (rfe/href :devcards/root)} "cards"])
+  [:a.text-gray-400.hover:text-gray-500 {:href (rfe/href :devcards/root)}
+   [:svg.flex-shrink-0.h-5.w-5 {:xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 20 20" :fill "currentColor" :aria-hidden "true"}
+    [:path {:d "M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"}]]
+   [:span.sr-only "Cards"]])
 
 (defn shorten-ns [ns] (str/replace ns "nextjournal." ""))
 
 (defn ns-link [ns]
-  [:a.black-50.hover:text-gray-900.hover:underline {:href (rfe/href :devcards/by-namespace {:ns ns})} (shorten-ns ns)])
+  [:a.text-xs.font-medium.text-gray-500.hover:text-gray-500
+   {:href (rfe/href :devcards/by-namespace {:ns ns})}
+   (shorten-ns ns)])
 
 (defn name-link [ns name]
   [:a.text-near-black {:href (rfe/href :devcards/card {:ns ns :name name})} name])
@@ -47,34 +54,38 @@
 (v/defview toc [{:keys [current-ns]}]
   (r/with-let [label "Component Library"
                pinned? (r/atom true)]
-    [:div.toc
+    [:div.toc.fixed.top-0.left-0.bottom-0.z-10.sans-serif
      {:class (when @pinned? "pinned")
-      :style (cond-> {:top 0}
+      :style (cond-> {:top 0
+                      :width 50}
                @pinned?
                (assoc :position "relative"
                       :width "auto"
                       :top 0))}
-     [:div.toc-button
-      [:div.toc-label
-       {:style {:font-size 14}}
+     [:div.absolute.left-0.opacity-100.w-0.h-0.transition-all.duration-300
+      {:class "top-1/2"
+       :style {:transform "rotate(-90deg)"
+               :transform-origin "right top 0"}}
+      [:div.text-sm.font-bold.text-center.white-space-nowrap.left-0.top-0.opacity-30
+       {:style {:width 200
+                :margin-left -100
+                :margin-top 15}}
        label]]
-     [:div.toc-content.border-r.border-black-10
-      {:style (cond-> {:height "100vh"
-                       :max-height "100vh"
-                       :padding-bottom 40
-                       :padding-right 0}
+     [:div.toc-content.absolute.left-0.top-0.border-r.border-black-10.text-sm.transition-all.duration-300.max-h-screen.overflow-y-auto.bg-white.px-4.h-screen.max-h-screen
+      {:style (cond-> {:width 315}
                 @pinned?
                 (assoc :position "relative"
                        :top "auto"
                        :transform "none")
                 (not @pinned?)
                 (assoc :box-shadow "0 3px 20px rgba(0,0,0,.2)"))}
-      [:div.toc-header
-       {:style {:color "var(--near-black-color)"}}
-       [:a {:style {:color "inherit"}
-            :href (rfe/href :devcards/root)} label]
-       [:div.toc-pin
-        {:on-click #(swap! pinned? not)}
+      [:div.flex.items-center.pl-3.pt-4.justify-between
+       [:a.font-bold.text-xs.uppercase.tracking-wide.hover:underline
+        {:href (rfe/href :devcards/root)}
+        label]
+       [:div.cursor-pointer.rounded-sm.border.border-gray-300.leading-none.px-2.py-1.text-gray-500.hover:text-gray-700.hover:border-gray-300
+        {:on-click #(swap! pinned? not)
+         :style {:font-size 11}}
         (if @pinned? "Unpin" "Pin")]]
       (doall
        (for [{:keys [ns
@@ -85,20 +96,18 @@
          ^{:key ns}
          [:<>
           (when ns-first-child?
-            [:div.ml-4.mt-4.mb-2.font-bold.text-near-black
-             {:style {:font-size 14}}
+            [:div.px-3.pt-5.font-medium.text-xs.mb-2
              (shorten-ns ns-parent)])
-          [:a.flex-auto.flex.items-center.pl-8.pr-3
+          [:a.flex-auto.flex.items-center.px-3.py-1.rounded-sm.text-gray-600.hover:bg-indigo-50.mt-1
            {:href (rfe/href :devcards/by-namespace {:ns ns})
-            :style (cond-> {:font-size 14
-                            :padding-top "2px"
-                            :padding-bottom "2px"
-                            :color "var(--near-black-color)"}
-                     (= ns current-ns)
-                     (assoc :background-color "rgba(5, 118, 179, 0.1)"))}
+            :style {:font-size 15}
+            :class (when (= ns current-ns) "bg-indigo-100 text-indigo-600")}
            [:span ns-name]
-           [:span.rounded.bg-black-05.black-60.ml-2
-            {:style {:font-size 12 :padding "3px 4px" :line-height 1}}
+           [:span.rounded-full.leading-none.border.px-2.ml-2
+            {:style {:font-size 12 :padding-top 2 :padding-bottom 2}
+             :class (if (= ns current-ns)
+                      "border-indigo-300 text-indigo-600"
+                      "border-gray-300")}
             ns-count]]]))]]))
 
 (v/defview inspector [{:keys [ratom initial-value label label-aligned?]}]
@@ -142,18 +151,16 @@
   (when card
     (when (= name "sidebar-elements")
       (prn :CARD card))
-    [:div.mb-8
-     [:div.page.mb-3.sans-serif.text-lg
-      [:a.font-bold.text-near-black.text-md.sans-serif
+    [:div.mb-10
+     [:div.mb-4.sans-serif.text-sm
+      [:a.font-bold.text-lg
        {:href (rfe/href :devcards/by-name {:ns ns :name name})} name]
-
       (when doc
         [render-md doc])]
-
-     [:div {:class (or class "page")}
-      [:div.bg-white.rounded-md.border.border-black-05
+     [:div {:class class}
+      [:div.bg-white.rounded-md.border.border-gray-200.shadow-sm
        (if loading-data?
-         [:div.p-3 "Loading data..."]
+         [:div.p-4 "Loading data..."]
          [show-main (assoc card ::v/initial-state initial-state)])]]]))
 
 (defn format-data [{:as db ::dc/keys [state]}]
@@ -182,54 +189,50 @@
 (v/defview show-namespace [{:keys [cards ns]}]
   (when ns
     ^{:key ns}
-    [:<>
-     [:div.page.mt-3.mb-8.sans-serif
-      {:style {:font-size 14}}
-      (cards-link) divider (ns-link ns)]
-     (doall
-      (for [[name card] cards]
-        ^{:key name} [show-card card]))]))
+    [:div.px-12.sans-serif
+     [:div.py-4.border-b
+      [:ol.flex.items-center.space-x-3 {:role "list"}
+       [:li
+        [:div.flex.items-center
+         (cards-link)]]
+       [:li
+        [:div.flex.items-center
+         divider
+         [:span.ml-3 (ns-link ns)]]]]]
+     [:div.py-8
+      (doall
+        (for [[name card] cards]
+             ^{:key name} [show-card card]))]]))
 
 (v/defview root []
-  [:div.page.sans-serif
-   (doall
-    (for [{:keys [ns
-                  ns-parent
-                  ns-name
-                  ns-count
-                  ns-first-child?]} (ns-listing)]
-      ^{:key ns}
-      [:<>
-       (when ns-first-child?
-         [:div.mt-8.text-md.mb-2 (shorten-ns ns-parent)])
-       [:div.ml-6
-        [:a.flex-auto.text-near-black.flex.items-center
-         {:href (rfe/href :devcards/by-namespace {:ns ns})}
-         [:span.font-bold ns-name]
-         [:span.rounded.bg-black-05.black-60.ml-2
-          {:style {:font-size 12 :padding "3px 4px" :line-height 1}}
-          ns-count]]]]))])
+  [:div.sans-serif.flex.h-screen.justify-center.py-18
+   "TODO: Render welcome devcard"])
 
 (v/defview by-namespace [{:keys [ns ::v/props]}]
      [show-namespace (-> props
                       (assoc :cards (get @dc/registry ns)))])
 
 (v/defview by-name [{:keys [ns name ::v/props]}]
-  [:<>
-   [:div.page.mt-3.mb-8.sans-serif
-    {:style {:font-size 14}}
-    (cards-link) divider (ns-link ns)]
-   [show-card (-> props
-                  (merge (get-in @dc/registry [ns name])))]])
+  [:div.px-12.sans-serif
+   [:div.py-4.border-b
+    [:ol.flex.items-center.space-x-3 {:role "list"}
+     [:li
+      [:div.flex.items-center
+       (cards-link)]]
+     [:li
+      [:div.flex.items-center
+       divider
+       [:span.ml-3 (ns-link ns)]]]]]
+   [:div.py-8
+    [show-card (-> props
+                   (merge (get-in @dc/registry [ns name])))]]])
 
 
 (v/defview layout [{:keys [::v/props view ns]}]
-  [:div.flex.h-screen
-   {:style {:background "#f8f8f8"}}
+  [:div.flex.h-screen.bg-white
    [toc {:current-ns ns}]
-   [:div.h-screen.overflow-y-auto.flex-auto.devcards-content
+   [:div.h-screen.overflow-y-auto.flex-auto.devcards-content.bg-gray-50
     [view props]]])
-
 
 (dc/when-enabled
  (commands/register! :dev/devcards
