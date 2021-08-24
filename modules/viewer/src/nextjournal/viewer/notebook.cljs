@@ -74,6 +74,13 @@
 #_(meta (paginate (zipmap (range 100) (range 100)) {:n 20}))
 #_(paginate #{1 2 3} {:n 20})
 
+(rf/reg-sub
+ ::blobs
+ (fn [db [blob-key id :as v]]
+   (if id
+     (get-in db v)
+     (get db blob-key))))
+
 (defn fetch! [!result {:blob/keys [id]} opts]
   (log/trace :fetch! opts)
   (-> (js/fetch (str "_blob/" id (when (seq opts)
@@ -85,7 +92,7 @@
 (defn in-process-fetch! [!result {:blob/keys [id]} opts]
   (log/trace :in-process-fetch! opts :id id)
   (-> (js/Promise. (fn [resolve _reject]
-                     (resolve @(rf/subscribe [:db/get-in [:blobs id]]))))
+                     (resolve @(rf/subscribe [::blobs id]))))
       (.then #(paginate % opts))
       (.then #(reset! !result {:value (doto % (log/info :in-process-fetch!/value))}))
       (.catch #(reset! !result {:error %}))))
@@ -115,11 +122,12 @@
                       :clerk/blob blob})
 
 
+
 (dc/defcard blob-in-process-fetch
   "Dev affordance that performs fetch in-process."
   (into [:div]
         (map (fn [[blob-id v]] [:div [v/inspect (v/view-as :clerk/blob (assoc (describe (with-meta v {:blob/id blob-id})) :blob/fetch! in-process-fetch!))]]))
-        @(rf/subscribe [:db/get :blobs]))
+        @(rf/subscribe [::blobs]))
   {:blobs (hash-map (random-uuid) (vec (drop 500 (range 1000)))
                     (random-uuid) (range 1000)
                     (random-uuid) (zipmap (range 1000) (range 1000)))})
@@ -154,19 +162,24 @@
   "Viewers that are lists are evaluated using sci."
   [v/inspect (v/with-viewer "Hans" '(fn [x] (v/with-viewer [:h3 "Ohai, " x "! 👋"] :hiccup)))])
 
+(dc/defcard test
+  "foo"
+  []
+  [:h1 "hi"])
 
 (dc/defcard notebook
   "Shows how to display a notebook document"
   [state]
-  [v/inspect ^{:nextjournal/viewer :clerk/notebook} [(v/view-as :markdown "# Hello Markdown\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum velit nulla, sodales eu lorem ut, tincidunt consectetur diam. Donec in scelerisque risus. Suspendisse potenti. Nunc non hendrerit odio, at malesuada erat. Aenean rutrum quam sed velit mollis imperdiet. Sed lacinia quam eget tempor tempus. Mauris et leo ac odio condimentum facilisis eu sed nibh. Morbi sed est sit amet risus blandit ullam corper. Pellentesque nisi metus, feugiat sed velit ut, dignissim finibus urna.")
-                                                     [1 2 3 4]
-                                                     (v/view-as :code "(shuffle (range 10))")
-                                                     {:hello [0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9]}
-                                                     (v/view-as :markdown "# And some more\n And some more [markdown](https://daringfireball.net/projects/markdown/).")
-                                                     (v/view-as :code "(shuffle (range 10))")
-                                                     (v/view-as :markdown "## Some math \n This is a formula.")
-                                                     (v/view-as :latex
-                                                                "G_{\\mu\\nu}\\equiv R_{\\mu\\nu} - {\\textstyle 1 \\over 2}R\\,g_{\\mu\\nu} = {8 \\pi G \\over c^4} T_{\\mu\\nu}")
-                                                     (v/view-as :plotly
-                                                                {:data [{:y (shuffle (range 10)) :name "The Federation" }
-                                                                        {:y (shuffle (range 10)) :name "The Empire"}]})]])
+  [v/inspect (v/view-as :clerk/notebook
+                        [(v/view-as :markdown "# Hello Markdown\n## Paragraphs\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum velit nulla, sodales eu lorem ut, tincidunt consectetur diam. Donec in scelerisque risus. Suspendisse potenti. Nunc non hendrerit odio, at malesuada erat. Aenean rutrum quam sed velit mollis imperdiet. Sed lacinia quam eget tempor tempus. Mauris et leo ac odio condimentum facilisis eu sed nibh. Morbi sed est sit amet risus blandit ullam corper. Pellentesque nisi metus, feugiat sed velit ut, dignissim finibus urna.\n## Lists\n\n* List Item 1\n* List Item 2\n* List Item 3\n\n1. List Item 1\n2. List Item 2\n3. List Item 3\n## Blockquotes\n> Hello, is it me you’re looking for?\n>\n>—Lionel Richie")
+                         [1 2 3 4]
+                         (v/view-as :code "(shuffle (range 10))")
+                         {:hello [0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9]}
+                         (v/view-as :markdown "# And some more\n And some more [markdown](https://daringfireball.net/projects/markdown/).")
+                         (v/view-as :code "(shuffle (range 10))")
+                         (v/view-as :markdown "## Some math \n This is a formula.")
+                         (v/view-as :latex
+                                    "G_{\\mu\\nu}\\equiv R_{\\mu\\nu} - {\\textstyle 1 \\over 2}R\\,g_{\\mu\\nu} = {8 \\pi G \\over c^4} T_{\\mu\\nu}")
+                         (v/view-as :plotly
+                                    {:data [{:y (shuffle (range 10)) :name "The Federation" }
+                                            {:y (shuffle (range 10)) :name "The Empire"}]})])])
