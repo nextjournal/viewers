@@ -15,8 +15,7 @@ A reimplementation of Bruce Hauman's devcards.
 (require '[nextjournal.devcards :as dc])
 ```
 
-We provide two macros, `dc/defcard` and `dc/defcard-nj`. They are largely
-equivalent, but with some small differences in syntax.
+The `dc/defcard` macro is the main entry point.
 
 ## Syntax
 
@@ -37,13 +36,6 @@ The complete syntax:
                   ;; argument. Can be omitted*
   [:h1 "hello"]   ;; body
   {})             ;; Initial re-frame db, or set state with ::dc/state
-  
-  
-(dc/defcard-nj other-card
-  "The docstring. Can be omitted but shouldn't be. Will be rendered as markdown"
-  [:h1 "hello"]   ;; body, can also be a one-arg function
-  {}              ;; Initial defcard state
-  {})             ;; Initial re-frame db
 ```
 
 In the basic case you simply pass a hiccup form to show in the devcard, and
@@ -61,12 +53,9 @@ are using Freerange-based components (i.e. `defview` which pulls
 initial DB value after the hiccup form. This DB will also be shown underneath
 the card in a Nextjournal inspector.
 
-How the state / database are initialized, and how the state is accessed, differ
-slightly between `defcard` and `defcard-nj`.
-
-With `defcard` you pass the app-db initial state immediately after the hiccup
-form. If you want to provide an initial state for `defcard`'s own ratom then you
-use `::dc/state` inside that same map.
+You pass the app-db initial state immediately after the hiccup form. If you want
+to provide an initial state for `defcard`'s own ratom then you use `::dc/state`
+inside that same map.
 
 ``` clojure
 (dc/defcard stateful-card [state]
@@ -79,28 +68,6 @@ use `::dc/state` inside that same map.
 
 Notice also how in this case I added an argument vector (`[state]`) to access
 the defcard state, which I can then `swap!`/`reset`/`deref`.
-
-With `defcard-nj` the local state and app-db state are provided as separate
-maps.
-
-``` clojure
-(dc/defcard-nj stateful-card
-  [:p "my card"]
-  {:this-is "defcard state"}
-  {:this-goes-in "the re-frame app-db"})
-```
-
-In this case the syntax does not allow for an argument vector, if you want to
-gain access to the local state you need to pass a one-arg function instead of
-hiccup.
-
-``` clojure
-(dc/defcard-nj stateful-card
-  (fn [state]
-    [:pre "State:" (pr-str @state)])
-  {:this-is "defcard state"}
-  {:this-goes-in "the re-frame app-db"})
-```
 
 There is one important caveat, in that `dc/defcard` sometimes mistakes hiccup
 for an argument vector. Consider this:

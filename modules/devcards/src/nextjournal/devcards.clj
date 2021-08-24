@@ -50,7 +50,8 @@
                           :main `(fn [] ~main)}))))
 
 (defmacro defcard-nj
-  {:arglists '([name ?doc main ?initial-data ?options])}
+  {:arglists '([name ?doc main ?initial-data ?options])
+   :depcrecated true}
   [& exprs]
   (let [[name doc main initial-data options] (parse-optional-preds [ident? string?] exprs)]
     (when (cljs? &env)
