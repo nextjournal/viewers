@@ -94,50 +94,6 @@ body {
   --snap-easing: cubic-bezier(0.060, 0.975, 0.195, 0.985);
 }
 
-/* Headings */
-/* --------------------------------------------------------------- */
-
-h1, h2, h3, h4, h5, h6, h7, h8 {
-  font-family: var(--sans-serif-condensed-font);
-  font-weight: bold;
-  margin: 1rem 0;
-}
-h1 {
-  font-size: 2.5rem;
-  line-height: 1.2;
-  margin-bottom: 0;
-}
-h2 {
-  font-size: 1.8rem;
-  margin: 3rem 0 0 0;
-  line-height: 1.3;
-}
-h2.pm-node {
-  margin-top: 1.5rem;
-}
-h3 {
-  font-size: 1.35rem;
-  margin: 2rem 0 0 0;
-  line-height: 1.3;
-}
-h3.pm-node {
-  margin-top: 0.5rem;
-}
-h4 {
-  font-size: 1.2rem;
-  margin: 1.5rem 0 0 0;
-}
-h4.pm-node {
-  margin-top: 0;
-}
-h5, h6, h7, h8 {
-  font-size: 1rem;
-  margin: 1rem 0 0 0;
-}
-h5.pm-node {
-  margin-top: 0;
-}
-
 /* Katex */
 /* --------------------------------------------------------------- */
 /* Tailwind sets a light gray as default border-color
@@ -145,27 +101,6 @@ h5.pm-node {
 
 .katex * {
   border-color: black;
-}
-
-/* Section Numbers */
-/* --------------------------------------------------------------- */
-
-body {
-  counter-reset: h2-counter;
-}
-h1 {
-  counter-reset: h2-counter;
-}
-
-h2 {
-  counter-reset: h3-counter;
-}
-.nj-doc--numbered h3::before {
-  content: counter(h2-counter) "." counter(h3-counter) ".\0000a0";
-  counter-increment: h3-counter;
-}
-h3 {
-  counter-reset: h4-counter;
 }
 
 /* Data Viewer */
@@ -485,16 +420,49 @@ pre {
 }
 .viewer-markdown p,
 .viewer-markdown ul,
-.viewer-markdown ol {
+.viewer-markdown ol,
+.viewer-markdown blockquote {
   line-height: 1.4;
   margin-top: 1rem;
 }
-.viewer-markdown h2,
-.viewer-markdown h3,
-.viewer-markdown h4,
-.viewer-markdown h5,
-.viewer-markdown h6 {
+.viewer-markdown blockquote {
+  border-left: 3px solid rgba(0,0,0,.1);
+  padding-left: 1rem;
+}
+.viewer-markdown *:first-child {
+  margin-top: 0;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--sans-serif-condensed-font);
+  font-weight: bold;
   margin-top: 2rem;
+}
+h1:first-child,
+h2:first-child,
+h3:first-child,
+h4:first-child,
+h5:first-child,
+h6:first-child {
+  margin-top: 0;
+}
+h1 {
+  font-size: 2.5rem;
+  line-height: 1.2;
+  margin-top: 0;
+}
+h2 {
+  font-size: 1.8rem;
+  line-height: 1.3;
+}
+h3 {
+  font-size: 1.35rem;
+  line-height: 1.3;
+}
+h4 {
+  font-size: 1.2rem;
+}
+h5, h6 {
+  font-size: 1rem;
 }
 @media (min-width: 768px) {
   .viewer-code > div,
