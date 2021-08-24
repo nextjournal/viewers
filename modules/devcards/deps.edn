@@ -5,4 +5,6 @@
         nextjournal/markdown {:local/root "../markdown"}
         nextjournal/log {:local/root "../log"}
         nextjournal/viewer {:local/root "../viewer"}
-        nextjournal/ui {:local/root "../ui"}}}
+        nextjournal/ui {:local/root "../ui"}
+
+        org.flatland/ordered {:mvn/version "1.5.9"}}}
