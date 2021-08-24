@@ -1,13 +1,11 @@
 {:deps {:aliases [:shadow :examples]}
- :dev-http {7779 "public"}
- :builds {:browser {:target     :browser
-                    :output-to  "public/js/viewer.js"
+ :dev-http {7779 ["resources" "public"]}
+ :builds {:browser {:target :browser
+                    :output-to "public/js/viewer.js"
                     :output-dir "public/js"
-                    #_#_
-                    :asset-path "/js/out"
-                    :modules    {:viewer {:entries [nextjournal.viewer
-                                                    nextjournal.viewer.notebook
-                                                    nextjournal.devcards.routes]}}
+                    :modules {:viewer {:entries [nextjournal.viewer
+                                                 nextjournal.viewer.notebook
+                                                 nextjournal.devcards.routes]}}
 
                     :js-options {:output-feature-set :es8}
 

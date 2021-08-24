@@ -66,8 +66,9 @@
       {:class "top-1/2"
        :style {:transform "rotate(-90deg)"
                :transform-origin "right top 0"}}
-      [:div.text-sm.font-bold.text-center.white-space-nowrap.left-0.top-0.opacity-30
-       {:style {:width 200
+      [:div.text-center.uppercase.tracking-wide.white-space-nowrap.left-0.top-0.opacity-30
+       {:style {:font-size 13
+                :width 200
                 :margin-left -100
                 :margin-top 15}}
        label]]
