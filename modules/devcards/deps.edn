@@ -9,5 +9,5 @@
 
         ;; we've submitted the cljs implementation for ordered-map upstream, but
         ;; will have to use this fork until that makes it in.
-        org.flatland/ordered {:git/url "https://github.com/plexus/ordered-map"
-                              :git/sha "ec6ea429bf2fc1abdd02ba2e34acae8953a30fac"}}}
+        org.flatland/ordered {:git/url "https://github.com/plexus/ordered"
+                              :git/sha "0aa94cd7ac92d3991b29f34396a016fdc0ca1c1e"}}}
