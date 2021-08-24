@@ -7,9 +7,9 @@
                   io/resource
                   slurp
                   (str/split #"\n"))]
-    [:pre
-     [:code.language-clojure
-      (->> lines
-           (drop-while #(not (str/includes? % (str " " name))))
-           (take-while #(not (re-find #"^$" %)))
-           (str/join "\n"))]]))
+    `[nextjournal.viewer/inspect
+      {:nextjournal/value ~(->> lines
+                                (drop-while #(not (str/includes? % (str " " name))))
+                                (take-while #(not (re-find #"^$" %)))
+                                (str/join "\n"))
+       :nextjournal/viewer :code}]))

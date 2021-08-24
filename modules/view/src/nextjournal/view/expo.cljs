@@ -1,5 +1,6 @@
 (ns nextjournal.view.expo
   (:require [nextjournal.view :as v]
+            [nextjournal.viewer]
             [nextjournal.devcards :as dc]
             [ductile.ui.components :as components]
             [re-frame.core :as rf-core]
