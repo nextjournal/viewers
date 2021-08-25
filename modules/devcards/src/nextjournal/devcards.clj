@@ -32,7 +32,9 @@
   [env]
   (some? (:ns env)))
 
-(defmacro defcard [& args]
+(defmacro defcard
+  {:arglists '([name ?doc ?argv body ?data])}
+  [& args]
   (let [[name
          doc
          argv
@@ -47,10 +49,12 @@
                           :class (-> body meta ::class)
                           :main `(fn [] ~main)}))))
 
-(defmacro defcard-nj [& exprs]
+(defmacro defcard-nj
+  {:arglists '([name ?doc main ?initial-data ?options])
+   :depcrecated true}
+  [& exprs]
   (let [[name doc main initial-data options] (parse-optional-preds [ident? string?] exprs)]
     (when (cljs? &env)
       (register-devcard! name {:data `(fn [] (merge {::state ~initial-data} ~options))
                                :doc doc
                                :main `(fn [] ~main)}))))
-

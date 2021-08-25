@@ -154,9 +154,11 @@
       (prn :CARD card))
     [:div.mb-10
      [:div.mb-4.sans-serif.text-sm
-      [:a.font-bold.text-lg
-       {:href (rfe/href :devcards/by-name {:ns ns :name name})} name]
-      (when doc
+      (when-not (false? (::dc/title? card))
+        [:a.font-bold.text-lg
+         {:href (rfe/href :devcards/by-name {:ns ns :name name})} name])
+
+      (when (and doc (not (false? (::dc/description? card))))
         [render-md doc])]
      [:div {:class class}
       [:div.bg-white.rounded-md.border.border-gray-200.shadow-sm
@@ -166,7 +168,7 @@
 
 (defn format-data [{:as db ::dc/keys [state]}]
   {:initial-state state
-   :initial-db (dissoc db ::dc/state)})
+   :initial-db (dissoc db ::dc/state ::dc/title? ::dc/description?)})
 
 (v/defview show-card [{card ::v/props :keys [data compile-key]}]
   (let [frame (rf.frame/make-frame

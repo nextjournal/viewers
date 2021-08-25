@@ -1,12 +1,13 @@
 (ns nextjournal.devcards
   (:require-macros [nextjournal.devcards :as dc])
   (:require [clojure.string]
+            [flatland.ordered.map :as ordered-map]
             [nextjournal.view :as v]
             [re-frame.context :as rf]
             [re-frame.frame :as rf.frame]
             [reagent.core :as r]))
 
-(defonce registry (r/atom {}))
+(defonce registry (r/atom (ordered-map/ordered-map)))
 
 (defn register-devcard* [{:as opts :keys [ns name]}]
   (swap! registry assoc-in [ns name] opts))

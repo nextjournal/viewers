@@ -1,7 +1,13 @@
-{:deps {io.github.nextjournal/freerange {:git/sha "8cf68c30722a4c6f8f948a134c900d7a656ecad4"}
+{:deps {re-frame/re-frame {:git/url "https://github.com/nextjournal/freerange"
+                           :git/sha "8cf68c30722a4c6f8f948a134c900d7a656ecad4"}
         nextjournal/cljs-extensions {:local/root "../cljs-extensions"}
-        nextjournal/command-palette {:local/root "../command-palette"}
+        nextjournal/command-bar {:local/root "../command-bar"}
         nextjournal/markdown {:local/root "../markdown"}
         nextjournal/log {:local/root "../log"}
         nextjournal/viewer {:local/root "../viewer"}
-        nextjournal/ui {:local/root "../ui"}}}
+        nextjournal/ui {:local/root "../ui"}
+
+        ;; we've submitted the cljs implementation for ordered-map upstream, but
+        ;; will have to use this fork until that makes it in.
+        org.flatland/ordered {:git/url "https://github.com/plexus/ordered"
+                              :git/sha "0aa94cd7ac92d3991b29f34396a016fdc0ca1c1e"}}}
