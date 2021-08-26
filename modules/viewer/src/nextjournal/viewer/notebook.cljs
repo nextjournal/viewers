@@ -16,7 +16,7 @@
 (defn notebook [xs]
   (v/html
    [:div.notebook-viewer
-    (into [:div.p-4.lg:px-0.md:py-8.md:max-w-2xl.mx-auto.flex.flex-col]
+    (into [:div.p-4.lg:px-0.md:py-8.mx-auto.flex.flex-col]
           (map #(v/html
                  (let [viewer (-> % v/meta :nextjournal/viewer)]
                    [:div {:class (case viewer
