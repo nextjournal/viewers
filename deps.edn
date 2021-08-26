@@ -1,4 +1,5 @@
-{:deps {io.github.nextjournal/viewer {:local/root "modules/viewer"}
+{:paths ["src" "resources"]
+ :deps {io.github.nextjournal/viewer {:local/root "modules/viewer"}
         io.github.nextjournal/inspector {:local/root "modules/inspector"}
         girouette/girouette {:mvn/version "0.0.4"}}
 
