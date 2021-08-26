@@ -8,6 +8,7 @@
 /.lsp/sqlite.db
 /.shadow-cljs/
 /.calva/
+/public/css/girouette.css
 /public/js/
 /node_modules/
 /.cpcache
@@ -22,4 +23,3 @@
 
 # VSCode/Calva
 .calva/
-/public/*.css

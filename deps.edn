@@ -12,6 +12,6 @@
   :girouette {:extra-deps {girouette/processor {:mvn/version "0.0.4"}}
               :ns-default girouette.processor
               :exec-fn process
-              :exec-args {:css {:output-file "public/girouette.css"}
+              :exec-args {:css {:output-file "public/css/girouette.css"}
                           :watch? true
                           :input {:source-paths ["modules/viewer/src" "modules/devcards/src"]}}}}}
