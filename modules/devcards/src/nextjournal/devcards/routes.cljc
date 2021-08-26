@@ -28,7 +28,3 @@
   (if-let [{:keys [data path-params]} @match]
     [devcards-ui/layout (merge data path-params)]
     [:pre "no match!"]))
-
-(defn ^:export ^:dev/after-load start []
-  (rfe/start! router #(reset! match %1) {:use-fragment @use-fragment?})
-  (r/render [devcards] (js/document.getElementById "app")))
