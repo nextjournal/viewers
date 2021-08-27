@@ -70,7 +70,7 @@ jobs:
       - name: Compile ClojureScript (snapshot devcards/stories build)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: yarn shadow-cljs release browser
+        run: bb release:cljs
 
       - name: Compile CSS
         run: bb build:css

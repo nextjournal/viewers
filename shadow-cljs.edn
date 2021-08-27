@@ -9,4 +9,4 @@
 
                     :js-options {:output-feature-set :es8}
 
-                    :release {:output-dir "build/"}}}}
+                    :release {:output-dir "build/js"}}}}
