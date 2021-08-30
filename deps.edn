@@ -1,7 +1,9 @@
 {:paths ["src" "resources"]
  :deps {io.github.nextjournal/viewer {:local/root "modules/viewer"}
         io.github.nextjournal/inspector {:local/root "modules/inspector"}
-        girouette/girouette {:mvn/version "0.0.4"}}
+        girouette/girouette {:deps/root "lib/girouette"
+                             :git/url "git@github.com:green-coder/girouette.git"
+                             :git/sha "6de4cd20b65de582cf238e9c8b381477ca772caf"}}
 
  :aliases
  {:shadow {:extra-deps {thheller/shadow-cljs {:mvn/version "2.15.3"}
@@ -9,7 +11,9 @@
            :main-opts ["-m" "shadow.cljs.devtools.cli"]}
   :examples {:extra-deps {metosin/reitit-frontend {:mvn/version "0.5.15"}}}
 
-  :girouette {:extra-deps {girouette/processor {:mvn/version "0.0.4"}}
+  :girouette {:extra-deps {girouette/processor {:deps/root "lib/processor"
+                                                :git/url "git@github.com:green-coder/girouette.git"
+                                                :git/sha "6de4cd20b65de582cf238e9c8b381477ca772caf"}}
               :ns-default girouette.processor
               :exec-fn process
               :exec-args {:css {:output-file "public/css/girouette.css"}
