@@ -80,7 +80,7 @@ jobs:
 
       - name: Copy build to bucket under SHA
         run: |
-          gsutil cp -r build gs://nextjournal-viewers-static-html/build-${{ github.sha }}
+          gsutil cp -r build gs://nextjournal-snapshots/viewers/build/${{ github.sha }}
 
       - name: Add status flag to the devcards build
         uses: Sibz/github-status-action@v1
@@ -90,4 +90,4 @@ jobs:
           description: 'Ready'
           state: 'success'
           sha: ${{github.event.pull_request.head.sha || github.sha}}
-          target_url: https://storage.googleapis.com/nextjournal-viewers-static-html/build-${{ github.sha }}/index.html
+          target_url: https://storage.googleapis.com/nextjournal-snapshots/viewers/build/${{ github.sha }}/index.html
