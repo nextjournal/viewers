@@ -9,8 +9,14 @@
   watch:css {:doc "Starts a watcher for css using girouette"
              :task (clojure "-X:girouette")}
 
+  build:css {:doc "Build css using girouette"
+             :task (clojure "-X:girouette :watch? false")}
+
   -dev {:depends [watch:cljs watch:css]}
   dev {:doc "Start app in dev mode, compiles cljs and css, starts an nrepl "
-       :task (run '-dev {:parallel true})}}
+       :task (run '-dev {:parallel true})}
+
+  release:cljs {:doc "Builds a cljs release artifact of the example app"
+                :task (clojure "-M:examples:shadow release browser")}}
 
  :min-bb-version "0.5.1"}
