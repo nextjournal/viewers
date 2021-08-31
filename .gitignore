@@ -8,7 +8,7 @@
 /.lsp/sqlite.db
 /.shadow-cljs/
 /.calva/
-/public/css/girouette.css
+/public/css/app.css
 /public/js/
 /node_modules/
 /.cpcache

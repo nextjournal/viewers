@@ -12,7 +12,7 @@ cp public/index.html build/index.html
 
 # CSS
 cp resources/public/css/viewer.css build/css/viewer.css
-cp public/css/girouette.css build/css/girouette.css
+cp public/css/app.css build/css/app.css
 
 # Images
 

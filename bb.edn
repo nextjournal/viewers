@@ -1,6 +1,6 @@
 {:tasks
  ;;TODO adapt out css file name
- {:init (def tailwind-build-cmd "npx tailwindcss --input stylesheets/viewers.css  --output public/css/girouette.css")
+ {:init (def tailwind-build-cmd "npx tailwindcss --input stylesheets/app.css  --output public/css/app.css")
 
   yarn-install {:doc "Installs and updates npm dependencies"
                 :task (shell "yarn install")}
