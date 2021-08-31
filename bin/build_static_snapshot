@@ -8,7 +8,7 @@ mkdir -p build/js build/css build/images
 cp public/index.html build/index.html
 
 # JS
-# Already in build/js from release build
+cp public/js/viewer.js build/js/
 
 # CSS
 cp resources/public/css/viewer.css build/css/viewer.css

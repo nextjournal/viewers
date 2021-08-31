@@ -7,6 +7,4 @@
                                                  nextjournal.viewer.notebook
                                                  nextjournal.devcards.main]}}
 
-                    :js-options {:output-feature-set :es8}
-
-                    :release {:output-dir "build/js"}}}}
+                    :js-options {:output-feature-set :es8}}}}
