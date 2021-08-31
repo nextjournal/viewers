@@ -29,10 +29,9 @@
     "markdown-it-texmath": "^0.9.1",
     "postcss": "^8.3.4",
     "punycode": "^2.1.1",
-    "tailwindcss": "^2.2.0-canary.16",
-
     "react": "16.9.0",
-    "react-dom": "16.9.0"
+    "react-dom": "16.9.0",
+    "tailwindcss": "^2.2.9"
   },
   "devDependencies": {
     "shadow-cljs": "^2.15.5"
