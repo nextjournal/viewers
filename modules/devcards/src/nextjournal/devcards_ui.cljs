@@ -130,7 +130,7 @@
     [icon/view "Refresh" {:size 18 :class "fill-current"}]]])
 
 (v/defview show-main [{::v/keys [state props]
-                       :keys [main initial-db initial-state]}]
+                       :keys [main initial-db initial-state class]}]
   (when main
     (r/with-let [app-db (let [{:keys [app-db]} (rf/current-frame)]
                           (when (seq initial-db)
@@ -142,7 +142,7 @@
                    main)]
         [:div
          [nextjournal.devcards/error-boundary
-          [:div.p-3 main]]
+          [:div {:class (or class "p-3")} main]]
          (when initial-state
            [inspector {:ratom state :label "state" :initial-value initial-state :label-aligned? initial-state}])
          (when (seq initial-db)
@@ -160,11 +160,10 @@
 
       (when (and doc (not (false? (::dc/description? card))))
         [render-md doc])]
-     [:div {:class class}
-      [:div.bg-white.rounded-md.border.border-gray-200.shadow-sm
-       (if loading-data?
-         [:div.p-4 "Loading data..."]
-         [show-main (assoc card ::v/initial-state initial-state)])]]]))
+     [:div.bg-white.rounded-md.border.border-gray-200.shadow-sm
+      (if loading-data?
+        [:div.p-4 "Loading data..."]
+        [show-main (assoc card ::v/initial-state initial-state)])]]))
 
 (defn format-data [{:as db ::dc/keys [state]}]
   {:initial-state state
