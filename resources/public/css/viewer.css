@@ -282,21 +282,19 @@ pre {
 }
 
 /* Viewers */
-
-.viewer-data,
-.viewer-markdown {
+.viewer-notebook .viewer {
   width: 100%;
+  padding-left: 2rem;
+  padding-right: 2rem;
 }
+
 .viewer-code {
   background: var(--gray-panel-color);
   border-radius: 2px;
   font-family: var(--code-font);
-  padding: 1rem 1.8rem;
+  padding: 1rem 2rem;
 }
-.notebook-viewer .viewer-code {
-  margin-left: -1.8rem;
-  margin-right: -1.8rem;
-}
+
 .viewer-markdown ul ul,
 .viewer-markdown ol ol {
   margin-left: 1.5rem;
@@ -348,14 +346,10 @@ h5, h6 {
   font-size: 1rem;
 }
 @media (min-width: 768px) {
-  .viewer-code > div,
-  .viewer-data,
-  .viewer-markdown {
+  .viewer-notebook .viewer-data,
+  .viewer-notebook .viewer-code,
+  .viewer-notebook .viewer-markdown {
     max-width: 42rem;
-    margin: 0 auto;
-  }
-  .viewer-plot {
-    margin: 0 auto;
   }
   .devcard-desc > div {
     max-width: 100%;
@@ -364,4 +358,15 @@ h5, h6 {
 }
 .viewer + .viewer {
   margin-top: 1.5rem;
+}
+
+@media (min-width: 1024px){
+  .viewer-notebook .viewer {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .viewer-notebook .viewer-code {
+    padding: 1rem 0 1rem 3rem;
+    max-width: 48rem;
+  }
 }

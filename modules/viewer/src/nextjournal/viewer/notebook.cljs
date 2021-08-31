@@ -15,16 +15,15 @@
 
 (defn notebook [xs]
   (v/html
-   [:div.notebook-viewer
-    (into [:div.p-4.md:py-8.mx-auto.flex.flex-col]
+    (into [:div.flex.flex-col.items-center.viewer-notebook]
           (map #(v/html
-                 (let [viewer (-> % v/meta :nextjournal/viewer)]
-                   [:div {:class (case viewer
-                                   :code "viewer viewer-code"
-                                   (:markdown :latex) "viewer viewer-markdown"
-                                   (:plotly :vega-lite) "viewer viewer-plot"
-                                   "viewer viewer-data overflow-x-auto")}
-                    (cond-> [v/inspect %] (:blob/id %) (vary-meta assoc :key (:blob/id %)))]))) xs)]))
+                  (let [viewer (-> % v/meta :nextjournal/viewer)]
+                    [:div {:class (case viewer
+                                    :code "viewer viewer-code"
+                                    (:markdown :latex) "viewer viewer-markdown"
+                                    (:plotly :vega-lite) "viewer viewer-plot"
+                                    "viewer viewer-data overflow-x-auto")}
+                     (cond-> [v/inspect %] (:blob/id %) (vary-meta assoc :key (:blob/id %)))]))) xs)))
 
 (defn var [x]
   (v/html [:span.inspected-value
@@ -169,7 +168,6 @@
 
 (dc/defcard notebook
   "Shows how to display a notebook document"
-  [state]
   [v/inspect (v/view-as :clerk/notebook
                         [(v/view-as :markdown "# Hello Markdown\n## Paragraphs\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum velit nulla, sodales eu lorem ut, tincidunt consectetur diam. Donec in scelerisque risus. Suspendisse potenti. Nunc non hendrerit odio, at malesuada erat. Aenean rutrum quam sed velit mollis imperdiet. Sed lacinia quam eget tempor tempus. Mauris et leo ac odio condimentum facilisis eu sed nibh. Morbi sed est sit amet risus blandit ullam corper. Pellentesque nisi metus, feugiat sed velit ut, dignissim finibus urna.\n## Lists\n\n* List Item 1\n* List Item 2\n* List Item 3\n\n1. List Item 1\n2. List Item 2\n3. List Item 3\n## Blockquotes\n> Hello, is it me you’re looking for?\n>\n>—Lionel Richie")
                          [1 2 3 4]
