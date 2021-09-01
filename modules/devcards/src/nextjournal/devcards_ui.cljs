@@ -130,7 +130,7 @@
     [icon/view "Refresh" {:size 18 :class "fill-current"}]]])
 
 (v/defview show-main [{::v/keys [state props]
-                       :keys [main initial-db initial-state class]}]
+                       :keys [main initial-db initial-state ::dc/class]}]
   (when main
     (r/with-let [app-db (let [{:keys [app-db]} (rf/current-frame)]
                           (when (seq initial-db)
@@ -148,7 +148,7 @@
          (when (seq initial-db)
            [inspector {:ratom app-db :label "db" :initial-value initial-db :label-aligned? initial-state}])]))))
 
-(v/defview show-card* [{card ::v/props :keys [class initial-state name ns doc loading-data?]}]
+(v/defview show-card* [{card ::v/props :keys [initial-state name ns doc loading-data?]}]
   (when card
     (when (= name "sidebar-elements")
       (prn :CARD card))
@@ -165,9 +165,14 @@
         [:div.p-4 "Loading data..."]
         [show-main (assoc card ::v/initial-state initial-state)])]]))
 
+(def dc-opts [::dc/title? ::dc/description? ::dc/class])
+
 (defn format-data [{:as db ::dc/keys [state]}]
   {:initial-state state
-   :initial-db (dissoc db ::dc/state ::dc/title? ::dc/description?)})
+   :initial-db (apply dissoc db dc-opts)})
+
+(defn extract-opts [data]
+  (select-keys data dc-opts))
 
 (v/defview show-card [{card ::v/props :keys [data compile-key]}]
   (let [frame (rf.frame/make-frame
@@ -183,10 +188,10 @@
             [promises/view
              {:promise (data)
               :on-value (fn [data]
-                          [show-card* (merge card (format-data data))])
+                          [show-card* (merge card (format-data data) (extract-opts data))])
               :on-error (fn [error] [:div "Error loading data: " (str error)])
-              :on-loading (fn [] [show-card* (assoc card :loading-data? true)])}]
-            ^{:key compile-key} [show-card* (merge card (format-data data))])]))]))
+              :on-loading (fn [] [show-card* (merge card {:loading-data? true} (extract-opts data))])}]
+            ^{:key compile-key} [show-card* (merge card (format-data data) (extract-opts data))])]))]))
 
 (v/defview show-namespace [{:keys [cards ns]}]
   (when ns

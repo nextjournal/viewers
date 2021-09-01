@@ -180,4 +180,6 @@
                                     "G_{\\mu\\nu}\\equiv R_{\\mu\\nu} - {\\textstyle 1 \\over 2}R\\,g_{\\mu\\nu} = {8 \\pi G \\over c^4} T_{\\mu\\nu}")
                          (v/view-as :plotly
                                     {:data [{:y (shuffle (range 10)) :name "The Federation" }
-                                            {:y (shuffle (range 10)) :name "The Empire"}]})])])
+                                            {:y (shuffle (range 10)) :name "The Empire"}]})])]
+  {::dc/class "p-0"
+   ::dc/title? false})
