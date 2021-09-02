@@ -165,7 +165,7 @@
         [:div.p-4 "Loading data..."]
         [show-main (assoc card ::v/initial-state initial-state)])]]))
 
-(def dc-opts [::dc/title? ::dc/description? ::dc/class])
+(def dc-opts [::dc/state ::dc/title? ::dc/description? ::dc/class])
 
 (defn format-data [{:as db ::dc/keys [state]}]
   {:initial-state state
