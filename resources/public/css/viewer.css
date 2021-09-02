@@ -344,6 +344,46 @@ h5, h6 {
   line-height: 1.4;
   margin-top: 1rem;
 }
+.viewer-markdown hr {
+  margin-top: 1.5rem;
+  border-top: 2px solid rgba(0,0,0,.5);
+}
+.viewer-markdown ol {
+  counter-reset: ol-counter;
+  list-style: none;
+}
+.viewer-markdown ol li::before {
+  content: counters(ol-counter, ".") ". ";
+  counter-increment: ol-counter;
+}
+.viewer-markdown li {
+  position: relative;
+  margin-left: 1rem;
+  display: block;
+}
+.viewer-markdown ol li {
+  margin-left: 0;
+}
+.viewer-markdown .contains-task-list li {
+  margin-left: 0;
+}
+.viewer-markdown .contains-task-list li label {
+  display: flex;
+}
+.viewer-markdown .contains-task-list input[type="checkbox"] {
+  margin-right: 0.5rem;
+  position: relative;
+  top: 4px;
+}
+.viewer-markdown li + li {
+  margin-top: 0.25rem;
+}
+.viewer-markdown ul:not(.contains-task-list) li::before {
+  position: absolute;
+  content: "•";
+  left: -1rem;
+  top: 0;
+}
 .viewer-markdown blockquote {
   border-left: 3px solid rgba(0,0,0,.1);
   padding-left: 1rem;
