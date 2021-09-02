@@ -1,5 +1,7 @@
 {:paths ["src" "resources"]
- :deps {io.github.nextjournal/viewer {:local/root "modules/viewer"}
+ :deps {io.github.nextjournal/command-bar {:local/root "modules/command-bar"}
+        io.github.nextjournal/devcards {:local/root "modules/devcards"}
+        io.github.nextjournal/viewer {:local/root "modules/viewer"}
         io.github.nextjournal/inspector {:local/root "modules/inspector"}}
 
  :aliases
