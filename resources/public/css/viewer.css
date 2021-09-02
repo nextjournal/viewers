@@ -281,38 +281,8 @@ pre {
   font-family: var(--code-font);
 }
 
-/* Viewers */
-.viewer-notebook .viewer {
-  width: 100%;
-  padding-left: 2rem;
-  padding-right: 2rem;
-}
+/* Headings */
 
-.viewer-code {
-  background: var(--gray-panel-color);
-  border-radius: 2px;
-  font-family: var(--code-font);
-  padding: 1rem 2rem;
-}
-
-.viewer-markdown ul ul,
-.viewer-markdown ol ol {
-  margin-left: 1.5rem;
-}
-.viewer-markdown p,
-.viewer-markdown ul,
-.viewer-markdown ol,
-.viewer-markdown blockquote {
-  line-height: 1.4;
-  margin-top: 1rem;
-}
-.viewer-markdown blockquote {
-  border-left: 3px solid rgba(0,0,0,.1);
-  padding-left: 1rem;
-}
-.viewer-markdown *:first-child {
-  margin-top: 0;
-}
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--sans-serif-condensed-font);
   font-weight: bold;
@@ -345,28 +315,53 @@ h4 {
 h5, h6 {
   font-size: 1rem;
 }
-@media (min-width: 768px) {
-  .viewer-notebook .viewer-data,
-  .viewer-notebook .viewer-code,
-  .viewer-notebook .viewer-markdown {
-    max-width: 42rem;
-  }
-  .devcard-desc > div {
-    max-width: 100%;
-    margin: 0;
-  }
+
+/* Viewers */
+
+.max-w-prose {
+  max-width: 46rem !important;
+}
+.max-w-wide {
+  max-width: 48rem !important;
+}
+.viewer-code {
+  background: var(--gray-panel-color);
+  border-radius: 2px;
+  font-family: var(--code-font);
+  padding: 1rem 2rem;
+}
+.viewer-markdown h1:first-child {
+  margin-top: 4rem;
+}
+.viewer-markdown ul ul,
+.viewer-markdown ol ol {
+  margin-left: 1.5rem;
+}
+.viewer-markdown p,
+.viewer-markdown ul,
+.viewer-markdown ol,
+.viewer-markdown blockquote {
+  line-height: 1.4;
+  margin-top: 1rem;
+}
+.viewer-markdown blockquote {
+  border-left: 3px solid rgba(0,0,0,.1);
+  padding-left: 1rem;
+}
+.viewer-markdown *:first-child {
+  margin-top: 0;
 }
 .viewer + .viewer {
   margin-top: 1.5rem;
 }
-
-@media (min-width: 1024px){
-  .viewer-notebook .viewer {
-    padding-left: 0;
-    padding-right: 0;
-  }
+@media (min-width: 960px){
   .viewer-notebook .viewer-code {
     padding: 1rem 0 1rem 3rem;
-    max-width: 48rem;
+  }
+}
+@media (min-width: 768px) {
+  .devcard-desc > div {
+    max-width: 100%;
+    margin: 0;
   }
 }

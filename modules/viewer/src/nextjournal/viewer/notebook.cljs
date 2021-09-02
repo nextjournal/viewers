@@ -17,12 +17,16 @@
   (v/html
     (into [:div.flex.flex-col.items-center.viewer-notebook]
           (map #(v/html
-                  (let [viewer (-> % v/meta :nextjournal/viewer)]
-                    [:div {:class (case viewer
-                                    :code "viewer viewer-code"
-                                    (:markdown :latex) "viewer viewer-markdown"
-                                    (:plotly :vega-lite) "viewer viewer-plot"
-                                    "viewer viewer-data overflow-x-auto")}
+                  (let [{:as ks :nextjournal/keys [viewer width]} (v/meta %)]
+                    [:div {:class ["viewer"
+                                   (when (keyword? viewer)
+                                     (str "viewer-" (name viewer)))
+                                   (case (or width (case viewer
+                                                     :code :wide
+                                                     :prose))
+                                     :wide "w-full max-w-wide px-8"
+                                     :full "w-full"
+                                     "w-full max-w-prose px-8 overflow-x-auto")]}
                      (cond-> [v/inspect %] (:blob/id %) (vary-meta assoc :key (:blob/id %)))]))) xs)))
 
 (defn var [x]
@@ -181,5 +185,4 @@
                          (v/view-as :plotly
                                     {:data [{:y (shuffle (range 10)) :name "The Federation" }
                                             {:y (shuffle (range 10)) :name "The Empire"}]})])]
-  {::dc/class "p-0"
-   ::dc/title? false})
+  {::dc/class "p-0"})
