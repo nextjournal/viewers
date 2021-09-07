@@ -330,6 +330,13 @@ h5, h6 {
   font-family: var(--code-font);
   padding: 1rem 2rem;
 }
+.viewer-markdown pre {
+  background: var(--gray-panel-color);
+  border-radius: 2px;
+  padding: 1rem;
+  margin-top: 1rem;
+  overflow-x: auto;
+}
 .viewer-markdown h1:first-child {
   margin-top: 4rem;
 }
