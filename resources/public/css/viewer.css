@@ -400,6 +400,25 @@ h5, h6 {
   border-left: 3px solid rgba(0,0,0,.1);
   padding-left: 1rem;
 }
+.viewer-markdown table {
+  margin-top: 1rem;
+  border-left: 1px solid #e5e7eb;
+  border-top: 1px solid #e5e7eb;
+  min-width: 100%;
+}
+.viewer-markdown tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+.viewer-markdown td,
+.viewer-markdown th {
+  border-right: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.5rem 1rem;
+}
+.viewer-markdown th {
+  text-align: left;
+  background-color: #f3f4f6;
+}
 .viewer-markdown *:first-child {
   margin-top: 0;
 }

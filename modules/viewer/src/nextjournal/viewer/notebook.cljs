@@ -200,6 +200,14 @@ ullam corper. Pellentesque nisi metus, feugiat sed velit ut, dignissim finibus u
   * [x] Todos can be nested too!
 * [ ] Todo unchecked
 
+## Tables
+
+| Spalte 1     | Spalte 2            | Spalte 3 |
+| ------------ |:-------------------:| --------:|
+| Spalte 1 ist | links ausgerichtet  |   1600 € |
+| Spalte 2 ist | zentriert           |     12 € |
+| Spalte 3 ist | rechts ausgerichtet |      1 € |
+
 ## Blockquotes
 
 > Hello, is it me you’re looking for?
