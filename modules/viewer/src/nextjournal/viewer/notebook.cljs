@@ -173,8 +173,38 @@
 (dc/defcard notebook
   "Shows how to display a notebook document"
   [v/inspect (v/view-as :clerk/notebook
-                        [(v/view-as :markdown
-                                    "# Hello Markdown\n## Paragraphs\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum velit nulla, sodales eu lorem ut, tincidunt consectetur diam. Donec in scelerisque risus. Suspendisse potenti. Nunc non hendrerit odio, at malesuada erat. Aenean rutrum quam sed velit mollis imperdiet. Sed lacinia quam eget tempor tempus. Mauris et leo ac odio condimentum facilisis eu sed nibh. Morbi sed est sit amet risus blandit ullam corper. Pellentesque nisi metus, feugiat sed velit ut, dignissim finibus urna.\n## Lists\n\n* List Item 1\n* List Item 2\n* List Item 3\n\n1. List Item 1\n2. List Item 2\n3. List Item 3\n\n* [x] Todo checked that is really long and should be wrapping into a new line let’s see what this does.\n* [ ] Todo unchecked\n\n## Blockquotes\n> Hello, is it me you’re looking for?\n>\n>—Lionel Richie")
+                        [(v/view-as :markdown "# Hello Markdown
+## Paragraphs
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum velit nulla,
+sodales eu lorem ut, tincidunt consectetur diam. Donec in scelerisque risus.
+Suspendisse potenti. Nunc non hendrerit odio, at malesuada erat. Aenean rutrum quam
+sed velit mollis imperdiet. Sed lacinia quam eget tempor tempus. Mauris et leo ac
+odio condimentum facilisis eu sed nibh. Morbi sed est sit amet risus blandit
+ullam corper. Pellentesque nisi metus, feugiat sed velit ut, dignissim finibus urna.
+
+## Lists
+
+* List Item 1
+  * List Item 1.1
+  * List Item 1.2
+* List Item 2
+  * List Item 2.1
+  * List Item 2.2
+* List Item 3
+
+1. List Item 1
+2. List Item 2
+3. List Item 3
+
+* [x] Todo checked that is really long and should be wrapping into a new line let’s see what this does.
+  * [x] Todos can be nested too!
+* [ ] Todo unchecked
+
+## Blockquotes
+
+> Hello, is it me you’re looking for?
+>
+>—Lionel Richie")
                          [1 2 3 4]
                          (v/view-as :code "(shuffle (range 10))")
                          {:hello [0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9]}
