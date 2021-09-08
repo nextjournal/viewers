@@ -10,6 +10,7 @@
 /.calva/
 /public/css/app.css
 /public/js/
+/graal/js
 /node_modules/
 /.cpcache
 /modules/*/.cpcache
@@ -18,7 +19,7 @@
 .cache
 
 # intellij/cursive
-/*.iml
+*.iml
 /.idea/
 
 # VSCode/Calva

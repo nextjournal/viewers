@@ -6,5 +6,21 @@
                     :modules {:viewer {:entries [nextjournal.viewer
                                                  nextjournal.viewer.notebook
                                                  nextjournal.devcards.main]}}
+                    :js-options {:output-feature-set :es8}}
 
-                    :js-options {:output-feature-set :es8}}}}
+          :esm {:target :esm
+                :devtools {:enabled false :console-support false}
+                :output-dir "public/js/"
+                :output-to "public/js/markdown.mjs"
+                :modules
+                {:markdown {:entries ["markdown-it"
+                                      "markdown-it-task-lists"
+                                      "markdown-it-texmath"]}}}
+
+          :graal {:target :graaljs
+                  :devtools {:enabled false :console-support false}
+                  :output-dir "graal/js/"
+                  :output-to "graal/js/markdown.js"
+                  :entries ["markdown-it"
+                            "markdown-it-task-lists"
+                            "markdown-it-texmath"]}}}
