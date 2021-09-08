@@ -17,16 +17,14 @@
 (defn push-node [{:as doc ::keys [path]} node]
   (-> doc
       (update ::path inc-last)
-      (update-in (pop path)
-                 conj
-                 node)))
+      (update-in (pop path) conj node)))
 
 (defn open-node [{:as doc ::keys [path]} type]
   (-> doc
-      (update-in (pop path) conj {:type type :content []})
-      (update ::path into [:content 0])))
+      (push-node {:type type :content []})
+      (update ::path into [:content -1])))
 
-(defn close-node [doc] (update doc ::path (comp inc-last pop pop)))
+(defn close-node [doc] (update doc ::path (comp pop pop)))
 
 ;; beginsection
 (defmulti token-op (fn [_document token] (:type token)))
@@ -40,7 +38,7 @@
   (push-node doc {:type :text :text t}))
 ;; endsection
 
-(def empty-doc {:type :document :content [] ::path [:content 0]})
+(def empty-doc {:type :document :content [] ::path [:content -1]})
 
 (defn <-tokens
   "ingests tokens "
@@ -48,16 +46,16 @@
   ([doc tokens] (reduce token-op doc tokens)))
 
 (comment                                                    ;; path after call
-  (-> empty-doc                                             ;; [:content 0]
-      (open-node :heading)                                  ;; [:content 0 :content 0]
-
+  (-> empty-doc                                             ;; [:content -1]
+      (open-node :heading)                                  ;; [:content 0 :content -1]
+      (push-node {:type :text :text "foo"})                 ;; [:content 0 :content 0]
       (push-node {:type :text :text "foo"})                 ;; [:content 0 :content 1]
-      (push-node {:type :text :text "foo"})                 ;; [:content 0 :content 2]
-      ;;;;
       close-node                                            ;; [:content 1]
+
       (open-node :paragraph)                                ;; [:content 1 :content]
       (push-node {:type :text :text "hello"})
       close-node
+      (open-node :bullet-list)
       ;;
       )
 
