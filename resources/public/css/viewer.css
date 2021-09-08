@@ -429,6 +429,9 @@ h5, h6 {
     padding: 1rem 0 1rem 3rem;
   }
 }
+.viewer-code + .viewer:not(.viewer-markdown):not(.viewer-code) {
+  margin-top: 0.5rem;
+}
 @media (min-width: 768px) {
   .devcard-desc > div {
     max-width: 100%;
