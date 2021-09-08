@@ -9,7 +9,7 @@
 
 (def Markdown
   (delay (doto ^js (md #js{:breaks false :html true :linkify true})
-           (.use md-task-lists #js{:label true})
+           (.use md-task-lists)
            (.use md-texmath #js{:delimiters "dollars" :engine katex})  ;; $$ or $
            #_#_ ;; TODO: support these
            (use md-texmath #js{:delimiters "brackets"}) ;; \[ \] or \( \)
