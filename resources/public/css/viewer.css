@@ -336,9 +336,6 @@ h5, h6 {
   margin-top: 1rem;
   overflow-x: auto;
 }
-.viewer-markdown h1:first-child {
-  margin-top: 4rem;
-}
 .viewer-markdown ul ul,
 .viewer-markdown ol ol {
   margin-left: 1rem;
@@ -440,6 +437,10 @@ h5, h6 {
 }
 .viewer + .viewer {
   margin-top: 1.5rem;
+}
+.viewer-notebook {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
 }
 @media (min-width: 960px){
   .viewer-notebook .viewer-code {
