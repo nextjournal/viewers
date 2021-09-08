@@ -30,9 +30,10 @@
            (.eval (source-file "graal/js/markdown.js"))   ;; make this available at clj compile time ?
            ;; TODO: share js code with cljs (e.g. with es module target approach )
            ;; TODO: make (shadow.)require work with released js
-           (.eval "js" "const MD = shadow.js.require(\"module$node_modules$markdown_it$index\", {})({html: true})")
-           (.eval "js" "function parseJ(text) { return JSON.stringify(MD.parse(text)) }")
-           (.eval "js" "function parse(text)  { return MD.parse(text) }")))
+           ;;(.eval "js" "const MD = require('markdown-it')")
+           (.eval "js" "const MD = shadow.js.require(\"module$node_modules$markdown_it$index\", {})({html: true, linkify: true})")
+           (.eval "js" "function parseJ(text) { return JSON.stringify(MD.parse(text, {})) }")
+           (.eval "js" "function parse(text)  { return MD.parse(text, {}) }")))
 
 (defn parse [markdown-text]
   (-> ctx
@@ -44,8 +45,11 @@
 
 (comment
   ;; build graal target `clj -M:examples:shadow watch graal browser`
-  (parse "# Hello _there_")
   (parse "[some text](/some/url)")
+  (parse "
+- [ ] one
+- [ ] two
+")
   (-> (.execute (.eval ctx "js" "parse") (into-array ["# Hello"]))
       ;;.hasArrayElements
       ;;.getArraySize
@@ -97,4 +101,7 @@
   ;; esm module approach fails because of imports targeting files in shadow bundle with .js extension
   (.eval ctx  (.build (-> (Source/newBuilder "js" "import {markdown} from 'public/js/markdown.mjs';" "source.mjs") (.mimeType "application/javascript+module"))))
   (.eval ctx  (.build (-> (Source/newBuilder "js" "import * from './public/js/markdown.mjs';" "source.mjs") (.mimeType "application/javascript+module"))))
+
+  (require '[shadow.cljs.devtools.api :as shadow])
+  (shadow/repl :browser)
   )
