@@ -46,7 +46,6 @@
                          {:data `(fn [] ~data)
                           :doc doc
                           :compile-key (hash data)
-                          :class (-> body meta ::class)
                           :main `(fn [] ~main)}))))
 
 (defmacro defcard-nj
