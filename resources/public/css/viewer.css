@@ -225,26 +225,6 @@ body {
   margin-top: 0.25rem;
 }
 
-.contains-task-list input[type="checkbox"] {
-  height: 1rem;
-  width: 1rem;
-  color: rgba(79, 70, 229, var(--tw-text-opacity));
-  border-color: rgba(209, 213, 219, var(--tw-border-opacity));
-  border-radius: 0.25rem;
-  margin-right: 0.25rem;
-  position:relative;
-  top: 2px;
-}
-
-.contains-task-list input[type="checkbox"]:focus {
-  --tw-ring-color: rgba(79, 70, 229, var(--tw-ring-opacity));
-}
-
-.contains-task-list input[type="checkbox"]:checked {
-  --tw-border-opacity: 1;
-  border-color: rgba(79, 70, 229, var(--tw-border-opacity));
-}
-
 .contains-task-list {
   list-style: none;
 }
@@ -380,13 +360,15 @@ h5, h6 {
 .viewer-markdown .contains-task-list .contains-task-list {
   padding-left: 0;
 }
-.viewer-markdown .contains-task-list input[type="checkbox"] {
-  margin: 0 0.3rem 0 -1.5rem;
-  position: relative;
-  top: 2px;
+.contains-task-list input[type="checkbox"] {
   appearance: none;
+  height: 1rem;
+  width: 1rem;
+  border-radius: 0.25rem;
+  margin: 0 0.3rem 0 -1.5rem;
   border: 1px solid #d1d5db;
-  flex-shrink: 0;
+  position: relative;
+  top: 0.16rem;
 }
 .viewer-markdown .contains-task-list input[type="checkbox"]:checked {
   border-color: #4f46e5;
