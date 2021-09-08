@@ -19,8 +19,7 @@
 
           :graal {:target :graaljs
                   :devtools {:enabled false :console-support false}
-                  :output-dir "graal/js/"
-                  :output-to "graal/js/markdown.js"
+                  :output-to "resources/graal/js/markdown.js"
                   :entries ["markdown-it"
                             "markdown-it-task-lists"
                             "markdown-it-texmath"]}}}
