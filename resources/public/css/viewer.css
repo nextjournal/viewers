@@ -341,6 +341,10 @@ h5, h6 {
 }
 .viewer-markdown ul ul,
 .viewer-markdown ol ol {
+  margin-left: 1rem;
+  margin-top: 0.25rem;
+}
+.viewer-markdown ul.contains-task-list ul {
   margin-left: 1.5rem;
 }
 .viewer-markdown p,
@@ -398,9 +402,14 @@ h5, h6 {
 }
 .viewer-markdown ul:not(.contains-task-list) li::before {
   position: absolute;
-  content: "•";
+  content: "";
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 1rem;
+  background-color: currentColor;
   left: -1rem;
-  top: 0;
+  top: 0.5rem;
+  flex-shrink: 0;
 }
 .viewer-markdown blockquote {
   border-left: 3px solid rgba(0,0,0,.1);
