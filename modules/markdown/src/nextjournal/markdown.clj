@@ -38,7 +38,7 @@
             (next [_this] (->Token (.getIteratorNextElement iterator)))))))))
 
 (defn value-as [key ^Value v]
-  (when v
+  (when (and v (not (.isNull v)))
     (case key
       ("type" "tag" "content" "markup" "info") (.asString v)
       "children" (polyglot-coll->token-iterator v)
