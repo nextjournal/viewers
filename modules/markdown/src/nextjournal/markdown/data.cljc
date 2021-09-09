@@ -8,12 +8,12 @@
   - attrs
   - info
   - content
+  - [text]
   ")
 
 (defn inc-last [path] (update path (dec (count path)) (fnil inc -1)))
-(comment
-  (inc-last [:content 3]))
 
+;; region node operations
 (defn push-node [{:as doc ::keys [path]} node]
   (-> doc
       (update ::path inc-last)
@@ -25,23 +25,27 @@
       (update ::path into [:content -1])))
 
 (defn close-node [doc] (update doc ::path (comp pop pop)))
+;; endregion
+;; region token handlers
+(defmulti token-op (fn [_doc token] (:type token)))
 
-;; beginsection
-(defmulti token-op (fn [_document token] (:type token)))
-(defmethod token-op "heading_open" [{:as doc} {:as _token}]
+(defmethod token-op "heading_open" [doc _token]
   (open-node doc :heading))
-(defmethod token-op "heading_close" [{:as doc} token]
+
+(defmethod token-op "heading_close" [doc _token]
   (close-node doc))
-(defmethod token-op "inline" [{:as doc} {:as _token ts :children}]
-  (reduce token-op doc ts))
-(defmethod token-op "text" [doc {t :text}]
+
+(defmethod token-op "inline" [doc {:as _token ts :children}]
+  (<-tokens doc ts))
+
+(defmethod token-op "text" [doc {t :content}]
   (push-node doc {:type :text :text t}))
-;; endsection
+;; endregion
 
 (def empty-doc {:type :document :content [] ::path [:content -1]})
 
 (defn <-tokens
-  "ingests tokens "
+  "Takes a doc and a collection of markdown-it tokens, applies tokes to doc. Uses an emtpy doc in arity 1."
   ([tokens] (<-tokens empty-doc tokens))
   ([doc tokens] (reduce token-op doc tokens)))
 
@@ -59,5 +63,8 @@
       ;;
       )
 
-  (nextjournal.markdown/parse "# Hello")
+  (-> "# Hello"
+      nextjournal.markdown/parse
+      <-tokens
+      )
   )
