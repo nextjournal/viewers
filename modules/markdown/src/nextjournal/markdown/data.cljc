@@ -26,13 +26,21 @@
 
 (defn close-node [doc] (update doc ::path (comp pop pop)))
 ;; endregion
+
 ;; region token handlers
+(declare <-tokens)
 (defmulti token-op (fn [_doc token] (:type token)))
 
 (defmethod token-op "heading_open" [doc _token]
   (open-node doc :heading))
 
 (defmethod token-op "heading_close" [doc _token]
+  (close-node doc))
+
+(defmethod token-op "paragraph_open" [doc _token]
+  (open-node doc :paragraph))
+
+(defmethod token-op "paragraph_close" [doc _token]
   (close-node doc))
 
 (defmethod token-op "inline" [doc {:as _token ts :children}]
