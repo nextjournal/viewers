@@ -97,11 +97,16 @@
       ;;
       )
 
-  (-> "some [alt](https://foo.com/bar) link"
+  (-> "# Hello
+
+some [alt](https://foo.com/bar) link"
       nextjournal.markdown/parse
-      second
-      :children
-      seq)
+
+      <-tokens
+      ;;second
+      ;;:children
+      ;;seq
+      )
 
   (-> "*some text **with*** **mark overlap**"
       nextjournal.markdown/parse
