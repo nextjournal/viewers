@@ -3,7 +3,7 @@
    of nodes.
 
   Node:
-  - node/type: a Node's type as keyword (:heading, :paragraph, :text, etc.)
+  - type: a Node's type as keyword (:heading, :paragraph, :text, etc.)
   - info: (optional) fenced code info
   - content: (optional) a collection of Nodes representing nested content
   - text: (optional) content of text nodes, a collection of Nodes
@@ -11,8 +11,8 @@
   - level: (optional) heading level
 
   Mark:
-  - mark/type: (:em, :strong, :link, etc.)
-  - attrs: mark attributes
+  - mark: the mark type (:em, :strong, :link, etc.)
+  - attrs: mark attributes e.g. href in links
   ")
 
 ;; region node operations
@@ -49,23 +49,24 @@
 (declare <-tokens)
 (defmulti token-op (fn [_doc token] (:type token)))
 
-(defmethod token-op "heading_open" [doc _token]
-  (open-node doc :heading))
+(defmethod token-op "heading_open" [doc _token] (open-node doc :heading))
+(defmethod token-op "heading_close" [doc _token] (close-node doc))
 
-(defmethod token-op "heading_close" [doc _token]
-  (close-node doc))
+(defmethod token-op "paragraph_open" [doc _token] (open-node doc :paragraph))
+(defmethod token-op "paragraph_close" [doc _token] (close-node doc))
 
-(defmethod token-op "paragraph_open" [doc _token]
-  (open-node doc :paragraph))
+(defmethod token-op "bullet_list_open" [doc _token] (open-node doc :bullet-list))
+(defmethod token-op "bullet_list_close" [doc _token] (close-node doc))
 
-(defmethod token-op "paragraph_close" [doc _token]
-  (close-node doc))
+(defmethod token-op "ordered_list_open" [doc _token] (open-node doc :ordered-list))
+(defmethod token-op "ordered_list_close" [doc _token] (close-node doc))
 
-(defmethod token-op "inline" [doc {:as _token ts :children}]
-  (<-tokens doc ts))
+(defmethod token-op "list_item_open" [doc _token] (open-node doc :list-item))
+(defmethod token-op "list_item_close" [doc _token] (close-node doc))
 
-(defmethod token-op "text" [{:as doc ms ::marks} {t :content}]
-  (push-node doc (text-node t ms)))
+(defmethod token-op "inline" [doc {:as _token ts :children}] (<-tokens doc ts))
+
+(defmethod token-op "text" [{:as doc ms ::marks} {t :content}] (push-node doc (text-node t ms)))
 
 ;; marks
 (defmethod token-op "em_open" [doc token] (push-mark doc :em {}))
@@ -99,20 +100,17 @@
 
   (-> "# Hello
 
-some [alt](https://foo.com) link"
+some _emphatic_ **strong** [link](https://foo.com)
+
+* and
+* some
+* bullets
+"
       nextjournal.markdown/parse
-
       <-tokens
-      ;;second
-      ;;:children
       ;;seq
+      ;;(nth 9)
       )
-
-  (-> "# Hello
-
-*some text **with*** **mark overlap**"
-      nextjournal.markdown/parse-j
-      <-tokens)
 
   ;; Edge Cases
   ;; * overlapping marks produce empty text nodes
