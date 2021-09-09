@@ -18,21 +18,21 @@
 ;; region node operations
 (defn inc-last [path] (update path (dec (count path)) inc))
 
-(defn node [type content] {:node/type type :content content})
-(defn text-node [text marks] {:node/type :text :text text :marks marks})
-(defn mark [type attrs] {:mark/type type :attrs attrs})
+(defn node [type content] {:type type :content content})
+(defn text-node [text marks] (cond-> {:type :text :text text} (seq marks) (assoc :marks marks)))
+(defn mark [type attrs] (cond-> {:mark type} (seq attrs) (assoc :attrs attrs)))
 
 (defn open-node [{:as doc ::keys [path]} type]
   (-> doc
       (push-node (node type []))
       (update ::path into [:content -1])))
 
-(defn empty-text-node? [{text :text t :node/type}]
+(defn empty-text-node? [{text :text t :type}]
   (and (= :text t) (empty? text)))
 
 (defn push-node [{:as doc ::keys [path marks]} node]
   (cond-> doc
-    (not (empty-text-node? node))                           ;; ⬅ mdit produces empty text tokens at mark boundaries, see edge cases below
+    (not (empty-text-node? node)) ;; ⬅ mdit produces empty text tokens at mark boundaries, see edge cases below
     (-> #_doc
         (update ::path inc-last)
         (update-in (pop path) conj node))))
@@ -76,7 +76,7 @@
 (defmethod token-op "link_close" [doc token] (close-mark doc))
 ;; endregion
 
-(def empty-doc {:type :document :content [] ::path [:content -1] ::marks []})
+(def empty-doc {:type :doc :content [] ::path [:content -1] ::marks []})
 
 (defn <-tokens
   "Takes a doc and a collection of markdown-it tokens, applies tokes to doc. Uses an emtpy doc in arity 1."
