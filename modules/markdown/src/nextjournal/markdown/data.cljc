@@ -22,11 +22,6 @@
 (defn text-node [text marks] (cond-> {:type :text :text text} (seq marks) (assoc :marks marks)))
 (defn mark [type attrs] (cond-> {:mark type} (seq attrs) (assoc :attrs attrs)))
 
-(defn open-node [{:as doc ::keys [path]} type]
-  (-> doc
-      (push-node (node type []))
-      (update ::path into [:content -1])))
-
 (defn empty-text-node? [{text :text t :type}]
   (and (= :text t) (empty? text)))
 
@@ -36,6 +31,11 @@
     (-> #_doc
         (update ::path inc-last)
         (update-in (pop path) conj node))))
+
+(defn open-node [{:as doc ::keys [path]} type]
+  (-> doc
+      (push-node (node type []))
+      (update ::path into [:content -1])))
 
 (defn close-node [doc] (update doc ::path (comp pop pop)))
 
@@ -72,7 +72,7 @@
 (defmethod token-op "em_close" [doc token] (close-mark doc))
 (defmethod token-op "strong_open" [doc token] (push-mark doc :strong {}))
 (defmethod token-op "strong_close" [doc token] (close-mark doc))
-(defmethod token-op "link_open" [doc token] (push-mark doc :link {:href "foo/link/bar"}))
+(defmethod token-op "link_open" [doc token] (push-mark doc :link (into {} (:attrs token))))
 (defmethod token-op "link_close" [doc token] (close-mark doc))
 ;; endregion
 
@@ -99,7 +99,7 @@
 
   (-> "# Hello
 
-some [alt](https://foo.com/bar) link"
+some [alt](https://foo.com) link"
       nextjournal.markdown/parse
 
       <-tokens
@@ -108,20 +108,11 @@ some [alt](https://foo.com/bar) link"
       ;;seq
       )
 
-  (-> "*some text **with*** **mark overlap**"
-      nextjournal.markdown/parse
-      <-tokens) ;; =>
-  {:type :document,
-   :content [{:node/type :paragraph,
-              :content [{:node/type :text, :text "some text ", :marks [{:mark/type :em, :attrs {}}]}
-                        {:node/type :text,
-                         :text "with",
-                         :marks [{:mark/type :em, :attrs {}} {:mark/type :strong, :attrs {}}]}
-                        {:node/type :text, :text " ", :marks []}
-                        {:node/type :text, :text "mark overlap", :marks [{:mark/type :strong, :attrs {}}]}]}],
-   :nextjournal.markdown.data/path [:content 0],
-   :nextjournal.markdown.data/marks []}
+  (-> "# Hello
 
+*some text **with*** **mark overlap**"
+      nextjournal.markdown/parse-j
+      <-tokens)
 
   ;; Edge Cases
   ;; * overlapping marks produce empty text nodes
