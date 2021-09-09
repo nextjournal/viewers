@@ -8,9 +8,8 @@
   "
   (:require [clojure.java.io :as io]
             [clojure.data.json :as json])
-  (:import [org.graalvm.polyglot PolyglotException Context Context$Builder Engine Source Value]
-           [java.io Writer]
-           [clojure.lang ILookup]
+  (:import [org.graalvm.polyglot Context Context$Builder Engine Source Value]
+           [clojure.lang MapEntry]
            [java.util Iterator Map]
            [java.lang Iterable]))
 
@@ -37,6 +36,12 @@
             (hasNext [_this] (.hasIteratorNextElement iterator))
             (next [_this] (->Token (.getIteratorNextElement iterator)))))))))
 
+(defn map-like [^Value map-entries]
+  (map (fn [idx] (let [^Value e (.getArrayElement map-entries idx)]
+                   (MapEntry/create (keyword (.asString (.getArrayElement e 0)))
+                                    (.asString (.getArrayElement e 1)))))
+       (range (.getArraySize map-entries))))
+
 (defn value-as [key ^Value v]
   (when (and v (not (.isNull v)))
     (case key
@@ -44,7 +49,7 @@
       "children" (polyglot-coll->token-iterator v)
       ("block" "hidden") (.asBoolean v)
       ("level" "nesting") (.asInt v)
-      "attrs" v
+      "attrs" (map-like v)
       "meta" v
       "map" [(as-> v val ^Value (.getArrayElement val 0) (.asInt val))
              (as-> v val ^Value (.getArrayElement val 1) (.asInt val))]
