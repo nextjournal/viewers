@@ -1,4 +1,5 @@
 (ns nextjournal.markdown
+
   "Facility functions for handling markdown conversions
 
   - [ ] A tiny js file requiring md-it and setting up plugins, extensible
@@ -8,7 +9,9 @@
   (:require [clojure.java.io :as io]
             [clojure.data.json :as json])
   (:import [org.graalvm.polyglot PolyglotException Context Engine Source Value]
-           (clojure.lang ISeq Seqable ILookup)))
+           (clojure.lang ILookup)
+           (java.util Iterator)
+           (java.lang Iterable)))
 
 (def engine (Engine/create))
 
@@ -46,55 +49,61 @@
 (comment
   ;; build graal target `clj -M:examples:shadow watch graal browser`
   (parse "[some text](/some/url)")
-  (parse "
+  (parse "# Hello
+
 - [ ] one
 - [ ] two
 ")
+
+  ;; alternative to JSON pass
+  (declare value-as)
+
+  (deftype Token [^Value v]
+    ILookup
+    (valAt [this key] (value-as (name key) (.getMember v (name key)))))
+
+  (defn coll->token-iterator [^Value polyglot-coll]
+    (when (.hasIterator polyglot-coll)
+      (reify java.lang.Iterable
+        (iterator [this]
+          (let [iterator ^Value (.getIterator polyglot-coll)]
+            (reify java.util.Iterator
+              (hasNext [this] (.hasIteratorNextElement iterator))
+              (next [this] (->Token (.getIteratorNextElement iterator)))))))))
+
+  (defn value-as [key ^Value v]
+    (when v
+      (case key
+        ("type" "tag" "content" "markup" "info") (.asString v)
+        ("block" "hidden") (.asBoolean v)
+        "children" (-> v coll->token-iterator)
+        "level" (.asInt v)
+        "attrs" nil
+        "map" nil
+        "nesting" nil
+        "meta" nil
+        nil)))
+
   (-> (.execute (.eval ctx "js" "parse") (into-array ["# Hello"]))
-      ;;.hasArrayElements
-      ;;.getArraySize
-      (.getArrayElement 1)
-      ;;(.getMemberKeys)
-      (.getMember "children")
-      ;;.hasArrayElements)
+      coll->token-iterator
+      second
+      (get :children)
+      first
+      (get :content)
       )
 
-  ;; FIXME:
-  ;; (.isMetaObject (.execute (.eval ctx "js" "parse") (into-array ["# Hello"])))
-  ;; (.hasIterator Value) throws 'No matching field found: isIterator for class org.graalvm.polyglot.Value'
-  ;; as if polyglot api would be older than what required in deps.edn
-  ;; despite the claim: _Guest language arrays are iterable._
+  (-> (.execute (.eval ctx "js" "parse") (into-array ["# Hello"]))
+      coll->token-iterator
+      second
+      .-v
+      ;;(get :foo "bang")
+      )
 
-  ;; alternative to JSON encoding, with wrapped polyglot.Value s
-  ;; a record would fix .-key access (but easier to get ILookup on the Token class on the cljs side)
-  (defrecord Token [type tag attrs map nesting level children content markup info meta block hidden])
-  ;; or wrap it in a reified ILookup instance
-  (.-type (map->Token {:type "type" :tag "tag"}))
-  (declare ->tokens)
-  (defn ->token [polyglot-map]
-    (map->Token
-      (into {}
-            (map (juxt keyword #(let [m (.getMember polyglot-map %)] ;; TODO: fix access for all field with reify+ILookup
-                                  (cond-> m (and (not (.isNull m)) (= "children" %)) ->tokens))))
-            (.getMemberKeys polyglot-map))))
-  (defn ->tokens [polyglot-array]
-    (map #(->token (.getArrayElement polyglot-array %))
-         (range (.getArraySize polyglot-array))))
-
-  ;; (.as Value Type) coercion
-  ;; coerces single elements into com.oracle.truffle.polyglot.PolyglotMap which loses some compound values
-  ;; https://www.graalvm.org/sdk/javadoc/org/graalvm/polyglot/Value.html#as-java.lang.Class-
-  (defn ->coll [^Value polyglot-array-value]
-    (.as polyglot-array-value java.util.List))
-
-  ;; coerce with .as (can't extend Java types with ISeq )
-  (-> (.execute (.eval ctx "js" "parse") (into-array Object ["# Hello
-  ```py some info
-  1 + 1
-  ```"]))
-      ->coll
-      first)
-
+  ;; alternative ->Token for better printing
+  (defn ->Token [^Value v]
+    (proxy [java.util.Map] []
+      (get [key] (value-as (name key) (.getMember v (name key))))
+      (entrySet [] (into #{} (map (fn [k] [k (value-as k (.getMember v k))])) (.getMemberKeys v)))))
 
   (source "function(text) { return MD.parse(text) " "parse.js")
   ;; set javascript es module mimetype
