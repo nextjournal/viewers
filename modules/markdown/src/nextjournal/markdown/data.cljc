@@ -50,63 +50,65 @@
 ;; endregion
 
 ;; region token handlers
-(declare <-tokens)
-(defmulti token-op (fn [_doc token] (:type token)))
+(declare apply-tokens)
+(defmulti apply-token (fn [_doc token] (:type token)))
 
 ;; blocks
-(defmethod token-op "heading_open" [doc _token] (open-node doc :heading))
-(defmethod token-op "heading_close" [doc _token] (close-node doc))
+(defmethod apply-token "heading_open" [doc _token] (open-node doc :heading))
+(defmethod apply-token "heading_close" [doc _token] (close-node doc))
 
-(defmethod token-op "paragraph_open" [doc _token] (open-node doc :paragraph))
-(defmethod token-op "paragraph_close" [doc _token] (close-node doc))
+(defmethod apply-token "paragraph_open" [doc _token] (open-node doc :paragraph))
+(defmethod apply-token "paragraph_close" [doc _token] (close-node doc))
 
-(defmethod token-op "bullet_list_open" [doc _token] (open-node doc :bullet-list))
-(defmethod token-op "bullet_list_close" [doc _token] (close-node doc))
+(defmethod apply-token "bullet_list_open" [doc _token] (open-node doc :bullet-list))
+(defmethod apply-token "bullet_list_close" [doc _token] (close-node doc))
 
-(defmethod token-op "ordered_list_open" [doc _token] (open-node doc :ordered-list))
-(defmethod token-op "ordered_list_close" [doc _token] (close-node doc))
+(defmethod apply-token "ordered_list_open" [doc _token] (open-node doc :ordered-list))
+(defmethod apply-token "ordered_list_close" [doc _token] (close-node doc))
 
-(defmethod token-op "list_item_open" [doc _token] (open-node doc :list-item))
-(defmethod token-op "list_item_close" [doc _token] (close-node doc))
+(defmethod apply-token "list_item_open" [doc _token] (open-node doc :list-item))
+(defmethod apply-token "list_item_close" [doc _token] (close-node doc))
 
-(defmethod token-op "math_block" [doc {text :content}] (-> doc (open-node :block-formula) (push-node (formula text))))
-(defmethod token-op "math_block_end" [doc _token] (close-node doc))
+(defmethod apply-token "math_block" [doc {text :content}] (-> doc (open-node :block-formula) (push-node (formula text))))
+(defmethod apply-token "math_block_end" [doc _token] (close-node doc))
 
-(defmethod token-op "hr" [doc _token] (push-node doc {:type :ruler}))
+(defmethod apply-token "hr" [doc _token] (push-node doc {:type :ruler}))
 
-(defmethod token-op "blockquote_open" [doc _token] (open-node doc :blockquote))
-(defmethod token-op "blockquote_close" [doc _token] (close-node doc))
+(defmethod apply-token "blockquote_open" [doc _token] (open-node doc :blockquote))
+(defmethod apply-token "blockquote_close" [doc _token] (close-node doc))
 
-(defmethod token-op "fence" [doc {:as _token i :info c :content}]
+(defmethod apply-token "fence" [doc {:as _token i :info c :content}]
   (-> doc
       (open-node :code {:info i})
       (push-node (text-node c))
       close-node))
 
-(defmethod token-op "inline" [doc {:as _token ts :children}] (<-tokens doc ts))
+(defmethod apply-token "inline" [doc {:as _token ts :children}] (apply-tokens doc ts))
 
 ;; inline
-(defmethod token-op "text" [{:as doc ms ::marks} {text :content}] (push-node doc (text-node text ms)))
+(defmethod apply-token "text" [{:as doc ms ::marks} {text :content}] (push-node doc (text-node text ms)))
 
-(defmethod token-op "math_inline" [doc {text :content}] (push-node doc (formula text)))
-(defmethod token-op "math_inline_double" [doc {text :content}] (push-node doc (formula text)))
-(defmethod token-op "softbreak" [doc {text :content}] (push-node doc {:type :softbreak}))
+(defmethod apply-token "math_inline" [doc {text :content}] (push-node doc (formula text)))
+(defmethod apply-token "math_inline_double" [doc {text :content}] (push-node doc (formula text)))
+(defmethod apply-token "softbreak" [doc {text :content}] (push-node doc {:type :softbreak}))
 
 ;; marks
-(defmethod token-op "em_open" [doc token] (push-mark doc :em {}))
-(defmethod token-op "em_close" [doc token] (close-mark doc))
-(defmethod token-op "strong_open" [doc token] (push-mark doc :strong {}))
-(defmethod token-op "strong_close" [doc token] (close-mark doc))
-(defmethod token-op "link_open" [doc token] (push-mark doc :link (into {} (:attrs token))))
-(defmethod token-op "link_close" [doc token] (close-mark doc))
+(defmethod apply-token "em_open" [doc token] (push-mark doc :em {}))
+(defmethod apply-token "em_close" [doc token] (close-mark doc))
+(defmethod apply-token "strong_open" [doc token] (push-mark doc :strong {}))
+(defmethod apply-token "strong_close" [doc token] (close-mark doc))
+(defmethod apply-token "link_open" [doc token] (push-mark doc :link (into {} (:attrs token))))
+(defmethod apply-token "link_close" [doc token] (close-mark doc))
 ;; endregion
+
+(def apply-tokens (partial reduce apply-token))
 
 (def empty-doc {:type :doc :content [] ::path [:content -1] ::marks []})
 
 (defn <-tokens
-  "Takes a doc and a collection of markdown-it tokens, applies tokes to doc. Uses an emtpy doc in arity 1."
+  "Takes a doc and a collection of markdown-it tokens, applies tokens to doc. Uses an emtpy doc in arity 1."
   ([tokens] (<-tokens empty-doc tokens))
-  ([doc tokens] (reduce token-op doc tokens)))
+  ([doc tokens] (-> doc (apply-tokens tokens) (dissoc ::path ::marks))))
 
 (comment                                                    ;; path after call
   ;; boot browser repl
@@ -132,10 +134,10 @@ some _emphatic_ **strong** [link](https://foo.com)
 
 ---
 
-$$\\Pi^2$$
-
 > some nice quote
 > for fun
+
+$$\\Pi^2$$
 
 * and
 * some $\\Phi_{\\alpha}$ latext
