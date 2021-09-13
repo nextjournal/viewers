@@ -23,6 +23,7 @@
 (defn text-node
   ([text] (text-node text nil))
   ([text marks] (cond-> {:type :text :text text} (seq marks) (assoc :marks marks))))
+(defn formula [text] {:type :formula :text text})
 
 (defn empty-text-node? [{text :text t :type}] (and (= :text t) (empty? text)))
 
@@ -52,6 +53,7 @@
 (declare <-tokens)
 (defmulti token-op (fn [_doc token] (:type token)))
 
+;; blocks
 (defmethod token-op "heading_open" [doc _token] (open-node doc :heading))
 (defmethod token-op "heading_close" [doc _token] (close-node doc))
 
@@ -67,6 +69,9 @@
 (defmethod token-op "list_item_open" [doc _token] (open-node doc :list-item))
 (defmethod token-op "list_item_close" [doc _token] (close-node doc))
 
+(defmethod token-op "math_block" [doc {text :content}] (-> doc (open-node :block-formula) (push-node (formula text))))
+(defmethod token-op "math_block_end" [doc _token] (close-node doc))
+
 (defmethod token-op "fence" [doc {:as _token i :info c :content}]
   (-> doc
       (open-node :code {:info i})
@@ -75,7 +80,11 @@
 
 (defmethod token-op "inline" [doc {:as _token ts :children}] (<-tokens doc ts))
 
-(defmethod token-op "text" [{:as doc ms ::marks} {t :content}] (push-node doc (text-node t ms)))
+;; inline
+(defmethod token-op "text" [{:as doc ms ::marks} {text :content}] (push-node doc (text-node text ms)))
+
+(defmethod token-op "math_inline" [doc {text :content}] (push-node doc (formula text)))
+(defmethod token-op "math_inline_double" [doc {text :content}] (push-node doc (formula text)))
 
 ;; marks
 (defmethod token-op "em_open" [doc token] (push-mark doc :em {}))
@@ -94,6 +103,10 @@
   ([doc tokens] (reduce token-op doc tokens)))
 
 (comment                                                    ;; path after call
+  ;; boot browser repl
+  (require '[shadow.cljs.devtools.api :as shadow])
+  (shadow/repl :browser)
+
   (-> empty-doc                                             ;; [:content -1]
       (open-node :heading)                                  ;; [:content 0 :content -1]
       (push-node {:node/type :text :text "foo"})            ;; [:content 0 :content 0]
@@ -111,8 +124,10 @@
 
 some _emphatic_ **strong** [link](https://foo.com)
 
+$$\\Pi^2$$
+
 * and
-* some
+* some $\\Phi_{\\alpha}$ latext
 * bullets
 
 ```py id=\"aaa-bbb-ccc\"
