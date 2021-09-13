@@ -1,1 +1,4 @@
-{:deps {applied-science/js-interop {:mvn/version "0.2.6"}}}
+{:deps {applied-science/js-interop {:mvn/version "0.2.6"}
+        org.clojure/data.json {:mvn/version "0.2.6"}
+        org.graalvm.js/js {:mvn/version "21.2.0"}
+        org.graalvm.js/js-scriptengine {:mvn/version "21.2.0"}}}
