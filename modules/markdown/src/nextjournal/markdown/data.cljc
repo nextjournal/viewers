@@ -72,6 +72,8 @@
 (defmethod token-op "math_block" [doc {text :content}] (-> doc (open-node :block-formula) (push-node (formula text))))
 (defmethod token-op "math_block_end" [doc _token] (close-node doc))
 
+(defmethod token-op "hr" [doc _token] (push-node doc {:type :ruler}))
+
 (defmethod token-op "fence" [doc {:as _token i :info c :content}]
   (-> doc
       (open-node :code {:info i})
@@ -123,6 +125,8 @@
   (-> "# Hello
 
 some _emphatic_ **strong** [link](https://foo.com)
+
+---
 
 $$\\Pi^2$$
 
