@@ -20,7 +20,7 @@
 
 # intellij/cursive
 *.iml
-/.idea/
+.idea/
 
 # VSCode/Calva
 .calva/

@@ -73,10 +73,8 @@
 (def ^Context ctx
   (doto (.build context-builder)
     (.eval (source-file "graal/js/markdown.js"))            ;; make this available at clj compile time ?
-    ;; TODO: share js code with cljs (e.g. with es module target approach )
-    ;; TODO: make (shadow.)require work with released js
-    ;;(.eval "js" "const MD = require('markdown-it')")
-    (.eval "js" "const MD = shadow.js.require(\"module$node_modules$markdown_it$index\", {})({html: true, linkify: true})")
+    ;; TODO: share js code with cljs
+    (.eval "js" "const MD = module$node_modules$markdown_it$index({html: true, linkify: true})")
     (.eval "js" "function parseJ(text) { return JSON.stringify(MD.parse(text, {})) }")
     (.eval "js" "function parse(text)  { return MD.parse(text, {}) }")))
 

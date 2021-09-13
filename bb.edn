@@ -21,6 +21,9 @@
        :task (run '-dev {:parallel true})}
 
   release:cljs {:doc "Builds a cljs release artifact of the example app"
-                :task (clojure "-M:examples:shadow release browser")}}
+                :task (clojure "-M:examples:shadow release browser")}
+
+  release:graal {:doc "Builds graal markdownit dependencies into resources path"
+                 :task (clojure "-M:shadow release graal")}}
 
  :min-bb-version "0.5.1"}
