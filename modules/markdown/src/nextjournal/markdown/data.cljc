@@ -19,7 +19,9 @@
 (defn inc-last [path] (update path (dec (count path)) inc))
 
 (defn node [type content attrs] (assoc attrs :type type :content content))
-(defn mark [type attrs] (cond-> {:mark type} (seq attrs) (assoc :attrs attrs)))
+(defn mark
+  ([type] (mark type nil))
+  ([type attrs] (cond-> {:mark type} (seq attrs) (assoc :attrs attrs))))
 (defn text-node
   ([text] (text-node text nil))
   ([text marks] (cond-> {:type :text :text text} (seq marks) (assoc :marks marks))))
@@ -43,8 +45,10 @@
 
 (defn close-node [doc] (update doc ::path (comp pop pop)))
 
-(defn push-mark [doc type attrs]
-  (update doc ::marks conj (mark type attrs)))
+(defn open-mark
+  ([doc type] (open-mark doc type {}))
+  ([doc type attrs]
+   (update doc ::marks conj (mark type attrs))))
 
 (defn close-mark [doc] (update doc ::marks pop))
 ;; endregion
@@ -77,6 +81,11 @@
 (defmethod apply-token "blockquote_open" [doc _token] (open-node doc :blockquote))
 (defmethod apply-token "blockquote_close" [doc _token] (close-node doc))
 
+(defmethod apply-token "code_block" [doc {:as _token c :content}]
+  (-> doc
+      (open-node :code)
+      (push-node (text-node c))
+      close-node))
 (defmethod apply-token "fence" [doc {:as _token i :info c :content}]
   (-> doc
       (open-node :code {:info i})
@@ -90,15 +99,18 @@
 
 (defmethod apply-token "math_inline" [doc {text :content}] (push-node doc (formula text)))
 (defmethod apply-token "math_inline_double" [doc {text :content}] (push-node doc (formula text)))
+
 (defmethod apply-token "softbreak" [doc {text :content}] (push-node doc {:type :softbreak}))
 
 ;; marks
-(defmethod apply-token "em_open" [doc token] (push-mark doc :em {}))
-(defmethod apply-token "em_close" [doc token] (close-mark doc))
-(defmethod apply-token "strong_open" [doc token] (push-mark doc :strong {}))
-(defmethod apply-token "strong_close" [doc token] (close-mark doc))
-(defmethod apply-token "link_open" [doc token] (push-mark doc :link (into {} (:attrs token))))
-(defmethod apply-token "link_close" [doc token] (close-mark doc))
+(defmethod apply-token "em_open" [doc _token] (open-mark doc :em))
+(defmethod apply-token "em_close" [doc _token] (close-mark doc))
+(defmethod apply-token "strong_open" [doc _token] (open-mark doc :strong))
+(defmethod apply-token "strong_close" [doc _token] (close-mark doc))
+(defmethod apply-token "link_open" [doc token] (open-mark doc :link (into {} (:attrs token))))
+(defmethod apply-token "link_close" [doc _token] (close-mark doc))
+(defmethod apply-token "code_inline" [{:as doc ms ::marks} {text :content}]
+  (push-node doc (text-node text (conj ms (mark :monospace)))))
 ;; endregion
 
 (def apply-tokens (partial reduce apply-token))
@@ -149,12 +161,19 @@ print(\"this is some python\")
 2
 3
 ```
+
+but also indented code
+
+    import os
+    os.listdir('/')
+
+or monospace mark [`real`](/foo/bar) fun
 "
       nextjournal.markdown/parse
       nextjournal.markdown.data/<-tokens
       ;;seq
       ;;(->> (take 10))
-      ;;(->> (take-last 3))
+      ;;(->> (take-last 4))
       )
 
   ;; Edge Cases
