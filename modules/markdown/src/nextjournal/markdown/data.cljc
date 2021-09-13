@@ -74,6 +74,9 @@
 
 (defmethod token-op "hr" [doc _token] (push-node doc {:type :ruler}))
 
+(defmethod token-op "blockquote_open" [doc _token] (open-node doc :blockquote))
+(defmethod token-op "blockquote_close" [doc _token] (close-node doc))
+
 (defmethod token-op "fence" [doc {:as _token i :info c :content}]
   (-> doc
       (open-node :code {:info i})
@@ -87,6 +90,7 @@
 
 (defmethod token-op "math_inline" [doc {text :content}] (push-node doc (formula text)))
 (defmethod token-op "math_inline_double" [doc {text :content}] (push-node doc (formula text)))
+(defmethod token-op "softbreak" [doc {text :content}] (push-node doc {:type :softbreak}))
 
 ;; marks
 (defmethod token-op "em_open" [doc token] (push-mark doc :em {}))
@@ -130,6 +134,9 @@ some _emphatic_ **strong** [link](https://foo.com)
 
 $$\\Pi^2$$
 
+> some nice quote
+> for fun
+
 * and
 * some $\\Phi_{\\alpha}$ latext
 * bullets
@@ -144,6 +151,7 @@ print(\"this is some python\")
       nextjournal.markdown/parse
       nextjournal.markdown.data/<-tokens
       ;;seq
+      ;;(->> (take 10))
       ;;(->> (take-last 3))
       )
 
