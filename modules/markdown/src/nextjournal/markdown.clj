@@ -75,6 +75,8 @@
     (.eval (source-file "graal/js/markdown.js"))            ;; make this available at clj compile time ?
     ;; TODO: share js code with cljs
     (.eval "js" "const MD = module$node_modules$markdown_it$index({html: true, linkify: true})")
+    (.eval "js" "let texmath = module$node_modules$markdown_it_texmath$texmath
+                 MD.use(texmath, {delimiters: \"dollars\"})")
     (.eval "js" "function parseJ(text) { return JSON.stringify(MD.parse(text, {})) }")
     (.eval "js" "function parse(text)  { return MD.parse(text, {}) }")))
 
