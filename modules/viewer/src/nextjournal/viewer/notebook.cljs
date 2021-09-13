@@ -176,11 +176,11 @@
                         [(v/view-as :markdown "# Hello Markdown
 ## Paragraphs
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum velit nulla,
-sodales eu lorem ut, tincidunt consectetur diam. Donec in scelerisque risus.
+sodales eu lorem ut, [tincidunt consectetur](https://nextjournal.com/) diam. Donec in scelerisque risus.
 Suspendisse potenti. Nunc non hendrerit odio, at malesuada erat. Aenean rutrum quam
-sed velit mollis imperdiet. Sed lacinia quam eget tempor tempus. Mauris et leo ac
-odio condimentum facilisis eu sed nibh. Morbi sed est sit amet risus blandit
-ullam corper. Pellentesque nisi metus, feugiat sed velit ut, dignissim finibus urna.
+**sed velit mollis** imperdiet. Sed lacinia quam eget tempor tempus. Mauris et leo ac
+odio condimentum facilisis eu sed nibh. _Morbi sed est sit amet_ risus blandit
+ullam corper. Pellentesque nisi metus, ~~feugiat sed velit ut~~, dignissim finibus urna.
 
 ## Lists
 
