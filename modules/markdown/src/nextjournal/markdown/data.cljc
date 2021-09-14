@@ -108,6 +108,8 @@
 (defmethod apply-token "em_close" [doc _token] (close-mark doc))
 (defmethod apply-token "strong_open" [doc _token] (open-mark doc :strong))
 (defmethod apply-token "strong_close" [doc _token] (close-mark doc))
+(defmethod apply-token "s_open" [doc _token] (open-mark doc :strikethrough))
+(defmethod apply-token "s_close" [doc _token] (close-mark doc))
 (defmethod apply-token "link_open" [doc token] (open-mark doc :link (into {} (:attrs token))))
 (defmethod apply-token "link_close" [doc _token] (close-mark doc))
 (defmethod apply-token "code_inline" [{:as doc ms ::marks} {text :content}]
@@ -147,7 +149,7 @@ some _emphatic_ **strong** [link](https://foo.com)
 
 ---
 
-> some nice quote
+> some ~~nice~~ quote
 > for fun
 
 $$\\Pi^2$$
