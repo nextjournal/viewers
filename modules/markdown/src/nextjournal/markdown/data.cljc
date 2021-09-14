@@ -9,6 +9,7 @@
   - text: (optional) content of text nodes, a collection of Nodes
   - marks: (optional) in text nodes, a collection of marks insisting on the node's text
   - level: (optional) heading level
+  - attrs: attributes as passed by markdownit tokens (e.g {:attrs {:style \"some style info\"}})
 
   Mark:
   - mark: the mark type (:em, :strong, :link, etc.)
@@ -60,6 +61,20 @@
    (update doc ::marks conj (mark type attrs))))
 
 (defn close-mark [doc] (update doc ::marks pop))
+
+(comment                                                    ;; path after call
+  (-> empty-doc                                             ;; [:content -1]
+      (open-node :heading)                                  ;; [:content 0 :content -1]
+      (push-node {:node/type :text :text "foo"})            ;; [:content 0 :content 0]
+      (push-node {:node/type :text :text "foo"})            ;; [:content 0 :content 1]
+      close-node                                            ;; [:content 1]
+
+      (open-node :paragraph)                                ;; [:content 1 :content]
+      (push-node {:node/type :text :text "hello"})
+      close-node
+      (open-node :bullet-list)
+      ;;
+      ))
 ;; endregion
 
 ;; region TOC builder: (`add-to-toc` acts on toc after closing a header node)
@@ -123,7 +138,7 @@ end"
 (defmethod apply-token "bullet_list_open" [doc _token] (open-node doc :bullet-list))
 (defmethod apply-token "bullet_list_close" [doc _token] (close-node doc))
 
-(defmethod apply-token "ordered_list_open" [doc _token] (open-node doc :ordered-list))
+(defmethod apply-token "ordered_list_open" [doc _token] (open-node doc :numbered-list))
 (defmethod apply-token "ordered_list_close" [doc _token] (close-node doc))
 
 (defmethod apply-token "list_item_open" [doc _token] (open-node doc :list-item))
@@ -211,24 +226,7 @@ end"
   ([tokens] (<-tokens empty-doc tokens))
   ([doc tokens] (-> doc (apply-tokens tokens) (dissoc ::path ::marks))))
 
-(comment                                                    ;; path after call
-  ;; boot browser repl
-  (require '[shadow.cljs.devtools.api :as shadow])
-  (shadow/repl :browser)
-
-  (-> empty-doc                                             ;; [:content -1]
-      (open-node :heading)                                  ;; [:content 0 :content -1]
-      (push-node {:node/type :text :text "foo"})            ;; [:content 0 :content 0]
-      (push-node {:node/type :text :text "foo"})            ;; [:content 0 :content 1]
-      close-node                                            ;; [:content 1]
-
-      (open-node :paragraph)                                ;; [:content 1 :content]
-      (push-node {:node/type :text :text "hello"})
-      close-node
-      (open-node :bullet-list)
-      ;;
-      )
-
+(comment
   (-> "# Markdown Data
 
 some _emphatic_ **strong** [link](https://foo.com)
@@ -284,5 +282,67 @@ or monospace mark [`real`](/foo/bar) fun
   ;; * a strong with __ produces surrounding empty text nodes:
   (-> "__text__" nextjournal.markdown/parse second :children  seq)
   (-> "__text__" nextjournal.markdown/parse <-tokens)
+  )
 
+;; region hiccup renderer (maybe move to .hiccup ns)
+(declare node->hiccup)
+(defn wrapping-content [ctx hiccup content] (into hiccup (map (partial node->hiccup ctx)) content))
+
+(defmulti  node->hiccup (fn [_ctx {:as _node :keys [type]}] type))
+;; blocks
+(defmethod node->hiccup :doc [ctx node]           (wrapping-content ctx [:div] (:content node)))
+(defmethod node->hiccup :heading [ctx node]       (wrapping-content ctx [(keyword (str "h" (:heading-level node)))] (:content node)))
+(defmethod node->hiccup :paragraph [ctx node]     (wrapping-content ctx [:p] (:content node)))
+(defmethod node->hiccup :block-formula [ctx node] (wrapping-content ctx [:figure.formula] (:content node)))
+(defmethod node->hiccup :bullet-list [ctx node]   (wrapping-content ctx [:ul] (:content node)))
+(defmethod node->hiccup :numbered-list [ctx node] (wrapping-content ctx [:ol] (:content node)))
+(defmethod node->hiccup :list-item [ctx node]     (wrapping-content ctx [:li] (:content node)))
+(defmethod node->hiccup :blockquote [ctx node]    (wrapping-content ctx [:blockquote] (:content node)))
+(defmethod node->hiccup :code [ctx node]          (wrapping-content (assoc ctx :code? true) [:pre] (:content node)))
+
+;; inlines
+(declare apply-marks apply-mark)
+(defmethod node->hiccup :formula [_ctx {:keys [text]}] [:span.formula text])
+(defmethod node->hiccup :text [{:keys [code?]} {:keys [text marks]}]
+  (cond-> text (seq marks) (apply-marks marks)))
+
+;; marks
+(def apply-marks (partial reduce apply-mark))
+(defmulti  apply-mark (fn [_hiccup {m :mark}] m))
+(defmethod apply-mark :em [hiccup _]                 [:em hiccup])
+(defmethod apply-mark :monospace [hiccup _]          [:code hiccup])
+(defmethod apply-mark :strong [hiccup _]             [:strong hiccup])
+(defmethod apply-mark :strikethrough [hiccup _]      [:s hiccup])
+(defmethod apply-mark :link [hiccup {:keys [attrs]}] [:a {:href (:href attrs)} hiccup])
+
+(defn ->hiccup
+  "an optional first `ctx` allows for customizing style per node"
+  ([node] (->hiccup {} node))
+  ([ctx node] (node->hiccup ctx node)))
+
+(comment
+  (-> "# Hello
+
+A nice $\\phi$ formula [for _real_ **strong** fun](/path/to)
+
+- one **ahoi** list
+- two `nice` and ~~three~~
+
+> that said who?
+
+```clj
+(some nice clojure)
+
+```"
+      nextjournal.markdown/parse-j
+      nextjournal.markdown.data/<-tokens
+      ->hiccup
+      )
+  )
+;; endregion
+
+(comment
+  ;; boot browser repl
+  (require '[shadow.cljs.devtools.api :as shadow])
+  (shadow/repl :browser)
   )
