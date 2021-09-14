@@ -78,8 +78,8 @@
 ;; endregion
 
 ;; region TOC builder: (`add-to-toc` acts on toc after closing a header node)
+(declare ->hiccup)
 (defn add-to-toc [{:as doc :keys [toc] path ::path}]
-  (println "addding to TOC" (get-in doc path) "current toc" toc)
   (let [{:as h :keys [heading-level]} (get-in doc path)
         ;; credits for update fns @plexus
         update-last-child (fn [m f & args]
@@ -97,18 +97,24 @@
       (integer? heading-level)
       (update :toc update-level heading-level update :children conj {:level heading-level
                                                                      :title (->text h)
-                                                                     :children []}))))
+                                                                     :title-hiccup (->hiccup h)
+                                                                     :children []
+                                                                     :path path}))))
 
 (comment
-  (-> "# Hello
+  (-> "# Start
 
 dadang bang
 
-## Two
-
 ### Three
 
+## Two
+
 par
+- and a nested
+- ### Heading not included
+
+foo
 
 ## Two Again
 
@@ -119,9 +125,10 @@ par
 #### Four
 
 end"
-      nextjournal.markdown/parse-j
+      nextjournal.markdown/parse
       <-tokens
-      :toc))
+      :toc
+      ))
 ;; endregion
 
 ;; region token handlers
@@ -130,7 +137,8 @@ end"
 
 ;; blocks
 (defmethod apply-token "heading_open" [doc token] (open-node doc :heading {} {:heading-level (hlevel token)}))
-(defmethod apply-token "heading_close" [doc _token] (-> doc close-node add-to-toc))
+(defmethod apply-token "heading_close" [doc {doc-level :level}] (-> doc close-node (cond-> (zero? doc-level) add-to-toc)))
+;; for building the TOC we just care about headings at document top level (not e.g. nested under lists) ⬆
 
 (defmethod apply-token "paragraph_open" [doc _token] (open-node doc :paragraph))
 (defmethod apply-token "paragraph_close" [doc _token] (close-node doc))
@@ -215,6 +223,7 @@ end"
   (push-node doc (text-node text (conj ms (mark :monospace)))))
 ;; endregion
 
+;; region data builder api
 (def apply-tokens (partial reduce apply-token))
 
 (def empty-doc {:type :doc
@@ -282,8 +291,8 @@ or monospace mark [`real`](/foo/bar) fun
 
   ;; * a strong with __ produces surrounding empty text nodes:
   (-> "__text__" nextjournal.markdown/parse second :children  seq)
-  (-> "__text__" nextjournal.markdown/parse <-tokens)
-  )
+  (-> "__text__" nextjournal.markdown/parse <-tokens))
+;; endregion
 
 ;; region hiccup renderer (maybe move to .hiccup ns)
 (declare node->hiccup)
@@ -353,6 +362,57 @@ A nice $\\phi$ formula [for _real_ **strong** fun](/path/to)
   )
 ;; endregion
 
+;; region zoom into sections
+(defn section-at [{:as doc :keys [content]} [_ pos :as path]]
+  ;; TODO: generalize over path (zoom-in at)
+  ;; supports only top-level headings atm (as found in TOC)
+  (let [{:as h section-level :heading-level} (get-in doc path)
+        in-section? (fn [{l :heading-level}] (or (not l) (< section-level l)))]
+    {:type :doc
+     :content (cons h
+                    (->> content
+                         (drop (inc pos))
+                         (take-while in-section?)))}))
+
+(comment
+  (-> "# Title
+
+## Section 1
+
+foo
+
+- # What is this? (no!)
+- maybe
+
+### Section 1.2
+
+## Section 2
+
+some par
+
+### Section 2.1
+
+some other par
+
+### Section 2.2
+
+#### Section 2.2.1
+
+two two one
+
+#### Section 2.2.2
+
+two two two
+
+## Section 3
+
+some final par"
+      nextjournal.markdown/parse-j
+      nextjournal.markdown.data/<-tokens
+      (section-at [:content 5]) ;; ⬅ paths are store in TOC sections
+      ->hiccup))
+
+;; endregion
 (comment
   ;; boot browser repl
   (require '[shadow.cljs.devtools.api :as shadow])
