@@ -717,7 +717,7 @@ and some par for fun
    (view-as :hiccup
             (-> "# Markdown to Hiccup with Renderers
 
-and some par for fun
+and some ~~par for fun~~
 
 $$\\int_{\\omega} \\phi d\\omega$$
 
