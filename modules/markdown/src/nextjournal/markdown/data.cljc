@@ -19,6 +19,7 @@
 (defn pairs->kmap [pairs] (into {} (map (juxt (comp keyword first) second)) pairs))
 (defn inc-last [path] (update path (dec (count path)) inc))
 (defn hlevel [{:as _token hn :tag}] (when (string? hn) (some-> (re-matches #"h([\d])" hn) second #?(:clj read-string :cljs cljs.reader/read-string))))
+(defn ->text [{:as _node :keys [text formula content]}] (or text formula (apply str (map ->text content))))
 
 (defn node
   [type content attrs top-level]
@@ -50,6 +51,7 @@
        (push-node (node type [] attrs top-level))
        (update ::path into [:content -1]))))
 
+;; after closing a node, document ::path will point at it
 (defn close-node [doc] (update doc ::path (comp pop pop)))
 
 (defn open-mark
@@ -60,13 +62,60 @@
 (defn close-mark [doc] (update doc ::marks pop))
 ;; endregion
 
+;; region TOC builder: (`add-to-toc` acts on toc after closing a header node)
+(defn add-to-toc [{:as doc :keys [toc] path ::path}]
+  (println "addding to TOC" (get-in doc path) "current toc" toc)
+  (let [{:as h :keys [heading-level]} (get-in doc path)
+        ;; credits for update fns @plexus
+        update-last-child (fn [m f & args]
+                            (let [m (if (empty? (:children m))
+                                      (update m :children conj {:children []})
+                                      m)]
+                              (apply update-in m
+                                     [:children (dec (count (:children m)))]
+                                     f args)))
+        update-level (fn update-level [m lvl f & args]
+                       (if (= lvl 1)
+                         (apply f m args)
+                         (apply update-last-child m update-level (dec lvl) f args)))]
+    (cond-> doc
+      (integer? heading-level)
+      (update :toc update-level heading-level update :children conj {:level heading-level
+                                                                     :title (->text h)
+                                                                     :children []}))))
+
+(comment
+  (-> "# Hello
+
+dadang bang
+
+## Two
+
+### Three
+
+par
+
+## Two Again
+
+par
+
+# One Again
+
+#### Four
+
+end"
+      nextjournal.markdown/parse-j
+      <-tokens
+      :toc))
+;; endregion
+
 ;; region token handlers
 (declare apply-tokens)
 (defmulti apply-token (fn [_doc token] (:type token)))
 
 ;; blocks
 (defmethod apply-token "heading_open" [doc token] (open-node doc :heading {} {:heading-level (hlevel token)}))
-(defmethod apply-token "heading_close" [doc _token] (close-node doc))
+(defmethod apply-token "heading_close" [doc _token] (-> doc close-node add-to-toc))
 
 (defmethod apply-token "paragraph_open" [doc _token] (open-node doc :paragraph))
 (defmethod apply-token "paragraph_close" [doc _token] (close-node doc))
@@ -152,7 +201,10 @@
 
 (def apply-tokens (partial reduce apply-token))
 
-(def empty-doc {:type :doc :content [] ::path [:content -1] ::marks []})
+(def empty-doc {:type :doc
+                :content []
+                :toc {:children []}
+                ::path [:content -1] ::marks []})
 
 (defn <-tokens
   "Takes a doc and a collection of markdown-it tokens, applies tokens to doc. Uses an emtpy doc in arity 1."
