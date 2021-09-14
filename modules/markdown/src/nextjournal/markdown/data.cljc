@@ -368,14 +368,15 @@ A nice $\\phi$ formula [for _real_ **strong** fun](/path/to)
   ;; supports only top-level headings atm (as found in TOC)
   (let [{:as h section-level :heading-level} (get-in doc path)
         in-section? (fn [{l :heading-level}] (or (not l) (< section-level l)))]
-    {:type :doc
-     :content (cons h
-                    (->> content
-                         (drop (inc pos))
-                         (take-while in-section?)))}))
+    (when section-level
+      {:type :doc
+       :content (cons h
+                      (->> content
+                           (drop (inc pos))
+                           (take-while in-section?)))})))
 
 (comment
-  (-> "# Title
+  (some-> "# Title
 
 ## Section 1
 
@@ -409,7 +410,7 @@ two two two
 some final par"
       nextjournal.markdown/parse-j
       nextjournal.markdown.data/<-tokens
-      (section-at [:content 5]) ;; ⬅ paths are store in TOC sections
+      (section-at [:content 9]) ;; ⬅ paths are stored in TOC sections
       ->hiccup))
 
 ;; endregion
