@@ -6,6 +6,8 @@
             [cognitect.transit :as transit]
             [goog.object]
             [nextjournal.devcards :as dc]
+            [nextjournal.markdown :as md]
+            [nextjournal.markdown.data :as md.data]
             [nextjournal.viewer.code :as code]
             [nextjournal.viewer.katex :as katex]
             [nextjournal.viewer.markdown :as markdown]
@@ -697,3 +699,27 @@
                                                             (max 0)
                                                             (min 100)
                                                             (str "%"))}}]]])))]])
+
+(dc/defcard markdown-data-to-hiccup
+  [inspect
+   (view-as :hiccup
+            (-> "# Hello
+
+and some par for fun
+
+- bullet _one_
+- bullet **two**
+- bullet foo
+
+| Syntax |  JVM                     | JavaScript                      |
+|--------|-------------------------:|:--------------------------------|
+|   foo  |  Loca _lDate_ ahoiii     | goog.date.Date                  |
+|   bar  |  java.time.LocalTime     | some [kinky](link/to/something) |
+|   bag  |  java.time.LocalDateTime | $\\phi$                          |
+
+
+```clj
+with code
+```"
+                md/->data
+                md.data/->hiccup))])

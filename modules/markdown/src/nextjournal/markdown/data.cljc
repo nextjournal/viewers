@@ -189,6 +189,7 @@ end"
 "
     nextjournal.markdown/parse-j
     nextjournal.markdown.data/<-tokens
+    nextjournal.markdown.data/->hiccup
     ))
 
 ;; inlines
@@ -286,19 +287,19 @@ or monospace mark [`real`](/foo/bar) fun
 
 ;; region hiccup renderer (maybe move to .hiccup ns)
 (declare node->hiccup)
-(defn wrapping-content [ctx hiccup content] (into hiccup (map (partial node->hiccup ctx)) content))
+(defn wrap-content [ctx hiccup node] (into hiccup (map (partial node->hiccup ctx)) (:content node)))
 
 (defmulti  node->hiccup (fn [_ctx {:as _node :keys [type]}] type))
 ;; blocks
-(defmethod node->hiccup :doc [ctx node]           (wrapping-content ctx [:div] (:content node)))
-(defmethod node->hiccup :heading [ctx node]       (wrapping-content ctx [(keyword (str "h" (:heading-level node)))] (:content node)))
-(defmethod node->hiccup :paragraph [ctx node]     (wrapping-content ctx [:p] (:content node)))
-(defmethod node->hiccup :block-formula [ctx node] (wrapping-content ctx [:figure.formula] (:content node)))
-(defmethod node->hiccup :bullet-list [ctx node]   (wrapping-content ctx [:ul] (:content node)))
-(defmethod node->hiccup :numbered-list [ctx node] (wrapping-content ctx [:ol] (:content node)))
-(defmethod node->hiccup :list-item [ctx node]     (wrapping-content ctx [:li] (:content node)))
-(defmethod node->hiccup :blockquote [ctx node]    (wrapping-content ctx [:blockquote] (:content node)))
-(defmethod node->hiccup :code [ctx node]          (wrapping-content (assoc ctx :code? true) [:pre] (:content node)))
+(defmethod node->hiccup :doc [ctx node]           (wrap-content ctx [:div.viewer-markdown] node))
+(defmethod node->hiccup :heading [ctx node]       (wrap-content ctx [(keyword (str "h" (:heading-level node)))] node))
+(defmethod node->hiccup :paragraph [ctx node]     (wrap-content ctx [:p] node))
+(defmethod node->hiccup :block-formula [ctx node] (wrap-content ctx [:figure.formula] node))
+(defmethod node->hiccup :bullet-list [ctx node]   (wrap-content ctx [:ul.list-disc.disc-inside] node))
+(defmethod node->hiccup :numbered-list [ctx node] (wrap-content ctx [:ol] node))
+(defmethod node->hiccup :list-item [ctx node]     (wrap-content ctx [:li] node))
+(defmethod node->hiccup :blockquote [ctx node]    (wrap-content ctx [:blockquote] node))
+(defmethod node->hiccup :code [ctx node]          (wrap-content (assoc ctx :code? true) [:pre] node))
 
 ;; inlines
 (declare apply-marks apply-mark)
@@ -306,8 +307,16 @@ or monospace mark [`real`](/foo/bar) fun
 (defmethod node->hiccup :text [{:keys [code?]} {:keys [text marks]}]
   (cond-> text (seq marks) (apply-marks marks)))
 
+;; tables
+(defmethod node->hiccup :table [ctx node]          (wrap-content ctx [:table] node))
+(defmethod node->hiccup :table-head [ctx node]     (wrap-content ctx [:thead] node))
+(defmethod node->hiccup :table-body [ctx node]     (wrap-content ctx [:tbody] node))
+(defmethod node->hiccup :table-row [ctx node]      (wrap-content ctx [:tr] node))
+(defmethod node->hiccup :table-header [ctx node]   (wrap-content ctx [:th] node))
+(defmethod node->hiccup :table-data [ctx node]     (wrap-content ctx [:td] node))
+
 ;; marks
-(def apply-marks (partial reduce apply-mark))
+(defn apply-marks [ret m] (reduce apply-mark ret m))
 (defmulti  apply-mark (fn [_hiccup {m :mark}] m))
 (defmethod apply-mark :em [hiccup _]                 [:em hiccup])
 (defmethod apply-mark :monospace [hiccup _]          [:code hiccup])
