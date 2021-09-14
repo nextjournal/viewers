@@ -16,13 +16,14 @@
   ")
 
 ;; region node operations
+(defn pairs->kmap [pairs] (into {} (map (juxt (comp keyword first) second)) pairs))
 (defn inc-last [path] (update path (dec (count path)) inc))
 (defn hlevel [{:as _token hn :tag}] (when (string? hn) (some-> (re-matches #"h([\d])" hn) second #?(:clj read-string :cljs cljs.reader/read-string))))
 
-(defn node [type content attrs] (assoc attrs :type type :content content))
+(defn node [type content attrs] (cond-> {:type type :content content} (seq attrs) (assoc :attrs (pairs->kmap attrs))))
 (defn mark
   ([type] (mark type nil))
-  ([type attrs] (cond-> {:mark type} (seq attrs) (assoc :attrs attrs))))
+  ([type attrs] (cond-> {:mark type} (seq attrs) (assoc :attrs (pairs->kmap attrs)))))
 (defn text-node
   ([text] (text-node text nil))
   ([text marks] (cond-> {:type :text :text text} (seq marks) (assoc :marks marks))))
@@ -93,9 +94,37 @@
       (push-node (text-node c))
       close-node))
 
+;; tables
+;; table data tokens might have {:style "text-align:right|left"} attrs, maybe better nested node > :attrs > :style ?
+(defmethod apply-token "table_open" [doc _token] (open-node doc :table))
+(defmethod apply-token "table_close" [doc _token] (close-node doc))
+(defmethod apply-token "thead_open" [doc _token] (open-node doc :table-head))
+(defmethod apply-token "thead_close" [doc _token] (close-node doc))
+(defmethod apply-token "tr_open" [doc _token] (open-node doc :table-row))
+(defmethod apply-token "tr_close" [doc _token] (close-node doc))
+(defmethod apply-token "th_open" [doc token] (open-node doc :table-header (:attrs token)))
+(defmethod apply-token "th_close" [doc _token] (close-node doc))
+(defmethod apply-token "tbody_open" [doc _token] (open-node doc :table-body))
+(defmethod apply-token "tbody_close" [doc _token] (close-node doc))
+(defmethod apply-token "td_open" [doc token] (open-node doc :table-data (:attrs token)))
+(defmethod apply-token "td_close" [doc _token] (close-node doc))
+
+(comment
+  (->
+"
+| Syntax |  JVM                     | JavaScript                      |
+|--------|-------------------------:|:--------------------------------|
+|   foo  |  Loca _lDate_ ahoiii     | goog.date.Date                  |
+|   bar  |  java.time.LocalTime     | some [kinky](link/to/something) |
+|   bag  |  java.time.LocalDateTime | $\\phi$                         |
+"
+    nextjournal.markdown/parse-j
+    nextjournal.markdown.data/<-tokens
+    ))
+
+;; inlines
 (defmethod apply-token "inline" [doc {:as _token ts :children}] (apply-tokens doc ts))
 
-;; inline
 (defmethod apply-token "text" [{:as doc ms ::marks} {text :content}] (push-node doc (text-node text ms)))
 
 (defmethod apply-token "math_inline" [doc {text :content}] (push-node doc (formula text)))
@@ -110,7 +139,7 @@
 (defmethod apply-token "strong_close" [doc _token] (close-mark doc))
 (defmethod apply-token "s_open" [doc _token] (open-mark doc :strikethrough))
 (defmethod apply-token "s_close" [doc _token] (close-mark doc))
-(defmethod apply-token "link_open" [doc token] (open-mark doc :link (into {} (:attrs token))))
+(defmethod apply-token "link_open" [doc token] (open-mark doc :link (:attrs token)))
 (defmethod apply-token "link_close" [doc _token] (close-mark doc))
 (defmethod apply-token "code_inline" [{:as doc ms ::marks} {text :content}]
   (push-node doc (text-node text (conj ms (mark :monospace)))))
@@ -143,7 +172,7 @@
       ;;
       )
 
-  (-> "# Hello
+  (-> "# Markdown Data
 
 some _emphatic_ **strong** [link](https://foo.com)
 
@@ -152,11 +181,15 @@ some _emphatic_ **strong** [link](https://foo.com)
 > some ~~nice~~ quote
 > for fun
 
+## Formulas
+
 $$\\Pi^2$$
 
 * and
 * some $\\Phi_{\\alpha}$ latext
 * bullets
+
+## Fences
 
 ```py id=\"aaa-bbb-ccc\"
 1
