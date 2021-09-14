@@ -20,7 +20,11 @@
 (defn inc-last [path] (update path (dec (count path)) inc))
 (defn hlevel [{:as _token hn :tag}] (when (string? hn) (some-> (re-matches #"h([\d])" hn) second #?(:clj read-string :cljs cljs.reader/read-string))))
 
-(defn node [type content attrs] (cond-> {:type type :content content} (seq attrs) (assoc :attrs (pairs->kmap attrs))))
+(defn node
+  [type content attrs top-level]
+  (cond-> {:type type :content content}
+    (seq attrs) (assoc :attrs (pairs->kmap attrs))
+    (seq top-level) (merge top-level)))
 (defn mark
   ([type] (mark type nil))
   ([type attrs] (cond-> {:mark type} (seq attrs) (assoc :attrs (pairs->kmap attrs)))))
@@ -40,9 +44,10 @@
 
 (defn open-node
   ([doc type] (open-node doc type {}))
-  ([doc type attrs]
+  ([doc type attrs] (open-node doc type attrs {}))
+  ([doc type attrs top-level]
    (-> doc
-       (push-node (node type [] attrs))
+       (push-node (node type [] attrs top-level))
        (update ::path into [:content -1]))))
 
 (defn close-node [doc] (update doc ::path (comp pop pop)))
@@ -60,7 +65,7 @@
 (defmulti apply-token (fn [_doc token] (:type token)))
 
 ;; blocks
-(defmethod apply-token "heading_open" [doc token] (open-node doc :heading {:heading-level (hlevel token)}))
+(defmethod apply-token "heading_open" [doc token] (open-node doc :heading {} {:heading-level (hlevel token)}))
 (defmethod apply-token "heading_close" [doc _token] (close-node doc))
 
 (defmethod apply-token "paragraph_open" [doc _token] (open-node doc :paragraph))
