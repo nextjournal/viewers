@@ -288,6 +288,8 @@ or monospace mark [`real`](/foo/bar) fun
 ;; region hiccup renderer (maybe move to .hiccup ns)
 (declare node->hiccup)
 (defn wrap-content [ctx hiccup node] (into hiccup (map (partial node->hiccup ctx)) (:content node)))
+(defn viewer-with-default [{:keys [viewers]} {:keys [type text]} hc]
+  (if-some [v (get viewers type)] [v text] (conj hc text)))
 
 (defmulti  node->hiccup (fn [_ctx {:as _node :keys [type]}] type))
 ;; blocks
@@ -303,7 +305,7 @@ or monospace mark [`real`](/foo/bar) fun
 
 ;; inlines
 (declare apply-marks apply-mark)
-(defmethod node->hiccup :formula [_ctx {:keys [text]}] [:span.formula text])
+(defmethod node->hiccup :formula [ctx node] (viewer-with-default ctx node [:span.formula]))
 (defmethod node->hiccup :text [{:keys [code?]} {:keys [text marks]}]
   (cond-> text (seq marks) (apply-marks marks)))
 
@@ -327,7 +329,7 @@ or monospace mark [`real`](/foo/bar) fun
 (defn ->hiccup
   "an optional first `ctx` allows for customizing style per node"
   ([node] (->hiccup {} node))
-  ([ctx node] (node->hiccup ctx node)))
+  ([node ctx] (node->hiccup ctx node)))
 
 (comment
   (-> "# Hello

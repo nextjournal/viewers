@@ -701,6 +701,7 @@
                                                             (str "%"))}}]]])))]])
 
 (dc/defcard markdown-data-to-hiccup
+  "Renders Markdown data as hiccup with configurable viewers"
   [inspect
    (view-as :hiccup
             (-> "# Hello
@@ -711,15 +712,16 @@ and some par for fun
 - bullet **two**
 - bullet foo
 
-| Syntax |  JVM                     | JavaScript                      |
-|--------|-------------------------:|:--------------------------------|
-|   foo  |  Loca _lDate_ ahoiii     | goog.date.Date                  |
-|   bar  |  java.time.LocalTime     | some [kinky](link/to/something) |
-|   bag  |  java.time.LocalDateTime | $\\phi$                          |
+| Syntax |  JVM                     | JavaScript                                    |
+|--------|-------------------------:|:----------------------------------------------|
+|   foo  |  Loca _lDate_ ahoiii     | goog.date.Date                                |
+|   bar  |  java.time.LocalTime     | some [kinky](link/to/something)               |
+|   bag  |  java.time.LocalDateTime | $\\bigoplus_{\\alpha < \\omega}\\phi_\\alpha$ |
 
 
 ```clj
 with code
 ```"
                 md/->data
-                md.data/->hiccup))])
+                (md.data/->hiccup {:viewers {:formula #(inspect (view-as :latex %))}})))])
+                ;; how can we avoid to pass inspec here?
