@@ -7,7 +7,8 @@
   - [ ] a cljc file for handling tokens returned by parsing markdown
   "
   (:require [clojure.java.io :as io]
-            [clojure.data.json :as json])
+            [clojure.data.json :as json]
+            [nextjournal.markdown.data :as markdown.data])
   (:import [org.graalvm.polyglot Context Context$Builder Engine Source Value]
            [clojure.lang MapEntry]
            [java.util Iterator Map]
@@ -85,13 +86,17 @@
         ^Value token-collection (.execute parse-fn (into-array String [markdown-text]))]
     (polyglot-coll->token-iterator token-collection)))
 
-;; ⬇ compare performances
 (defn parse-j [markdown-text]
   (-> ctx
       (.eval "js" "parseJ")
       (.execute (into-array String [markdown-text]))
       .asString
       (json/read-str :key-fn keyword)))
+
+(defn ->data [text]
+  (-> text
+      parse-j ;; compare performances with `parse`
+      markdown.data/<-tokens))
 
 (comment
   ;; build graal target `clj -M:examples:shadow watch graal browser`
