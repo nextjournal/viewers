@@ -30,11 +30,17 @@
      (.use github-preamble/Plugin)
      (.use todo-lists/Plugin))))
 
-(defn parse [text]
-  (-> (.parse @Markdown text {}) markdown.data/<-tokens))
+(defn parse [text] (.parse @Markdown text {}))
+
+(defn ->data [text] (-> text parse markdown.data/<-tokens))
 
 (comment
   (.render @Markdown "# Hello Markdown\nWhat's _going_ on?")
-  (js/console.log  (.parse @Markdown "# Hello Markdown\nWhat's _going_ on?" {}))
-  (parse "# Hello Markdown")
+  (js/console.log  (parse "# Hello Markdown\nWhat's _going_ on?"))
+  (js/console.log
+    (->data "# Hello Markdown
+- what
+- a [nice](very/nice/thing)
+- ~~thing~~
+"))
   )
