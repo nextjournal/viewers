@@ -692,16 +692,34 @@
                                                             (str "%"))}}]]])))]])
 
 (dc/defcard markdown-data-to-hiccup
-  "Renders Markdown data as hiccup with configurable viewers"
+  "Renders Markdown data as Hiccup"
   [inspect
    (view-as :hiccup
-            (-> "# Hello
+            (-> "# Markdown to Hiccup
 
 and some par for fun
 
-- bullet _one_
-- bullet **two**
-- bullet foo
+-  bullet _one_
+-  bullet **two**
+-  bullet foo
+
+> with a quote
+
+```clj
+(reduce + 0 (range 0 10))
+```"
+                md/->data
+                md.data/->hiccup))])
+
+(dc/defcard markdown-data-to-hiccup-with-viewers
+  "Renders Markdown data as hiccup with configurable viewers"
+  [inspect
+   (view-as :hiccup
+            (-> "# Markdown to Hiccup with Renderers
+
+and some par for fun
+
+$$\\int_{\\omega} \\phi d\\omega$$
 
 | Syntax |  JVM                     | JavaScript                                    |
 |--------|-------------------------:|:----------------------------------------------|
@@ -709,10 +727,12 @@ and some par for fun
 |   bar  |  java.time.LocalTime     | some [kinky](link/to/something)               |
 |   bag  |  java.time.LocalDateTime | $\\bigoplus_{\\alpha < \\omega}\\phi_\\alpha$ |
 
+and a paragraph inbetween
 
 ```clj
-with code
+(reduce + 0 (range 0 10))
 ```"
                 md/->data
-                (md.data/->hiccup {:viewers {:formula #(inspect (view-as :latex %))}})))])
-                ;; how can we avoid to pass inspec here?
+                (md.data/->hiccup {:viewers
+                                   {:formula #(inspect (view-as :latex %))
+                                    :code #(html [:div.viewer.viewer-code.wide [inspect (view-as :code %)]])}})))])
