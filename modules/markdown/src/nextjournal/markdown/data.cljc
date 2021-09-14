@@ -17,6 +17,7 @@
 
 ;; region node operations
 (defn inc-last [path] (update path (dec (count path)) inc))
+(defn hlevel [{:as _token hn :tag}] (when (string? hn) (some-> (re-matches #"h([\d])" hn) second #?(:clj read-string :cljs cljs.reader/read-string))))
 
 (defn node [type content attrs] (assoc attrs :type type :content content))
 (defn mark
@@ -58,7 +59,7 @@
 (defmulti apply-token (fn [_doc token] (:type token)))
 
 ;; blocks
-(defmethod apply-token "heading_open" [doc _token] (open-node doc :heading))
+(defmethod apply-token "heading_open" [doc token] (open-node doc :heading {:heading-level (hlevel token)}))
 (defmethod apply-token "heading_close" [doc _token] (close-node doc))
 
 (defmethod apply-token "paragraph_open" [doc _token] (open-node doc :paragraph))
@@ -162,7 +163,10 @@ print(\"this is some python\")
 3
 ```
 
-but also indented code
+Hline Section
+-------------
+
+### but also indented code
 
     import os
     os.listdir('/')
