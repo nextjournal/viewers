@@ -716,7 +716,7 @@ images inline ![alt](https://nextjournal.com/images/nextjournal-logo.svg) or as 
 ```clj
 (reduce + 0 (range 0 10))
 ```"
-                md/->data
+                md/parse
                 md.data/->hiccup))])
 
 (dc/defcard markdown-data-to-hiccup-with-viewers
@@ -740,7 +740,7 @@ and a paragraph inbetween
 ```clj
 (reduce + 0 (range 0 10))
 ```"
-                md/->data
+                md/parse
                 (md.data/->hiccup {:viewers
                                    {:formula #(inspect (view-as :latex %))
                                     :code #(html [:div.viewer.viewer-code.wide [inspect (view-as :code %)]])}})))])
