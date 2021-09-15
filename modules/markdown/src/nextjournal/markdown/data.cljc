@@ -303,18 +303,19 @@ or monospace mark [`real`](/foo/bar) fun
 ;; region hiccup renderer (maybe move to .hiccup ns)
 (declare node->hiccup)
 (defn wrap-content [ctx hiccup {:as _node :keys [type content]}]
-  (into hiccup (keep (partial node->hiccup (assoc ctx :parent type))) content))
-(defn viewer-with-default [{:keys [viewers]} {:as node :keys [type]} hc]
+  (into hiccup (keep (partial node->hiccup (assoc ctx ::parent type))) content))
+
+(defn viewer-with-default [ctx {:as node :keys [type]} hc]
   ;; we might want to let the viewer decide what to extract from node
-  (if-some [v (get viewers type)] [v (->text node)] (conj hc (->text node))))
+  (if-some [v (get ctx type)] [v (->text node)] (conj hc (->text node))))
 
 (defmulti  node->hiccup (fn [_ctx {:as _node :keys [type]}] type))
 ;; blocks
-(defmethod node->hiccup :doc [ctx node]           (wrap-content ctx [:div.viewer-markdown] node))
+(defmethod node->hiccup :doc [ctx node]           (wrap-content ctx [:div.viewer-markdown] node))      ;; TODO: fix classes
 (defmethod node->hiccup :heading [ctx node]       (wrap-content ctx [(keyword (str "h" (:heading-level node)))] node))
 (defmethod node->hiccup :paragraph [ctx node]     (wrap-content ctx [:p] node))
 (defmethod node->hiccup :block-formula [ctx node] (wrap-content ctx [:figure.formula] node))
-(defmethod node->hiccup :bullet-list [ctx node]   (wrap-content ctx [:ul.list-disc.disc-inside] node))
+(defmethod node->hiccup :bullet-list [ctx node]   (wrap-content ctx [:ul.list-disc.disc-inside] node)) ;; TODO: fix classes
 (defmethod node->hiccup :numbered-list [ctx node] (wrap-content ctx [:ol] node))
 (defmethod node->hiccup :list-item [ctx node]     (wrap-content ctx [:li] node))
 (defmethod node->hiccup :blockquote [ctx node]    (wrap-content ctx [:blockquote] node))
@@ -327,7 +328,7 @@ or monospace mark [`real`](/foo/bar) fun
 (defmethod node->hiccup :softbreak [ctx node] [:br])
 (defmethod node->hiccup :text [{:keys [code?]} {:keys [text marks]}]
   (cond-> text (seq marks) (apply-marks marks)))
-(defmethod node->hiccup :image [{:as ctx :keys [parent]} {:as node :keys [attrs]}]
+(defmethod node->hiccup :image [{:as ctx ::keys [parent]} {:as node :keys [attrs]}]
   (if (= :paragraph parent) ;; TODO: add classes instead of inline styles
     [:img (assoc attrs :style {:display "inline" :max-width "33%"})]
     [:figure
@@ -335,12 +336,12 @@ or monospace mark [`real`](/foo/bar) fun
      (wrap-content ctx [:figcaption] node)]))
 
 ;; tables
-(defmethod node->hiccup :table [ctx node]          (wrap-content ctx [:table] node))
-(defmethod node->hiccup :table-head [ctx node]     (wrap-content ctx [:thead] node))
-(defmethod node->hiccup :table-body [ctx node]     (wrap-content ctx [:tbody] node))
-(defmethod node->hiccup :table-row [ctx node]      (wrap-content ctx [:tr] node))
-(defmethod node->hiccup :table-header [ctx node]   (wrap-content ctx [:th] node))
-(defmethod node->hiccup :table-data [ctx node]     (wrap-content ctx [:td] node))
+(defmethod node->hiccup :table        [ctx node] (wrap-content ctx [:table] node))
+(defmethod node->hiccup :table-head   [ctx node] (wrap-content ctx [:thead] node))
+(defmethod node->hiccup :table-body   [ctx node] (wrap-content ctx [:tbody] node))
+(defmethod node->hiccup :table-row    [ctx node] (wrap-content ctx [:tr] node))
+(defmethod node->hiccup :table-header [ctx node] (wrap-content ctx [:th] node))
+(defmethod node->hiccup :table-data   [ctx node] (wrap-content ctx [:td] node))
 
 ;; marks
 (defn apply-marks [ret m] (reduce apply-mark ret m))
@@ -352,9 +353,11 @@ or monospace mark [`real`](/foo/bar) fun
 (defmethod apply-mark :link [hiccup {:keys [attrs]}] [:a {:href (:href attrs)} hiccup])
 
 (defn ->hiccup
-  "an optional first `ctx` allows for customizing style per node"
+  "Transforms MarkDown data into Hiccup
+
+  an optional second `options` map allows for customizing type => render-fn to be used in combination with reagent."
   ([node] (->hiccup node {}))
-  ([node ctx] (node->hiccup ctx node)))
+  ([node opts] (node->hiccup opts node)))
 
 (comment
   (-> "# Hello

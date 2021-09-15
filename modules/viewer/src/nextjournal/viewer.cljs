@@ -741,6 +741,5 @@ and a paragraph inbetween
 (reduce + 0 (range 0 10))
 ```"
                 md/parse
-                (md.data/->hiccup {:viewers
-                                   {:formula #(inspect (view-as :latex %))
-                                    :code #(html [:div.viewer.viewer-code.wide [inspect (view-as :code %)]])}})))])
+                (md.data/->hiccup {:formula #(inspect (view-as :latex %))
+                                   :code #(html [:div.viewer.viewer-code.wide [inspect (view-as :code %)]])})))])
