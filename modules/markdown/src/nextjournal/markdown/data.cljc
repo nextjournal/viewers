@@ -303,7 +303,7 @@ or monospace mark [`real`](/foo/bar) fun
 ;; region hiccup renderer (maybe move to .hiccup ns)
 (declare node->hiccup)
 (defn wrap-content [ctx hiccup {:as _node :keys [type content]}]
-  (into hiccup (map (partial node->hiccup (assoc ctx :parent type))) content))
+  (into hiccup (keep (partial node->hiccup (assoc ctx :parent type))) content))
 (defn viewer-with-default [{:keys [viewers]} {:as node :keys [type]} hc]
   ;; we might want to let the viewer decide what to extract from node
   (if-some [v (get viewers type)] [v (->text node)] (conj hc (->text node))))
@@ -319,10 +319,12 @@ or monospace mark [`real`](/foo/bar) fun
 (defmethod node->hiccup :list-item [ctx node]     (wrap-content ctx [:li] node))
 (defmethod node->hiccup :blockquote [ctx node]    (wrap-content ctx [:blockquote] node))
 (defmethod node->hiccup :code [ctx node]          (viewer-with-default ctx node [:pre.viewer-code]))
+(defmethod node->hiccup :ruler [_ctx _node]       [:hr])
 
 ;; inlines
 (declare apply-marks apply-mark)
 (defmethod node->hiccup :formula [ctx node] (viewer-with-default ctx node [:span.formula]))
+(defmethod node->hiccup :softbreak [ctx node] [:br])
 (defmethod node->hiccup :text [{:keys [code?]} {:keys [text marks]}]
   (cond-> text (seq marks) (apply-marks marks)))
 (defmethod node->hiccup :image [{:as ctx :keys [parent]} {:as node :keys [attrs]}]
@@ -357,12 +359,14 @@ or monospace mark [`real`](/foo/bar) fun
 (comment
   (-> "# Hello
 
-A nice $\\phi$ formula [for _real_ **strong** fun](/path/to)
+A nice $\\phi$ formula [for _real_ **strong** fun](/path/to) \n soft
 
 - one **ahoi** list
 - two `nice` and ~~three~~
 
 > that said who?
+
+---
 
 Image as block
 
