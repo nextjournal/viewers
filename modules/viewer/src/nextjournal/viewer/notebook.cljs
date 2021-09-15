@@ -27,7 +27,8 @@
                                      :wide "w-full max-w-wide px-8"
                                      :full "w-full"
                                      "w-full max-w-prose px-8 overflow-x-auto")]}
-                     (cond-> [v/inspect %] (:blob/id %) (vary-meta assoc :key (:blob/id %)))]))) xs)))
+                     (cond-> [v/inspect %] (:blob/id %) (vary-meta assoc :key (:blob/id %)))])))
+          xs)))
 
 (defn var [x]
   (v/html [:span.inspected-value

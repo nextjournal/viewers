@@ -697,7 +697,9 @@
    (view-as :hiccup
             (-> "# Markdown to Hiccup
 
-and some par for fun
+and _some_ par for fun break\nhere softly
+
+one par below
 
 -  bullet _one_
 -  bullet **two**
@@ -706,6 +708,8 @@ and some par for fun
 images inline ![alt](https://nextjournal.com/images/nextjournal-logo.svg) or as block:
 
 ![Some **nice** caption](https://nextjournal.com/images/nextjournal-logo.svg \"A nice logo\")
+
+---
 
 > with a quote
 
@@ -719,7 +723,7 @@ images inline ![alt](https://nextjournal.com/images/nextjournal-logo.svg) or as 
   "Renders Markdown data as hiccup with configurable viewers"
   [inspect
    (view-as :hiccup
-            (-> "# Markdown to Hiccup with Renderers
+            (-> "# Markdown to Hiccup with Viewers
 
 and some ~~par for fun~~
 
