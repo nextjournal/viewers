@@ -17,6 +17,7 @@
   ")
 
 ;; region node operations
+(defn guard [pred val] (when (pred val) val))
 (defn pairs->kmap [pairs] (into {} (map (juxt (comp keyword first) second)) pairs))
 (defn inc-last [path] (update path (dec (count path)) inc))
 (defn hlevel [{:as _token hn :tag}] (when (string? hn) (some-> (re-matches #"h([\d])" hn) second #?(:clj read-string :cljs cljs.reader/read-string))))
@@ -302,12 +303,10 @@ or monospace mark [`real`](/foo/bar) fun
 
 ;; region hiccup renderer (maybe move to .hiccup ns)
 (declare node->hiccup)
-(defn wrap-content [ctx hiccup {:as _node :keys [type content]}]
-  (into hiccup (keep (partial node->hiccup (assoc ctx ::parent type))) content))
-
-(defn viewer-with-default [ctx {:as node :keys [type]} hc]
-  ;; we might want to let the viewer decide what to extract from node
-  (if-some [v (get ctx type)] [v (->text node)] (conj hc (->text node))))
+(defn wrap-content [ctx hiccup {:as node :keys [type content]}]
+  (if-some [v (guard ifn? (get ctx type))]
+    [v (->text node) node] ;; have custom viewer decide what/how to extract data from node, pass extra context to component
+    (into hiccup (keep (partial node->hiccup (assoc ctx ::parent type))) content)))
 
 (defmulti  node->hiccup (fn [_ctx {:as _node :keys [type]}] type))
 ;; blocks
@@ -319,15 +318,14 @@ or monospace mark [`real`](/foo/bar) fun
 (defmethod node->hiccup :numbered-list [ctx node] (wrap-content ctx [:ol] node))
 (defmethod node->hiccup :list-item [ctx node]     (wrap-content ctx [:li] node))
 (defmethod node->hiccup :blockquote [ctx node]    (wrap-content ctx [:blockquote] node))
-(defmethod node->hiccup :code [ctx node]          (viewer-with-default ctx node [:pre.viewer-code]))
+(defmethod node->hiccup :code [ctx node]          (wrap-content ctx [:pre.viewer-code] node))
 (defmethod node->hiccup :ruler [_ctx _node]       [:hr])
 
 ;; inlines
 (declare apply-marks apply-mark)
-(defmethod node->hiccup :formula [ctx node] (viewer-with-default ctx node [:span.formula]))
-(defmethod node->hiccup :softbreak [ctx node] [:br])
-(defmethod node->hiccup :text [{:keys [code?]} {:keys [text marks]}]
-  (cond-> text (seq marks) (apply-marks marks)))
+(defmethod node->hiccup :softbreak [_ _] [:br])
+(defmethod node->hiccup :formula [ctx node] (wrap-content ctx [:span.formula] node))
+(defmethod node->hiccup :text [_ctx {:keys [text marks]}] (cond-> text (seq marks) (apply-marks marks)))
 (defmethod node->hiccup :image [{:as ctx ::keys [parent]} {:as node :keys [attrs]}]
   (if (= :paragraph parent) ;; TODO: add classes instead of inline styles
     [:img (assoc attrs :style {:display "inline" :max-width "33%"})]

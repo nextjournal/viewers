@@ -744,6 +744,10 @@ $$\\int_{\\omega} \\phi d\\omega$$
 |   bar  |  java.time.LocalTime     | some [kinky](link/to/something)               |
 |   bag  |  java.time.LocalDateTime | $\\bigoplus_{\\alpha < \\omega}\\phi_\\alpha$ |
 
+- one
+- two
+- three
+
 and a paragraph inbetween
 
 ```clj
@@ -751,4 +755,7 @@ and a paragraph inbetween
 ```"
                 md/parse
                 (md.data/->hiccup {:formula #(inspect (view-as :latex %))
-                                   :code #(html [:div.viewer.viewer-code.wide [inspect (view-as :code %)]])})))])
+                                   ;; get node content as string at %1
+                                   :code #(html [:div.viewer.viewer-code.wide [inspect (view-as :code %1)]])
+                                   ;; access whole node structure at %2
+                                   :bullet-list #(html [:h2 (str "This is a " (:type %2) " of length: " (-> %2 :content count))])})))])
