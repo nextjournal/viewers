@@ -78,6 +78,8 @@
     (.eval "js" "const MD = module$node_modules$markdown_it$index({html: true, linkify: true})")
     (.eval "js" "let texmath = module$node_modules$markdown_it_texmath$texmath
                  MD.use(texmath, {delimiters: \"dollars\"})")
+    (.eval "js" "let blockImage = module$node_modules$markdown_it_block_image$lib$index
+                 MD.use(blockImage, {outputContainer: null})")
     (.eval "js" "function parseJ(text) { return JSON.stringify(MD.parse(text, {})) }")
     (.eval "js" "function parse(text)  { return MD.parse(text, {}) }")))
 

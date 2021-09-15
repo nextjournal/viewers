@@ -712,6 +712,10 @@ and some par for fun
 -  bullet **two**
 -  bullet foo
 
+images inline ![alt](https://nextjournal.com/images/nextjournal-logo.svg) or as block:
+
+![Some **nice** caption](https://nextjournal.com/images/nextjournal-logo.svg \"A nice logo\")
+
 > with a quote
 
 ```clj

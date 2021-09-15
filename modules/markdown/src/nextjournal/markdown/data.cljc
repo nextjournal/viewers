@@ -210,6 +210,8 @@ end"
 
 (defmethod apply-token "softbreak" [doc {text :content}] (push-node doc {:type :softbreak}))
 
+(defmethod apply-token "image" [doc {:keys [attrs children]}] (-> doc (open-node :image attrs) (apply-tokens children) close-node))
+
 ;; marks
 (defmethod apply-token "em_open" [doc _token] (open-mark doc :em))
 (defmethod apply-token "em_close" [doc _token] (close-mark doc))
@@ -224,12 +226,14 @@ end"
 ;; endregion
 
 ;; region data builder api
-(def apply-tokens (partial reduce apply-token))
+(defn apply-tokens [doc tokens] (reduce apply-token doc tokens))
 
 (def empty-doc {:type :doc
                 :content []
                 :toc {:children []}
-                ::path [:content -1] ::marks []})
+                ;; private
+                ::path [:content -1]
+                ::marks []})
 
 (defn <-tokens
   "Takes a doc and a collection of markdown-it tokens, applies tokens to doc. Uses an emtpy doc in arity 1."
@@ -262,6 +266,8 @@ print(\"this is some python\")
 2
 3
 ```
+
+![Image Text](https://img.icons8.com/officel/16/000000/public.png)
 
 Hline Section
 -------------
@@ -296,7 +302,8 @@ or monospace mark [`real`](/foo/bar) fun
 
 ;; region hiccup renderer (maybe move to .hiccup ns)
 (declare node->hiccup)
-(defn wrap-content [ctx hiccup node] (into hiccup (map (partial node->hiccup ctx)) (:content node)))
+(defn wrap-content [ctx hiccup {:as _node :keys [type content]}]
+  (into hiccup (map (partial node->hiccup (assoc ctx :parent type))) content))
 (defn viewer-with-default [{:keys [viewers]} {:as node :keys [type]} hc]
   ;; we might want to let the viewer decide what to extract from node
   (if-some [v (get viewers type)] [v (->text node)] (conj hc (->text node))))
@@ -318,6 +325,12 @@ or monospace mark [`real`](/foo/bar) fun
 (defmethod node->hiccup :formula [ctx node] (viewer-with-default ctx node [:span.formula]))
 (defmethod node->hiccup :text [{:keys [code?]} {:keys [text marks]}]
   (cond-> text (seq marks) (apply-marks marks)))
+(defmethod node->hiccup :image [{:as ctx :keys [parent]} {:as node :keys [attrs]}]
+  (if (= :paragraph parent) ;; TODO: add classes instead of inline styles
+    [:img (assoc attrs :style {:display "inline" :max-width "33%"})]
+    [:figure
+     [:img (assoc-in attrs [:style :width] "100%")]
+     (wrap-content ctx [:figcaption] node)]))
 
 ;; tables
 (defmethod node->hiccup :table [ctx node]          (wrap-content ctx [:table] node))
@@ -350,6 +363,12 @@ A nice $\\phi$ formula [for _real_ **strong** fun](/path/to)
 - two `nice` and ~~three~~
 
 > that said who?
+
+Image as block
+
+![Some **nice** caption](https://www.example.com/images/dinosaur.jpg)
+
+and here as inline ![alt](foo/bar) image
 
 ```clj
 (some nice clojure)
