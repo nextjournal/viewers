@@ -5,6 +5,7 @@
             ["markdown-it-task-lists" :as md-task-lists]
             ["markdown-it-texmath" :as md-texmath]
             ["markdown-it-block-image" :as md-block-image]
+            ["markdown-it-toc-done-right" :as md-toc]
             ["katex" :as katex]
             [nextjournal.markdown.github-preamble :as github-preamble]
             [nextjournal.markdown.todo-lists :as todo-lists]
@@ -31,7 +32,10 @@
      (.use todo-lists/Plugin)
      ;; detects images in block position (doesn't wrap into a paragraph)
      ;; NOTE: in nextjournal it would be extremely useful to do the same for links e.g. [text](path)
-     (.use md-block-image, #js {:outputContainer nil}))))
+     (.use md-block-image, #js {:outputContainer nil})
+     ;; [[TOC]]
+     (.use md-toc)
+     )))
 
 (defn tokenize [text] (.parse @Markdown text {}))
 (def tokenize-j tokenize) ;; compat with clj ns
@@ -43,6 +47,9 @@
   (js/console.log (tokenize "# Hello Markdown\nWhat's _going_ on?"))
   (js/console.log
     (parse "# Hello Markdown
+
+[[TOC]]
+
 - what
 - a [nice](very/nice/thing)
 - ~~thing~~
