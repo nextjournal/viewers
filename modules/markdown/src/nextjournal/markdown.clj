@@ -83,28 +83,30 @@
     (.eval "js" "function parseJ(text) { return JSON.stringify(MD.parse(text, {})) }")
     (.eval "js" "function parse(text)  { return MD.parse(text, {}) }")))
 
-(defn parse [markdown-text]
+(defn tokenize [markdown-text]
   (let [^Value parse-fn (.eval ctx "js" "parse")
         ^Value token-collection (.execute parse-fn (into-array String [markdown-text]))]
     (polyglot-coll->token-iterator token-collection)))
 
-(defn parse-j [markdown-text]
+(defn tokenize-j [markdown-text]
   (-> ctx
       (.eval "js" "parseJ")
       (.execute (into-array String [markdown-text]))
       .asString
       (json/read-str :key-fn keyword)))
 
-(defn ->data [text]
-  (-> text
-      parse-j ;; compare performances with `parse`
+(defn parse
+  "Takes a string of Markdown text, returns a nested Clojure structure."
+  [markdown-text]
+  (-> markdown-text
+      tokenize-j ;; compare performances with `tokenize`
       markdown.data/<-tokens))
 
 (comment
   ;; build graal target `clj -M:examples:shadow watch graal browser`
-  (-> (parse "[some text](/some/url)") first)
+  (-> (tokenize "[some text](/some/url)") first)
 
-  (seq (parse "# Hello
+  (seq (tokenize "# Hello
 
 - [ ] one
 - [ ] two

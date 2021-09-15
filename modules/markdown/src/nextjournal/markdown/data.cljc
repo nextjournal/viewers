@@ -125,7 +125,7 @@ par
 #### Four
 
 end"
-      nextjournal.markdown/parse
+      nextjournal.markdown/tokenize
       <-tokens
       :toc
       ))
@@ -195,7 +195,7 @@ end"
 |   bar  |  java.time.LocalTime     | some [kinky](link/to/something) |
 |   bag  |  java.time.LocalDateTime | $\\phi$                         |
 "
-    nextjournal.markdown/parse-j
+    nextjournal.markdown/tokenize-j
     nextjournal.markdown.data/<-tokens
     nextjournal.markdown.data/->hiccup
     ))
@@ -279,7 +279,7 @@ Hline Section
 
 or monospace mark [`real`](/foo/bar) fun
 "
-      nextjournal.markdown/parse
+      nextjournal.markdown/tokenize
       nextjournal.markdown.data/<-tokens
       ;;seq
       ;;(->> (take 10))
@@ -289,15 +289,15 @@ or monospace mark [`real`](/foo/bar) fun
   ;; Edge Cases
   ;; * overlapping marks produce empty text nodes
   (-> "*some text **with*** **mark overlap**"
-      nextjournal.markdown/parse
+      nextjournal.markdown/tokenize
       second
       :children
       seq
       )
 
   ;; * a strong with __ produces surrounding empty text nodes:
-  (-> "__text__" nextjournal.markdown/parse second :children  seq)
-  (-> "__text__" nextjournal.markdown/parse <-tokens))
+  (-> "__text__" nextjournal.markdown/tokenize second :children seq)
+  (-> "__text__" nextjournal.markdown/tokenize <-tokens))
 ;; endregion
 
 ;; region hiccup renderer (maybe move to .hiccup ns)
@@ -378,7 +378,7 @@ and here as inline ![alt](foo/bar) image
 (some nice clojure)
 
 ```"
-      nextjournal.markdown/parse-j
+      nextjournal.markdown/tokenize-j
       nextjournal.markdown.data/<-tokens
       ->hiccup
       )
@@ -431,10 +431,10 @@ two two two
 ## Section 3
 
 some final par"
-      nextjournal.markdown/parse-j
-      nextjournal.markdown.data/<-tokens
-      (section-at [:content 9]) ;; ⬅ paths are stored in TOC sections
-      ->hiccup))
+          nextjournal.markdown/tokenize-j
+          nextjournal.markdown.data/<-tokens
+          (section-at [:content 9])                         ;; ⬅ paths are stored in TOC sections
+          ->hiccup))
 
 ;; endregion
 (comment
