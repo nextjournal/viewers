@@ -25,4 +25,5 @@
                   :compiler-options {:optimizations :simple}
                   :entries ["markdown-it"
                             "markdown-it-task-lists"
-                            "markdown-it-texmath"]}}}
+                            "markdown-it-texmath"
+                            "markdown-it-block-image"]}}}
