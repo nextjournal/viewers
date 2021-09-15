@@ -26,4 +26,5 @@
                   :entries ["markdown-it"
                             "markdown-it-task-lists"
                             "markdown-it-texmath"
-                            "markdown-it-block-image"]}}}
+                            "markdown-it-block-image"
+                            "markdown-it-toc-done-right"]}}}

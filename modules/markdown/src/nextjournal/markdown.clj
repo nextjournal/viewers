@@ -80,6 +80,8 @@
                  MD.use(texmath, {delimiters: \"dollars\"})")
     (.eval "js" "let blockImage = module$node_modules$markdown_it_block_image$lib$index
                  MD.use(blockImage, {outputContainer: null})")
+    (.eval "js" "let mdToc = module$node_modules$markdown_it_toc_done_right$dist$markdownItTocDoneRight
+                 MD.use(mdToc)")
     (.eval "js" "function parseJ(text) { return JSON.stringify(MD.parse(text, {})) }")
     (.eval "js" "function parse(text)  { return MD.parse(text, {}) }")))
 

@@ -55,7 +55,7 @@
 
 ;; after closing a node, document ::path will point at it
 (defn close-node [doc] (update doc ::path (comp pop pop)))
-
+(defn update-current [{:as doc path ::path} fn & args] (apply update-in doc path fn args))
 (defn open-mark
   ([doc type] (open-mark doc type {}))
   ([doc type attrs]
@@ -161,6 +161,10 @@ end"
 (defmethod apply-token "blockquote_open" [doc _token] (open-node doc :blockquote))
 (defmethod apply-token "blockquote_close" [doc _token] (close-node doc))
 
+(defmethod apply-token "tocOpen" [doc _token] (open-node doc :toc))
+(defmethod apply-token "tocBody" [doc _token] doc ) ;; ignore body
+(defmethod apply-token "tocClose" [doc _token] (-> doc close-node (update-current dissoc :content)))
+
 (defmethod apply-token "code_block" [doc {:as _token c :content}]
   (-> doc
       (open-node :code)
@@ -253,6 +257,8 @@ some _emphatic_ **strong** [link](https://foo.com)
 
 ## Formulas
 
+[[TOC]]
+
 $$\\Pi^2$$
 
 * and
@@ -280,7 +286,7 @@ Hline Section
 
 or monospace mark [`real`](/foo/bar) fun
 "
-      nextjournal.markdown/tokenize
+      nextjournal.markdown/tokenize-j
       nextjournal.markdown.data/<-tokens
       ;;seq
       ;;(->> (take 10))
@@ -307,6 +313,12 @@ or monospace mark [`real`](/foo/bar) fun
   (if-some [v (guard ifn? (get ctx type))]
     [v (->text node) node] ;; have custom viewer decide what/how to extract data from node, pass extra context to component
     (into hiccup (keep (partial node->hiccup (assoc ctx ::parent type))) content)))
+(defn toc->hiccup [{:keys [children title title-hiccup level]}]
+  [:li
+   [(keyword (str "h" level)) title]
+   (when (seq children)
+     (into [:ul] (keep toc->hiccup) children))])
+
 
 (defmulti  node->hiccup (fn [_ctx {:as _node :keys [type]}] type))
 ;; blocks
@@ -320,6 +332,7 @@ or monospace mark [`real`](/foo/bar) fun
 (defmethod node->hiccup :blockquote [ctx node]    (wrap-content ctx [:blockquote] node))
 (defmethod node->hiccup :code [ctx node]          (wrap-content ctx [:pre.viewer-code] node))
 (defmethod node->hiccup :ruler [_ctx _node]       [:hr])
+(defmethod node->hiccup :toc [ctx _]              (into [:ul] (keep toc->hiccup) (-> ctx ::toc :children)))
 
 ;; inlines
 (declare apply-marks apply-mark)
@@ -355,10 +368,12 @@ or monospace mark [`real`](/foo/bar) fun
 
   an optional second `options` map allows for customizing type => render-fn to be used in combination with reagent."
   ([node] (->hiccup node {}))
-  ([node opts] (node->hiccup opts node)))
+  ([node opts] (node->hiccup (assoc opts ::toc (:toc node)) node)))
 
 (comment
   (-> "# Hello
+
+[[toc]]
 
 A nice $\\phi$ formula [for _real_ **strong** fun](/path/to) \n soft
 
@@ -369,7 +384,7 @@ A nice $\\phi$ formula [for _real_ **strong** fun](/path/to) \n soft
 
 ---
 
-Image as block
+## Image as block
 
 ![Some **nice** caption](https://www.example.com/images/dinosaur.jpg)
 

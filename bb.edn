@@ -24,6 +24,7 @@
                 :task (clojure "-M:examples:shadow release browser")}
 
   release:graal {:doc "Builds graal markdownit dependencies into resources path"
+                 :depends [yarn-install]
                  :task (clojure "-M:shadow release graal")}}
 
  :min-bb-version "0.5.1"}
