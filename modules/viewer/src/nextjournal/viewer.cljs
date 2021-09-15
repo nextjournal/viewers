@@ -706,6 +706,8 @@
    (view-as :hiccup
             (-> "# Markdown to Hiccup
 
+[[TOC]]
+
 and _some_ par for fun break\nhere softly
 
 one par below
@@ -714,13 +716,19 @@ one par below
 -  bullet **two**
 -  bullet foo
 
+## Images
+
 images inline ![alt](https://nextjournal.com/images/nextjournal-logo.svg) or as block:
 
 ![Some **nice** caption](https://nextjournal.com/images/nextjournal-logo.svg \"A nice logo\")
 
+
+## Rulers
 ---
 
 > with a quote
+
+### Code
 
 ```clj
 (reduce + 0 (range 0 10))
