@@ -708,7 +708,9 @@
          [:style ".notebook a {text-decoration: underline;}
                   figcaption {text-align: right; text-decoration: underline; font-family: sans-serif;}
                   li {margin-left: 1rem;}
-                  p {margin-top: 0.5rem;}"]
+                  p {margin-top: 0.5rem;}
+                  img.inline {display: inline; max-width: 33%}
+                  "]
          (md.data/->hiccup node {:code md-code-viewer
                                  #_#_:bullet-list #(html [:h2 (str "This is a " (:type %) " of length: " (-> % :content count))])
                                  :formula md-formula
@@ -795,7 +797,7 @@ $$\\int_{\\omega} \\phi d\\omega$$
 |   bar  |  java.time.LocalTime     | some [kinky](link/to/something)               |
 |   bag  |  java.time.LocalDateTime | $\\bigoplus_{\\alpha < \\omega}\\phi_\\alpha$ |
 
-### And some deeper Section
+### And some ~~deeper~~ Section
 
 ```clj
 (reduce + 0 (range 0 10))
