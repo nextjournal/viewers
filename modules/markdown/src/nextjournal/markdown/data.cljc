@@ -361,10 +361,8 @@ or monospace mark [`real`](/foo/bar) fun
 (defmethod node->hiccup :text [_ctx {:keys [text marks]}] (cond-> text (seq marks) (apply-marks marks)))
 (defmethod node->hiccup :image [{:as ctx ::keys [parent]} {:as node :keys [attrs]}]
   (if (= :paragraph parent) ;; TODO: add classes instead of inline styles
-    [:img (assoc attrs :style {:display "inline" :max-width "33%"})]
-    [:figure
-     [:img (assoc-in attrs [:style :width] "100%")]
-     (wrap-content ctx [:figcaption] node)]))
+    [:img.inline attrs]
+    [:figure.image [:img attrs] (wrap-content ctx [:figcaption] node)]))
 
 ;; tables
 (defmethod node->hiccup :table        [ctx node] (wrap-content ctx [:table] node))
