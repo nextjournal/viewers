@@ -187,7 +187,7 @@ end"
       close-node))
 (defmethod apply-token "fence" [doc {:as _token i :info c :content}]
   (-> doc
-      (open-node :code {:info i})
+      (open-node :code {} {:info i})
       (push-node (text-node c))
       close-node))
 
@@ -343,11 +343,11 @@ or monospace mark [`real`](/foo/bar) fun
   (if-some [v (guard ifn? (get ctx :toc))] [v toc] (toc->hiccup toc)))
 
 ;; blocks
-(defmethod node->hiccup :doc [ctx node]           (wrap-content ctx [:div.viewer-markdown] node))      ;; TODO: fix classes
+(defmethod node->hiccup :doc [ctx node]           (wrap-content ctx [:div] node))
 (defmethod node->hiccup :heading [ctx node]       (wrap-content ctx [(keyword (str "h" (:heading-level node)))] node))
 (defmethod node->hiccup :paragraph [ctx node]     (wrap-content ctx [:p] node))
 (defmethod node->hiccup :block-formula [ctx node] (wrap-content ctx [:figure.formula] node))
-(defmethod node->hiccup :bullet-list [ctx node]   (wrap-content ctx [:ul.list-disc.disc-inside] node)) ;; TODO: fix classes
+(defmethod node->hiccup :bullet-list [ctx node]   (wrap-content ctx [:ul] node))
 (defmethod node->hiccup :numbered-list [ctx node] (wrap-content ctx [:ol] node))
 (defmethod node->hiccup :list-item [ctx node]     (wrap-content ctx [:li] node))
 (defmethod node->hiccup :blockquote [ctx node]    (wrap-content ctx [:blockquote] node))

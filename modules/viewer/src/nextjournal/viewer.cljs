@@ -691,53 +691,103 @@
                                                             (min 100)
                                                             (str "%"))}}]]])))]])
 
+(defn md-code-viewer [{:as node :keys [info]}]
+  (let [code (md.data/->text node)]
+    (html [:div
+           [:div.viewer.viewer-code [inspect (view-as :code code)]]
+           (when (= "clj" info) ;; TODO: parse fence info into language + attrs
+             [:dev.viewer-result.mt-10 [inspect (*eval-form* (cljs.reader/read-string code))]])])))
+
+(defn md-formula [node]
+  (html [:div.mt-2 {:style {:text-align "center"}}
+         [inspect (view-as :latex (md.data/->text node))]]))
+
+;; hack to override styles globally
+(defn md-doc [node]
+  (html [:div.notebook
+         [:style ".notebook a {text-decoration: underline;}
+                  figcaption {text-align: right; text-decoration: underline; font-family: sans-serif;}
+                  li {margin-left: 1rem;}
+                  p {margin-top: 0.5rem;}"]
+         (md.data/->hiccup node {:code md-code-viewer
+                                 #_#_:bullet-list #(html [:h2 (str "This is a " (:type %) " of length: " (-> % :content count))])
+                                 :formula md-formula
+                                 :table #(html [:div.viewer-markdown (md.data/->hiccup % {:formula md-formula})]) ;; just needed to get nice tables
+                                 :toc #(html [:div.text-sm {:style {:border "1px solid grey"}}
+                                              [:b.underline "Table of Contents"]
+                                              (md.data/toc->hiccup %)])})]))
+
 (dc/defcard markdown-data-to-hiccup
   "Renders Markdown data as Hiccup"
-  [inspect
-   (view-as :hiccup
-            (-> "# Markdown to Hiccup
+  [markdown]
+  [:div
+   [:div.mt-10
+    [inspect (view-as :hiccup (-> @markdown md/parse (md.data/->hiccup {:doc md-doc})))]]
+   [:h3.underline "Reference Markdown"]
+   [:div.mt-10.viewer-code
+    [inspect (view-as :code @markdown)]]]
+  {::dc/state "# Markdown Data
 
-👇 this is the default ToC
+## Code
+There's a whole lot of advantages in parsing Markdown into Clojure data:
 
-[[TOC]]
+```clj
+(nextjournal.markdown/parse \"# Some markdown
+* one
+* two
+* here
+\")
+```
 
-and _some_ par for fun break\nhere softly
+In particular we can have _full control_ over the rendering pass, these code:
 
-one par below
+```clj
+(-> \"# Hello Again
+    Please **render** me ~~wrong~~ _nicely_
+    \"
+    nextjournal.markdown/parse
+    nextjournal.markdown.data/->hiccup)
+```
 
--  bullet _one_
--  bullet **two**
--  bullet foo
+In this card we're overriding the default hiccup for `:code` nodes in order to add results when the fence language is `\"clj\"`
+
+```
+(nextjournal.markdown.data/->hiccup
+ {:type :doc :content [...]}
+ {:code some-fn})
+```
+
+You might want to see the markdown source at the ~~top~~ _bottom_ of this card.
+
+---
+## Lists
+
+- bullet _one_
+  - nested
+  - nested two
+- bullet foo
 
 ## Images
 
-images inline ![alt](https://nextjournal.com/images/nextjournal-logo.svg) or as block:
+Thanks to the [block-image Plugin](https://github.com/rotorz/markdown-it-block-image) we can actually discern images at block level from those inline:
+
+Inline images look like this one ![alt](https://nextjournal.com/images/nextjournal-logo.svg) while block images do their job differently
 
 ![Some **nice** caption](https://nextjournal.com/images/nextjournal-logo.svg \"A nice logo\")
 
-
-## Rulers
----
-
-> with a quote
-
-### Code
+also, an image node's text content might be used as caption 👆.
 
 ```clj
 (reduce + 0 (range 0 10))
-```"
-                md/parse
-                md.data/->hiccup))])
+```
 
-(dc/defcard markdown-data-to-hiccup-with-viewers
-  "Renders Markdown data as hiccup with configurable viewers"
-  [inspect
-   (view-as :hiccup
-            (-> "# Markdown to Hiccup with Viewers
+## Formulas
 
-and some ~~par for fun~~
+for formulas we're overriding the default markup with our katex viewer:
 
 $$\\int_{\\omega} \\phi d\\omega$$
+
+## Tables
 
 | Syntax |  JVM                     | JavaScript                                    |
 |--------|-------------------------:|:----------------------------------------------|
@@ -745,31 +795,12 @@ $$\\int_{\\omega} \\phi d\\omega$$
 |   bar  |  java.time.LocalTime     | some [kinky](link/to/something)               |
 |   bag  |  java.time.LocalDateTime | $\\bigoplus_{\\alpha < \\omega}\\phi_\\alpha$ |
 
-## At 2
-
-### At 3
-
-## Two Again
-
-### Three Again
-- one
-- two
-- three
-
-and a paragraph inbetween
+### And some deeper Section
 
 ```clj
 (reduce + 0 (range 0 10))
 ```
-And a custom ToC 👇
+And a custom ToC inserted with the placeholder `[[TOC]]`
+
 [[TOC]]"
-                md/parse
-                ;; configured viewers take the Markdown node structure as argument
-                (md.data/->hiccup {:bullet-list #(html [:h2 (str "This is a " (:type %) " of length: " (-> % :content count))])
-                                   ;;`md.data/->text` gets child contents as string
-                                   :formula #(inspect (view-as :latex (md.data/->text %)))
-                                   :code #(html [:div.viewer.viewer-code.wide [inspect (view-as :code (md.data/->text %))]])
-                                   ;; wrap default TOC builder or build it in the view
-                                   :toc #(html [:div.text-sm {:style {:border "1px solid grey"}}
-                                                [:b.underline "Table of Contents"]
-                                                (md.data/toc->hiccup %)])})))])
+   })
