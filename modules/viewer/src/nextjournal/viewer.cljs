@@ -738,6 +738,9 @@
    [:div.mt-10.viewer-code
     [inspect (view-as :code @markdown)]]]
   {::dc/state "# Markdown Data
+## Todos
+- [x] xxxTable of Contents as `[[TOC]]`
+- [ ] xxxhashtags
 
 ## Code
 There's a whole lot of advantages in parsing Markdown into Clojure data:
@@ -799,6 +802,8 @@ for formulas we're overriding the default markup with our katex viewer:
 $$\\int_{\\omega} \\phi d\\omega$$
 
 ## Tables
+
+as building hiccup is recursive, we're using the specific viewers for values occurring at any level in the structure
 
 | Syntax |  JVM                     | JavaScript                                    |
 |--------|-------------------------:|:----------------------------------------------|
