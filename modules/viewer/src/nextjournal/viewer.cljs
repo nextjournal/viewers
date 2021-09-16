@@ -706,6 +706,8 @@
    (view-as :hiccup
             (-> "# Markdown to Hiccup
 
+👇 this is the default ToC
+
 [[TOC]]
 
 and _some_ par for fun break\nhere softly
@@ -752,6 +754,13 @@ $$\\int_{\\omega} \\phi d\\omega$$
 |   bar  |  java.time.LocalTime     | some [kinky](link/to/something)               |
 |   bag  |  java.time.LocalDateTime | $\\bigoplus_{\\alpha < \\omega}\\phi_\\alpha$ |
 
+## At 2
+
+### At 3
+
+## Two Again
+
+### Three Again
 - one
 - two
 - three
@@ -760,10 +769,16 @@ and a paragraph inbetween
 
 ```clj
 (reduce + 0 (range 0 10))
-```"
+```
+And a custom ToC 👇
+[[TOC]]"
                 md/parse
-                (md.data/->hiccup {:formula #(inspect (view-as :latex %))
-                                   ;; get node content as string at %1
-                                   :code #(html [:div.viewer.viewer-code.wide [inspect (view-as :code %1)]])
-                                   ;; access whole node structure at %2
-                                   :bullet-list #(html [:h2 (str "This is a " (:type %2) " of length: " (-> %2 :content count))])})))])
+                ;; configured viewers take the Markdown node structure as argument
+                (md.data/->hiccup {:bullet-list #(html [:h2 (str "This is a " (:type %) " of length: " (-> % :content count))])
+                                   ;;`md.data/->text` gets child contents as string
+                                   :formula #(inspect (view-as :latex (md.data/->text %)))
+                                   :code #(html [:div.viewer.viewer-code.wide [inspect (view-as :code (md.data/->text %))]])
+                                   ;; wrap default TOC builder or build it in the view
+                                   :toc #(html [:div.text-sm {:style {:border "1px solid grey"}}
+                                                [:b.underline "Table of Contents"]
+                                                (md.data/toc->hiccup %)])})))])

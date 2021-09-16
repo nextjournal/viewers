@@ -79,33 +79,48 @@
 ;; endregion
 
 ;; region TOC builder: (`add-to-toc` acts on toc after closing a header node)
+(defn into-toc [toc {:as toc-item :keys [level]}]
+  (loop [toc toc l level toc-path [:content]]
+    (cond
+      (= 1 l)
+      (update-in toc toc-path (fnil conj []) toc-item)
+
+      ;; fnil above is not enough to insert intermediate default empty :content collections for the final update-in (defaults to maps)
+      (not (get-in toc toc-path))
+      (recur (assoc-in toc toc-path []) l toc-path)
+
+      :else
+      (recur toc
+             (dec l)
+             (conj toc-path
+                   (max 0 (dec (count (get-in toc toc-path)))) ;; select last child at level if it exists
+                   :content)))))
+
 (declare ->hiccup)
 (defn add-to-toc [{:as doc :keys [toc] path ::path}]
-  (let [{:as h :keys [heading-level]} (get-in doc path)
-        ;; credits for update fns @plexus
-        update-last-child (fn [m f & args]
-                            (let [m (if (empty? (:children m))
-                                      (update m :children conj {:children []})
-                                      m)]
-                              (apply update-in m
-                                     [:children (dec (count (:children m)))]
-                                     f args)))
-        update-level (fn update-level [m lvl f & args]
-                       (if (= lvl 1)
-                         (apply f m args)
-                         (apply update-last-child m update-level (dec lvl) f args)))]
+  (let [{:as h :keys [heading-level]} (get-in doc path)]
     (cond-> doc
-      (integer? heading-level)
-      (update :toc update-level heading-level update :children conj {:level heading-level
-                                                                     :title (->text h)
-                                                                     :title-hiccup (->hiccup h)
-                                                                     :children []
-                                                                     :path path}))))
+      (pos-int? heading-level)
+      (update :toc into-toc {:level heading-level
+                             :title (->text h)
+                             :title-hiccup (->hiccup h)
+                             :path path}))))
 
 (comment
-  (-> "# Start
+ (-> {}
+     (into-toc {:level 3 :title "Foo"})
+     (into-toc {:level 2 :title "Section 1"})
+     (into-toc {:level 1 :title "Title"})
+     (into-toc {:level 2 :title "Section 2"})
+     (into-toc {:level 3 :title "Section 2.1"})
+     (into-toc {:level 2 :title "Section 3"})
+     ;;(into-toc 2 "Section 2")
+     )
 
-dadang bang
+
+ (-> "# Start
+
+par
 
 ### Three
 
@@ -126,10 +141,10 @@ par
 #### Four
 
 end"
-      nextjournal.markdown/tokenize
-      <-tokens
-      :toc
-      ))
+     nextjournal.markdown/tokenize
+     <-tokens
+     :toc
+     ))
 ;; endregion
 
 ;; region token handlers
@@ -235,7 +250,7 @@ end"
 
 (def empty-doc {:type :doc
                 :content []
-                :toc {:children []}
+                :toc {}
                 ;; private
                 ::path [:content -1]
                 ::marks []})
@@ -308,19 +323,25 @@ or monospace mark [`real`](/foo/bar) fun
 ;; endregion
 
 ;; region hiccup renderer (maybe move to .hiccup ns)
-(declare node->hiccup)
+(declare node->hiccup toc->hiccup)
+
 (defn wrap-content [ctx hiccup {:as node :keys [type content]}]
   (if-some [v (guard ifn? (get ctx type))]
-    [v (->text node) node] ;; have custom viewer decide what/how to extract data from node, pass extra context to component
+    [v node]
     (into hiccup (keep (partial node->hiccup (assoc ctx ::parent type))) content)))
-(defn toc->hiccup [{:keys [children title title-hiccup level]}]
-  [:li
-   [(keyword (str "h" level)) title]
-   (when (seq children)
-     (into [:ul] (keep toc->hiccup) children))])
 
+(defn toc-item->hiccup [{:keys [content title-hiccup]}]
+  [:li.toc-item
+   [:div
+    title-hiccup
+    (when (seq content) (into [:ul] (map toc-item->hiccup) content))]])
 
 (defmulti  node->hiccup (fn [_ctx {:as _node :keys [type]}] type))
+
+;; toc
+(defmethod node->hiccup :toc [{:as ctx ::keys [toc]} _]
+  (if-some [v (guard ifn? (get ctx :toc))] [v toc] (toc->hiccup toc)))
+
 ;; blocks
 (defmethod node->hiccup :doc [ctx node]           (wrap-content ctx [:div.viewer-markdown] node))      ;; TODO: fix classes
 (defmethod node->hiccup :heading [ctx node]       (wrap-content ctx [(keyword (str "h" (:heading-level node)))] node))
@@ -332,7 +353,6 @@ or monospace mark [`real`](/foo/bar) fun
 (defmethod node->hiccup :blockquote [ctx node]    (wrap-content ctx [:blockquote] node))
 (defmethod node->hiccup :code [ctx node]          (wrap-content ctx [:pre.viewer-code] node))
 (defmethod node->hiccup :ruler [_ctx _node]       [:hr])
-(defmethod node->hiccup :toc [ctx _]              (into [:ul] (keep toc->hiccup) (-> ctx ::toc :children)))
 
 ;; inlines
 (declare apply-marks apply-mark)
@@ -363,18 +383,24 @@ or monospace mark [`real`](/foo/bar) fun
 (defmethod apply-mark :strikethrough [hiccup _]      [:s hiccup])
 (defmethod apply-mark :link [hiccup {:keys [attrs]}] [:a {:href (:href attrs)} hiccup])
 
+
 (defn ->hiccup
   "Transforms MarkDown data into Hiccup
 
   an optional second `options` map allows for customizing type => render-fn to be used in combination with reagent."
   ([node] (->hiccup node {}))
-  ([node opts] (node->hiccup (assoc opts ::toc (:toc node)) node)))
+  ([node opts] (node->hiccup (assoc opts ::toc (:toc node))
+                             node)))
+
+(defn toc->hiccup [{:as _toc :keys [content]}] (into [:ul.toc] (map toc-item->hiccup) content))
 
 (comment
   (-> "# Hello
 
-[[toc]]
+[[TOC]]
 
+
+## Section One
 A nice $\\phi$ formula [for _real_ **strong** fun](/path/to) \n soft
 
 - one **ahoi** list
@@ -382,9 +408,10 @@ A nice $\\phi$ formula [for _real_ **strong** fun](/path/to) \n soft
 
 > that said who?
 
+## Section Two
 ---
 
-## Image as block
+### Images
 
 ![Some **nice** caption](https://www.example.com/images/dinosaur.jpg)
 
