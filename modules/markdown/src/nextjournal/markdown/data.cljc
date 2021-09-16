@@ -159,13 +159,15 @@ end"
 (defmethod apply-token "paragraph_open" [doc _token] (open-node doc :paragraph))
 (defmethod apply-token "paragraph_close" [doc _token] (close-node doc))
 
-(defmethod apply-token "bullet_list_open" [doc _token] (open-node doc :bullet-list))
+(defmethod apply-token "bullet_list_open" [doc {:keys [attrs]}]
+  (let [{:keys [todo-list]} (pairs->kmap attrs)]
+    (open-node doc (if todo-list :todo-list :bullet-list) attrs)))
 (defmethod apply-token "bullet_list_close" [doc _token] (close-node doc))
 
 (defmethod apply-token "ordered_list_open" [doc _token] (open-node doc :numbered-list))
 (defmethod apply-token "ordered_list_close" [doc _token] (close-node doc))
 
-(defmethod apply-token "list_item_open" [doc _token] (open-node doc :list-item))
+(defmethod apply-token "list_item_open" [doc token] (open-node doc :list-item (:attrs token)))
 (defmethod apply-token "list_item_close" [doc _token] (close-node doc))
 
 (defmethod apply-token "math_block" [doc {text :content}] (-> doc (open-node :block-formula) (push-node (formula text))))
@@ -243,6 +245,11 @@ end"
 (defmethod apply-token "link_close" [doc _token] (close-mark doc))
 (defmethod apply-token "code_inline" [{:as doc ms ::marks} {text :content}]
   (push-node doc (text-node text (conj ms (mark :monospace)))))
+
+;; html (ignored)
+(defmethod apply-token "html_inline" [doc _] doc)
+
+
 ;; endregion
 
 ;; region data builder api
@@ -276,9 +283,9 @@ some _emphatic_ **strong** [link](https://foo.com)
 
 $$\\Pi^2$$
 
-* and
-* some $\\Phi_{\\alpha}$ latext
-* bullets
+- [ ]  and
+- [x]  some $\\Phi_{\\alpha}$ latext
+- [ ]  bullets
 
 ## Fences
 
@@ -325,10 +332,12 @@ or monospace mark [`real`](/foo/bar) fun
 ;; region hiccup renderer (maybe move to .hiccup ns)
 (declare node->hiccup toc->hiccup)
 
-(defn wrap-content [ctx hiccup {:as node :keys [type content]}]
+(defn wrap-content [ctx hiccup {:as node :keys [type attrs content]}]
   (if-some [v (guard ifn? (get ctx type))]
     [v node]
-    (into hiccup (keep (partial node->hiccup (assoc ctx ::parent type))) content)))
+    (into hiccup
+          (keep (partial node->hiccup (assoc ctx ::parent type)))
+          content)))
 
 (defn toc-item->hiccup [{:keys [content title-hiccup]}]
   [:li.toc-item
@@ -348,8 +357,9 @@ or monospace mark [`real`](/foo/bar) fun
 (defmethod node->hiccup :paragraph [ctx node]     (wrap-content ctx [:p] node))
 (defmethod node->hiccup :block-formula [ctx node] (wrap-content ctx [:figure.formula] node))
 (defmethod node->hiccup :bullet-list [ctx node]   (wrap-content ctx [:ul] node))
+(defmethod node->hiccup :todo-list [ctx node]     (wrap-content ctx [:ul {:data-todo-list true}] node))
 (defmethod node->hiccup :numbered-list [ctx node] (wrap-content ctx [:ol] node))
-(defmethod node->hiccup :list-item [ctx node]     (wrap-content ctx [:li] node))
+(defmethod node->hiccup :list-item [ctx node]     (wrap-content ctx [:li] node)) ;; TODO: add todo-list attrs
 (defmethod node->hiccup :blockquote [ctx node]    (wrap-content ctx [:blockquote] node))
 (defmethod node->hiccup :code [ctx node]          (wrap-content ctx [:pre.viewer-code] node))
 (defmethod node->hiccup :ruler [_ctx _node]       [:hr])
@@ -381,7 +391,6 @@ or monospace mark [`real`](/foo/bar) fun
 (defmethod apply-mark :strikethrough [hiccup _]      [:s hiccup])
 (defmethod apply-mark :link [hiccup {:keys [attrs]}] [:a {:href (:href attrs)} hiccup])
 
-
 (defn ->hiccup
   "Transforms MarkDown data into Hiccup
 
@@ -401,8 +410,9 @@ or monospace mark [`real`](/foo/bar) fun
 ## Section One
 A nice $\\phi$ formula [for _real_ **strong** fun](/path/to) \n soft
 
-- one **ahoi** list
+- [ ] one **ahoi** list
 - two `nice` and ~~three~~
+- [x] checked
 
 > that said who?
 

@@ -32,7 +32,7 @@
      (.use todo-lists/Plugin)
      ;; detects images in block position (doesn't wrap into a paragraph)
      ;; NOTE: in nextjournal it would be extremely useful to do the same for links e.g. [text](path)
-     (.use md-block-image, #js {:outputContainer nil})
+     (.use md-block-image)
      ;; [[TOC]]
      (.use md-toc)
      )))
