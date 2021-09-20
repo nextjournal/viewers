@@ -8,15 +8,6 @@
                                                  nextjournal.devcards.main]}}
                     :js-options {:output-feature-set :es8}}
 
-          :esm {:target :esm
-                :devtools {:enabled false :console-support false}
-                :output-dir "public/js/"
-                :output-to "public/js/markdown.mjs"
-                :modules
-                {:markdown {:entries ["markdown-it"
-                                      "markdown-it-task-lists"
-                                      "markdown-it-texmath"]}}}
-
           :graal {:target :graaljs
                   :devtools {:enabled false :console-support false}
                   :output-to "resources/graal/js/markdown.js"
@@ -24,7 +15,6 @@
                   ;; we need to expose globals to graal context
                   :compiler-options {:optimizations :simple}
                   :entries ["markdown-it"
-                            "markdown-it-task-lists"
                             "markdown-it-texmath"
                             "markdown-it-block-image"
                             "markdown-it-toc-done-right"]}}}
