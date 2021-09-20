@@ -613,6 +613,13 @@
           value-1 (generate-ds 42 gen-keyword)]
       (generate-ds 42 (fn [] (clj->js value-1))))))
 
+(dc/defcard inspect-in-process
+  "Different datastructures that live in-process in the browser. More values can just be displayed without needing to fetch more data."
+  [:div
+   [:div [inspect (range 1000)]]
+   [:div [inspect (vec (range 1000))]]
+   [:div [inspect (zipmap (range 1000) (range 1000))]]])
+
 (dc/defcard viewer-reagent-atom
   [inspect (reagent/atom {:hello :world})])
 

@@ -57,7 +57,8 @@
     [d3-require/with {:package "plotly.js-dist@1.51.1"}
      (j/fn [^:js {:as Plotly :keys [relayout Plots]}]
        [:div.code-plotly-result
-        {:ref (fn [^js plotly-el]
+        {:class "flex justify-center items-center"
+         :ref (fn [^js plotly-el]
                 (if plotly-el
                   (j/let [^:js {:keys [layout] :as coerced} (coerce-val value)
                           value-object (-> coerced
