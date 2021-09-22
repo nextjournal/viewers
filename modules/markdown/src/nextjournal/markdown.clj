@@ -73,7 +73,7 @@
 
 (def ^Context ctx (.build context-builder))
 
-(def MD-imports
+(def ^Value MD-imports
   (.eval ctx (.build (Source/newBuilder "js" "import MD from './modules/markdown/resources/js/markdown.mjs'; MD" "source.mjs"))))
 
 (defn make-js-fn [fn-name]
@@ -95,10 +95,8 @@
     (polyglot-coll->token-iterator token-collection)))
 
 (defn tokenize-j [markdown-text]
-  (-> markdown-text
-      parseJ*
-      .asString
-      (json/read-str :key-fn keyword)))
+  (let [^Value tokens-json (parseJ* markdown-text)]
+    (json/read-str (.asString tokens-json) :key-fn keyword)))
 
 (defn parse
   "Takes a string of Markdown text, returns a nested Clojure structure."
@@ -136,8 +134,8 @@
   (source "function(text) { return MD.parse(text) " "parse.js")
   ;; set javascript es module mimetype
   ;; esm module approach fails because of imports targeting files in shadow bundle with .js extension
-  (.eval ctx  (.build (-> (Source/newBuilder "js" "import {markdown} from 'public/js/markdown.mjs';" "source.mjs") (.mimeType "application/javascript+module"))))
-  (.eval ctx  (.build (-> (Source/newBuilder "js" "import * from './public/js/markdown.mjs';" "source.mjs") (.mimeType "application/javascript+module"))))
+  (.eval ctx (.build (-> (Source/newBuilder "js" "import {markdown} from 'public/js/markdown.mjs';" "source.mjs") (.mimeType "application/javascript+module"))))
+  (.eval ctx (.build (-> (Source/newBuilder "js" "import * from './public/js/markdown.mjs';" "source.mjs") (.mimeType "application/javascript+module"))))
 
   (require '[shadow.cljs.devtools.api :as shadow])
   (shadow/repl :browser)
