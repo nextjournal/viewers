@@ -6,7 +6,6 @@
             [nextjournal.log :as log]
             [nextjournal.ui.components.icon :as icon]
             [nextjournal.ui.components.promises :as promises]
-            [nextjournal.markdown :refer [Markdown]]
             [nextjournal.view :as v]
             [nextjournal.viewer :as data]
             [reitit.frontend.easy :as rfe]

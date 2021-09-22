@@ -6,15 +6,6 @@
                     :modules {:viewer {:entries [nextjournal.viewer
                                                  nextjournal.viewer.notebook
                                                  nextjournal.devcards.main]}}
-                    :js-options {:output-feature-set :es8}}
-
-          :graal {:target :graaljs
-                  :devtools {:enabled false :console-support false}
-                  :output-to "resources/graal/js/markdown.js"
-                  ;; since we're not requiring md-it deps anywhere from cljs
-                  ;; we need to expose globals to graal context
-                  :compiler-options {:optimizations :simple}
-                  :entries ["markdown-it"
-                            "markdown-it-texmath"
-                            "markdown-it-block-image"
-                            "markdown-it-toc-done-right"]}}}
+                    :js-options {:output-feature-set :es8
+                                 :resolve {"markdown" {:target :file
+                                                       :file   "modules/markdown/lib/markdown.js"}}}}}}
