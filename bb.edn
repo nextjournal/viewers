@@ -6,7 +6,7 @@
 
   watch:cljs {:doc "Starts shadow-cljs server"
               :task (clojure "-M:examples:shadow watch browser")
-              :depends [yarn-install]}
+              :depends [yarn-install build:markdown:esm]}
 
   watch:css {:doc  "Starts a watcher for css files tailwindcss"
              :task (shell (str tailwind-build-cmd " --watch"))
