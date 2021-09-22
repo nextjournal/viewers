@@ -9,7 +9,9 @@
   ILookup
   (-lookup [this key] (j/get this key)))
 
-(def parse md/parse)
+(def tokenize md/parse)
+(def tokenize-j md/parse)
+(defn parse [markdown-text] (-> markdown-text tokenize markdown.data/<-tokens))
 (def render md/render)
 
 (comment
