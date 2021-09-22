@@ -11,6 +11,7 @@ let mdToc = require("markdown-it-toc-done-right")
 MD.use(mdToc)
 
 function parseJ(text) { return JSON.stringify(MD.parse(text, {})) }
-
 function parse(text)  { return MD.parse(text, {}) }
-module.exports = {parseJ: parseJ, parse: parse} ;
+function render(text) { return MD.render(text, {}) }
+
+module.exports = {parseJ: parseJ, parse: parse, render: render};
