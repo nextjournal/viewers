@@ -71,29 +71,32 @@
     (.allowAllAccess true)
     (.allowNativeAccess true)))
 
-(def ^Context ctx
-  (doto (.build context-builder)
-    (.eval (source-file "graal/js/markdown.js"))            ;; make this available at clj compile time ?
-    ;; TODO: share js code with cljs
-    (.eval "js" "const MD = module$node_modules$markdown_it$index({html: true, linkify: true})")
-    (.eval "js" "let texmath = module$node_modules$markdown_it_texmath$texmath
-                 MD.use(texmath, {delimiters: \"dollars\"})")
-    (.eval "js" "let blockImage = module$node_modules$markdown_it_block_image$lib$index
-                 MD.use(blockImage)")
-    (.eval "js" "let mdToc = module$node_modules$markdown_it_toc_done_right$dist$markdownItTocDoneRight
-                 MD.use(mdToc)")
-    (.eval "js" "function parseJ(text) { return JSON.stringify(MD.parse(text, {})) }")
-    (.eval "js" "function parse(text)  { return MD.parse(text, {}) }")))
+(def ^Context ctx (.build context-builder))
+
+(def MD-imports
+  (.eval ctx (.build (Source/newBuilder "js" "import MD from './modules/markdown/resources/js/markdown.mjs'; MD" "source.mjs"))))
+
+(defn make-js-fn [fn-name]
+  (let [f (.getMember MD-imports fn-name)]
+    (fn [& args] (.execute f (to-array args)))))
+
+(def parse* (make-js-fn "parse"))
+(def parseJ* (make-js-fn "parseJ"))
+
+(comment
+  (.execute (.getMember MD-imports "parse") (to-array ["# Hello"]))
+  (parseJ* "# Hello")
+  (json/read-str (.asString (parseJ* "# Hello")))
+  (.eval ctx (source-file "js/foo.mjs")))
+
 
 (defn tokenize [markdown-text]
-  (let [^Value parse-fn (.eval ctx "js" "parse")
-        ^Value token-collection (.execute parse-fn (into-array String [markdown-text]))]
+  (let [^Value token-collection (parse* markdown-text)]
     (polyglot-coll->token-iterator token-collection)))
 
 (defn tokenize-j [markdown-text]
-  (-> ctx
-      (.eval "js" "parseJ")
-      (.execute (into-array String [markdown-text]))
+  (-> markdown-text
+      parseJ*
       .asString
       (json/read-str :key-fn keyword)))
 
@@ -108,6 +111,7 @@
   ;; build graal target `clj -M:examples:shadow watch graal browser`
   (-> (tokenize "[some text](/some/url)") first)
 
+  (seq (tokenize "# markdown-it rulezz!\n\n${toc}\n## with markdown-it-toc-done-right rulezz even more!"))
   (seq (tokenize "# Hello
 
 - [ ] one

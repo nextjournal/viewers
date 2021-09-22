@@ -1,6 +1,7 @@
 {:paths ["src" "resources"]
  :deps {io.github.nextjournal/viewer {:local/root "modules/viewer"}
-        io.github.nextjournal/inspector {:local/root "modules/inspector"}}
+        io.github.nextjournal/inspector {:local/root "modules/inspector"}
+        io.github.nextournal/markdown {:local/root "modules/markdown"}}
 
  :aliases
  {:shadow {:extra-deps {thheller/shadow-cljs {:mvn/version "2.15.3"}
