@@ -24,7 +24,6 @@ function todoListPlugin(md, opts) {
   }
   const removeMarkup = (token) => {
     let textNode = token.children[0]
-    console.log("remove mkp", textNode)
     textNode.content = textNode.content.slice(4)
   }
   const closestList = (tokens, index) => {
