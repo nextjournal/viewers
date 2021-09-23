@@ -10,7 +10,6 @@
 /.calva/
 /public/css/app.css
 /public/js/
-/graal/js
 /node_modules/
 /.cpcache
 /modules/*/.cpcache
