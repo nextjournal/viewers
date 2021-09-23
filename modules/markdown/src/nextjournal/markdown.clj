@@ -1,11 +1,5 @@
 (ns nextjournal.markdown
-
-  "Facility functions for handling markdown conversions
-
-  - [ ] A tiny js file requiring md-it and setting up plugins, extensible
-  - [ ] A clojure ns (this) for handling GraalJs stuff
-  - [ ] a cljc file for handling tokens returned by parsing markdown
-  "
+  "Facility functions for handling markdown conversions"
   (:require [clojure.java.io :as io]
             [clojure.data.json :as json]
             [nextjournal.markdown.data :as markdown.data])
@@ -24,7 +18,7 @@
   (reify
     Map
     (get [_this key] (value-as (name key) (.getMember v (name key))))
-    (entrySet [_this] (into #{} (map (fn [k] [k (value-as k (.getMember v k))])) (.getMemberKeys v)))
+    (entrySet [_this] (into #{} (map (fn [k] [(keyword k) (value-as k (.getMember v k))])) (.getMemberKeys v)))
     IRawValue
     (get-raw [_this] v)))
 
@@ -58,8 +52,6 @@
 
 (def engine (Engine/create))
 
-(defn source-file [path] (.build (Source/newBuilder "js" (io/resource path))))
-
 (def ^Context$Builder context-builder
   (doto (Context/newBuilder (into-array String ["js"]))
     (.engine engine)
@@ -86,9 +78,7 @@
 (comment
   (.execute (.getMember MD-imports "parse") (to-array ["# Hello"]))
   (parseJ* "# Hello")
-  (json/read-str (.asString (parseJ* "# Hello")))
-  (.eval ctx (source-file "js/foo.mjs")))
-
+  (json/read-str (.asString (parseJ* "# Hello"))))
 
 (defn tokenize [markdown-text]
   (let [^Value token-collection (parse* markdown-text)]
@@ -116,26 +106,17 @@
 - [ ] two
 "))
 
-  (-> (.execute (.eval ctx "js" "parse") (into-array ["# Hello"]))
+  (-> (parse* "# Hello")
       polyglot-coll->token-iterator
       second
+      ;;get-raw
       (get :children)
       first
       (get :content)
       )
 
-  (-> (.execute (.eval ctx "js" "parse") (into-array ["# Hello"]))
-      polyglot-coll->token-iterator
-      second
-      get-raw
-      ;;(get :foo "bang")
-      )
-
-  (source "function(text) { return MD.parse(text) " "parse.js")
-  ;; set javascript es module mimetype
   ;; esm module approach fails because of imports targeting files in shadow bundle with .js extension
-  (.eval ctx (.build (-> (Source/newBuilder "js" "import {markdown} from 'public/js/markdown.mjs';" "source.mjs") (.mimeType "application/javascript+module"))))
-  (.eval ctx (.build (-> (Source/newBuilder "js" "import * from './public/js/markdown.mjs';" "source.mjs") (.mimeType "application/javascript+module"))))
+  (.eval ctx (.. (Source/newBuilder "js" "import * from './public/js/markdown.mjs';" "source.mjs") build))
 
   (require '[shadow.cljs.devtools.api :as shadow])
   (shadow/repl :browser)
