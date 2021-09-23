@@ -13,7 +13,7 @@
              :depends [yarn-install]}
 
   build:markdown:esm {:doc "Builds the ESM JS module file for the markdown module"
-                      :task (shell "./node_modules/.bin/esbuild modules/markdown/src/js/markdown.js --bundle --outfile=./modules/markdown/resources/js/markdown.mjs --format=esm")
+                      :task (shell "./node_modules/.bin/esbuild modules/markdown/src/js/markdown.js --bundle --minify --outfile=./modules/markdown/resources/js/markdown.mjs --format=esm")
                       :depends [yarn-install]}
 
   build:css {:doc  "Builds the css files with tailwindcss"
