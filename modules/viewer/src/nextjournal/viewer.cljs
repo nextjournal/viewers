@@ -717,16 +717,28 @@
          [:style ".notebook a {text-decoration: underline;}
                   figcaption {text-align: right; text-decoration: underline; font-family: sans-serif;}
                   li {margin-left: 1rem;}
-                  p {margin-top: 0.5rem;}
+                  li p {display: inline;}
                   img.inline {display: inline; max-width: 33%}
                   "]
          (md.data/->hiccup node {:code md-code-viewer
                                  #_#_:bullet-list #(html [:h2 (str "This is a " (:type %) " of length: " (-> % :content count))])
                                  :formula md-formula
                                  :table #(html [:div.viewer-markdown (md.data/->hiccup % {:formula md-formula})]) ;; just needed to get nice tables
-                                 :toc #(html [:div.text-sm {:style {:border "1px solid grey"}}
-                                              [:b.underline "Table of Contents"]
-                                              (md.data/toc->hiccup %)])})]))
+                                 :todo-list #(html [:div.viewer-markdown
+                                                    [:ul.contains-task-list.list-disc.list-inside
+                                                     (->> % :content
+                                                          (map (fn [node]
+                                                                 (md.data/->hiccup
+                                                                   node
+                                                                   {:todo-item (fn [node]
+                                                                                 (html [:li
+                                                                                        [:input {:type "checkbox"}]
+                                                                                        (map md.data/->hiccup (:content node))]))}))))]])
+                                 :toc #(html
+                                         [:div.text-sm {:style {:border "1px solid grey"}}
+                                          (js/console.log :TOC %)
+                                          [:b.underline "Table of Contents"]
+                                          (md.data/toc->hiccup %)])})]))
 
 (dc/defcard markdown-data-to-hiccup
   "Renders Markdown data as Hiccup"
@@ -739,8 +751,9 @@
     [inspect (view-as :code @markdown)]]]
   {::dc/state "# Markdown Data
 ## Todos
-- [x] xxxTable of Contents as `[[TOC]]`
-- [ ] xxxhashtags
+- [x] Table of Contents as `[[TOC]]`
+- [ ] Hashtags
+- [ ] ~~Github Preamble~~
 
 ## Code
 There's a whole lot of advantages in parsing Markdown into Clojure data:

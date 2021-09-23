@@ -14,11 +14,11 @@
   Mark:
   - mark: the mark type (:em, :strong, :link, etc.)
   - attrs: mark attributes e.g. href in links
-  ")
+  "
+  (:require [applied-science.js-interop :as j]))
 
 ;; region node operations
 (defn guard [pred val] (when (pred val) val))
-(defn pairs->kmap [pairs] (into {} (map (juxt (comp keyword first) second)) pairs))
 (defn inc-last [path] (update path (dec (count path)) inc))
 (defn hlevel [{:as _token hn :tag}] (when (string? hn) (some-> (re-matches #"h([\d])" hn) second #?(:clj read-string :cljs cljs.reader/read-string))))
 (defn ->text [{:as _node :keys [text formula content]}] (or text formula (apply str (map ->text content))))
@@ -26,11 +26,11 @@
 (defn node
   [type content attrs top-level]
   (cond-> {:type type :content content}
-    (seq attrs) (assoc :attrs (pairs->kmap attrs))
+    (seq attrs) (assoc :attrs attrs)
     (seq top-level) (merge top-level)))
 (defn mark
   ([type] (mark type nil))
-  ([type attrs] (cond-> {:mark type} (seq attrs) (assoc :attrs (pairs->kmap attrs)))))
+  ([type attrs] (cond-> {:mark type} (seq attrs) (assoc :attrs attrs))))
 (defn text-node
   ([text] (text-node text nil))
   ([text marks] (cond-> {:type :text :text text} (seq marks) (assoc :marks marks))))
@@ -159,15 +159,13 @@ end"
 (defmethod apply-token "paragraph_open" [doc _token] (open-node doc :paragraph))
 (defmethod apply-token "paragraph_close" [doc _token] (close-node doc))
 
-(defmethod apply-token "bullet_list_open" [doc {:keys [attrs]}]
-  (let [{:keys [todo-list]} (pairs->kmap attrs)]
-    (open-node doc (if todo-list :todo-list :bullet-list) attrs)))
+(defmethod apply-token "bullet_list_open" [doc {{:as attrs :keys [has-todos]} :attrs}] (open-node doc (if has-todos :todo-list :bullet-list) attrs))
 (defmethod apply-token "bullet_list_close" [doc _token] (close-node doc))
 
 (defmethod apply-token "ordered_list_open" [doc _token] (open-node doc :numbered-list))
 (defmethod apply-token "ordered_list_close" [doc _token] (close-node doc))
 
-(defmethod apply-token "list_item_open" [doc token] (open-node doc :list-item (:attrs token)))
+(defmethod apply-token "list_item_open" [doc {{:as attrs :keys [todo]} :attrs}] (open-node doc (if todo :todo-item :list-item) attrs))
 (defmethod apply-token "list_item_close" [doc _token] (close-node doc))
 
 (defmethod apply-token "math_block" [doc {text :content}] (-> doc (open-node :block-formula) (push-node (formula text))))
@@ -251,9 +249,11 @@ end"
 
 
 ;; endregion
-
 ;; region data builder api
-(defn apply-tokens [doc tokens] (reduce apply-token doc tokens))
+(defn pairs->kmap [pairs] (into {} (map (juxt (comp keyword first) second)) pairs))
+(defn apply-tokens [doc tokens]
+  (let [mapify-attrs-xf (map (fn [x] (#?(:clj update :cljs j/update!) x :attrs pairs->kmap)))]
+    (reduce (mapify-attrs-xf apply-token) doc tokens)))
 
 (def empty-doc {:type :doc
                 :content []
@@ -352,17 +352,23 @@ or monospace mark [`real`](/foo/bar) fun
   (if-some [v (guard ifn? (get ctx :toc))] [v toc] (toc->hiccup toc)))
 
 ;; blocks
-(defmethod node->hiccup :doc [ctx node]           (wrap-content ctx [:div] node))
-(defmethod node->hiccup :heading [ctx node]       (wrap-content ctx [(keyword (str "h" (:heading-level node)))] node))
-(defmethod node->hiccup :paragraph [ctx node]     (wrap-content ctx [:p] node))
+;; TODO: drop multimethods for a map { type => macro / fn }
+(defn dataset [attrs]
+  (into {}
+        (map (juxt (comp (partial str "data-") name first) second))
+        attrs))
+(defmethod node->hiccup :doc [ctx node] (wrap-content ctx [:div] node))
+(defmethod node->hiccup :heading [ctx node] (wrap-content ctx [(keyword (str "h" (:heading-level node)))] node))
+(defmethod node->hiccup :paragraph [ctx node] (wrap-content ctx [:p] node))
 (defmethod node->hiccup :block-formula [ctx node] (wrap-content ctx [:figure.formula] node))
-(defmethod node->hiccup :bullet-list [ctx node]   (wrap-content ctx [:ul] node))
-(defmethod node->hiccup :todo-list [ctx node]     (wrap-content ctx [:ul {:data-todo-list true}] node))
+(defmethod node->hiccup :bullet-list [ctx node] (wrap-content ctx [:ul] node))
+(defmethod node->hiccup :todo-list [ctx node] (wrap-content ctx [:ul {:data-todo-list true}] node))
 (defmethod node->hiccup :numbered-list [ctx node] (wrap-content ctx [:ol] node))
-(defmethod node->hiccup :list-item [ctx node]     (wrap-content ctx [:li] node)) ;; TODO: add todo-list attrs
-(defmethod node->hiccup :blockquote [ctx node]    (wrap-content ctx [:blockquote] node))
-(defmethod node->hiccup :code [ctx node]          (wrap-content ctx [:pre.viewer-code] node))
-(defmethod node->hiccup :ruler [_ctx _node]       [:hr])
+(defmethod node->hiccup :list-item [ctx node] (wrap-content ctx [:li] node))
+(defmethod node->hiccup :todo-item [ctx {:as node :keys [attrs]}] (wrap-content ctx [:li (dataset attrs)] node))
+(defmethod node->hiccup :blockquote [ctx node] (wrap-content ctx [:blockquote] node))
+(defmethod node->hiccup :code [ctx node] (wrap-content ctx [:pre.viewer-code] node))
+(defmethod node->hiccup :ruler [_ctx _node] [:hr])
 
 ;; inlines
 (declare apply-marks apply-mark)
@@ -375,22 +381,23 @@ or monospace mark [`real`](/foo/bar) fun
     [:figure.image [:img attrs] (wrap-content ctx [:figcaption] node)]))
 
 ;; tables
-(defmethod node->hiccup :table        [ctx node] (wrap-content ctx [:table] node))
-(defmethod node->hiccup :table-head   [ctx node] (wrap-content ctx [:thead] node))
-(defmethod node->hiccup :table-body   [ctx node] (wrap-content ctx [:tbody] node))
-(defmethod node->hiccup :table-row    [ctx node] (wrap-content ctx [:tr] node))
+(defmethod node->hiccup :table [ctx node] (wrap-content ctx [:table] node))
+(defmethod node->hiccup :table-head [ctx node] (wrap-content ctx [:thead] node))
+(defmethod node->hiccup :table-body [ctx node] (wrap-content ctx [:tbody] node))
+(defmethod node->hiccup :table-row [ctx node] (wrap-content ctx [:tr] node))
 (defmethod node->hiccup :table-header [ctx node] (wrap-content ctx [:th] node))
-(defmethod node->hiccup :table-data   [ctx node] (wrap-content ctx [:td] node))
+(defmethod node->hiccup :table-data [ctx node] (wrap-content ctx [:td] node))
 
 ;; marks
 (defn apply-marks [ret m] (reduce apply-mark ret m))
-(defmulti  apply-mark (fn [_hiccup {m :mark}] m))
-(defmethod apply-mark :em [hiccup _]                 [:em hiccup])
-(defmethod apply-mark :monospace [hiccup _]          [:code hiccup])
-(defmethod apply-mark :strong [hiccup _]             [:strong hiccup])
-(defmethod apply-mark :strikethrough [hiccup _]      [:s hiccup])
+(defmulti apply-mark (fn [_hiccup {m :mark}] m))
+(defmethod apply-mark :em [hiccup _] [:em hiccup])
+(defmethod apply-mark :monospace [hiccup _] [:code hiccup])
+(defmethod apply-mark :strong [hiccup _] [:strong hiccup])
+(defmethod apply-mark :strikethrough [hiccup _] [:s hiccup])
 (defmethod apply-mark :link [hiccup {:keys [attrs]}] [:a {:href (:href attrs)} hiccup])
 
+;; TODO: reverse args
 (defn ->hiccup
   "Transforms MarkDown data into Hiccup
 
@@ -405,7 +412,6 @@ or monospace mark [`real`](/foo/bar) fun
   (-> "# Hello
 
 [[TOC]]
-
 
 ## Section One
 A nice $\\phi$ formula [for _real_ **strong** fun](/path/to) \n soft
@@ -427,7 +433,6 @@ and here as inline ![alt](foo/bar) image
 
 ```clj
 (some nice clojure)
-
 ```"
       nextjournal.markdown/tokenize-j
       nextjournal.markdown.data/<-tokens
