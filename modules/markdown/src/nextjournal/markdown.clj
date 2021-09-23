@@ -31,10 +31,15 @@
             (hasNext [_this] (.hasIteratorNextElement iterator))
             (next [_this] (->Token (.getIteratorNextElement iterator)))))))))
 
+(defn scalar-value [^Value x]
+  (cond (.isString x) (.asString x)
+        (.isNumber x) (.asInt x)
+        (.isBoolean x) (.asBoolean x)))
+
 (defn map-like [^Value map-entries]
   (map (fn [idx] (let [^Value e (.getArrayElement map-entries idx)]
                    (MapEntry/create (keyword (.asString (.getArrayElement e 0)))
-                                    (.asString (.getArrayElement e 1)))))
+                                    (scalar-value (.getArrayElement e 1)))))
        (range (.getArraySize map-entries))))
 
 (defn value-as [key ^Value v]
@@ -96,15 +101,12 @@
       markdown.data/<-tokens))
 
 (comment
-  ;; build graal target `clj -M:examples:shadow watch graal browser`
-  (-> (tokenize "[some text](/some/url)") first)
+  (-> (tokenize "# markdown-it rulezz!\n\n${toc}\n## with markdown-it-toc-done-right rulezz even more!")
+      second)
 
-  (seq (tokenize "# markdown-it rulezz!\n\n${toc}\n## with markdown-it-toc-done-right rulezz even more!"))
-  (seq (tokenize "# Hello
-
-- [ ] one
+  (-> (tokenize "- [x] one
 - [ ] two
-"))
+") seq)
 
   (-> (parse* "# Hello")
       polyglot-coll->token-iterator
