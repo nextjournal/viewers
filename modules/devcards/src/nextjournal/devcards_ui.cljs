@@ -12,7 +12,7 @@
             [reitit.frontend.easy :as rfe]
             [re-frame.context :as rf]
             [re-frame.frame :as rf.frame]
-            [reagent.core :as r]))
+            [reagent.core :as reagent]))
 
 (defn render-md [md-str]
   [:div.devcard-desc.text-sm
@@ -52,8 +52,8 @@
        (sort-by (juxt :ns-parent :ns))))
 
 (v/defview toc [{:keys [current-ns]}]
-  (r/with-let [label "Component Library"
-               pinned? (r/atom true)]
+  (reagent/with-let [label "Component Library"
+                     pinned? (reagent/atom true)]
     [:div.toc.fixed.top-0.left-0.bottom-0.z-10.sans-serif
      {:class (when @pinned? "pinned")
       :style (cond-> {:top 0
@@ -132,10 +132,10 @@
 (v/defview show-main [{::v/keys [state props]
                        :keys [main initial-db initial-state ::dc/class]}]
   (when main
-    (r/with-let [app-db (let [{:keys [app-db]} (rf/current-frame)]
-                          (when (seq initial-db)
-                            (reset! app-db initial-db))
-                          app-db)]
+    (reagent/with-let [app-db (let [{:keys [app-db]} (rf/current-frame)]
+                                (when (seq initial-db)
+                                  (reset! app-db initial-db))
+                                app-db)]
       (let [main (main)
             main (if (fn? main)
                    [main state]
@@ -175,23 +175,25 @@
   (select-keys data dc-opts))
 
 (v/defview show-card [{card ::v/props :keys [data compile-key]}]
-  (let [frame (rf.frame/make-frame
-               {:registry (:registry (rf/current-frame))
-                :app-db (r/atom {})})]
+  (reagent/with-let [frame (rf.frame/make-frame
+                            {:registry (:registry (rf/current-frame))
+                             :app-db (reagent/atom {})})]
     [rf/provide-frame frame
-     (rf/bind-frame frame
-       (let [data (when data (data))]
-         (log/trace :devcards/show-card {:card card :frame-id (:frame-id (rf/current-frame))})
-         [:div
-          (if (fn? data)
-            ^{:key compile-key}
-            [promises/view
-             {:promise (data)
-              :on-value (fn [data]
-                          [show-card* (merge card (format-data data) (extract-opts data))])
-              :on-error (fn [error] [:div "Error loading data: " (str error)])
-              :on-loading (fn [] [show-card* (merge card {:loading-data? true} (extract-opts data))])}]
-            ^{:key compile-key} [show-card* (merge card (format-data data) (extract-opts data))])]))]))
+     (rf/bind-frame
+      frame
+      (let [data (when data (data))]
+        (log/trace :devcards/show-card {:card card :frame-id (:frame-id (rf/current-frame))})
+        [:div
+         (if (fn? data)
+           ^{:key compile-key}
+           [promises/view
+            {:promise (data)
+             :on-value (fn [data]
+                         [show-card* (merge card (format-data data) (extract-opts data))])
+             :on-error (fn [error] [:div "Error loading data: " (str error)])
+             :on-loading (fn [] [show-card* (merge card {:loading-data? true} (extract-opts data))])}]
+           ^{:key compile-key}
+           [show-card* (merge card (format-data data) (extract-opts data))])]))]))
 
 (v/defview show-namespace [{:keys [cards ns]}]
   (when ns
