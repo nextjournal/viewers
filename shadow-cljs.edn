@@ -6,6 +6,4 @@
                     :modules {:viewer {:entries [nextjournal.viewer
                                                  nextjournal.viewer.notebook
                                                  nextjournal.devcards.main]}}
-                    :js-options {:output-feature-set :es8
-                                 :resolve {"markdown" {:target :file
-                                                       :file   "modules/markdown/lib/markdown.js"}}}}}}
+                    :js-options {:output-feature-set :es8}}}}
