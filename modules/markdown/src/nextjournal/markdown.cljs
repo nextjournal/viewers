@@ -1,5 +1,5 @@
 (ns nextjournal.markdown
-  (:require ["markdown" :as md]
+  (:require ["/js/markdown" :as md]
             ["markdown-it/lib/token" :as Token]
             ["katex" :as katex]
             [applied-science.js-interop :as j]
@@ -16,14 +16,14 @@
 
 (comment
   (render "# Hello Markdown\nWhat's _going_ on?")
-  (js/console.log (tokenize "# Hello Markdown\nWhat's _going_ on?"))
-  (js/console.log
-   (parse "# Hello Markdown
-
-[[TOC]]
-
-- what
-- a [nice](very/nice/thing)
-- ~~thing~~
+  (js/console.log (tokenize "- [ ] one
+- [x] two
 "))
+
+  (parse "# Hello Markdown
+
+- [ ] what
+- [ ] [nice](very/nice/thing)
+- [x] ~~thing~~
+")
   )
