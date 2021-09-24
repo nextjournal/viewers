@@ -1,9 +1,6 @@
 (ns nextjournal.commands.command-bar
   (:require [applied-science.js-interop :as j]
             [clojure.string :as str]
-            [com.nextjournal.editor.util :as util]
-            [com.nextjournal.editor.config :as config]
-            [com.nextjournal.editor.subscriptions]
             [nextjournal.devcards :as dc]
             [nextjournal.commands.fuzzy :as fuzzy]
             [nextjournal.commands.command-bar-state :as bar-state]
@@ -17,11 +14,21 @@
             [re-frame.context :as re-frame]
             [reagent.core :as reagent]
             [reagent.impl.component :as comp]
-            ["react-transition-group" :as react-transition-group]
-            [re-frame.core :as r]))
+            [re-frame.core :as r]
+            [goog.dom :as gdom]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ui helpers
+
+(re-frame/reg-sub
+  :db/get-in
+  (fn [db [_ path not-found]]
+    (get-in db path not-found)))
+
+(re-frame/reg-sub
+  :db/get
+  (fn [db [_ key]]
+    (get db key)))
 
 (defn command-elements [element]
   (array-seq (j/call element :querySelectorAll "[data-result-index]")))
@@ -49,6 +56,19 @@
   (commands/resolve-with-context context (or slug title)))
 
 (defonce cmd-height 27)
+(def ^:private closest-supported? (exists? js/Element.prototype.closest))
+
+
+(defn closest [^js el sel]
+  (when el
+    (let [el (if (instance? js/Text el)
+               (.-parentElement el)
+               el)]
+      (if closest-supported?
+        (.closest el sel)
+        (gdom/getAncestor el (fn [node] (.matches node sel)) true)))))
+
+(def dom-closest closest)
 
 (defn command-item [!view-state {:as command :keys [id result-index command/layout search/index title disabled? view key]}]
   (let [{:as view-state :keys [context]} @!view-state
@@ -145,16 +165,12 @@
                    doall)]))
           doall)]))
 
-(def css-transition-group
-  (when-not config/ssr?
-    (reagent/adapt-react-class react-transition-group/CSSTransitionGroup)))
-
 (defn component-frame [this]
   (binding [comp/*current-component* this]
     (re-frame/current-frame)))
 
 (v/defview view
-  {:uses-context? true
+  {:context-type     re-frame/frame-context
    ::v/initial-state (comp bar-state/initial-state ::v/props)
    :UNSAFE_component-will-mount
    (fn [this]
@@ -171,16 +187,18 @@
                   (when (and (bar-state/active-stack? old)
                              (not (bar-state/active-stack? new)))
                     (bar-state/refocus! @!view-state))))
-
+     (add-watch (:app-db (component-frame this))
+                :component-did-mount
+                (fn [ref key old new] (prn :app-db old new)))
      (re-frame/bind-frame (component-frame this)
-       (state/set-context! :!view-state !view-state)))
+                          (state/set-context! :!view-state !view-state)))
    :component-did-update
    (fn [{!view-state ::v/state}]
      (scroll-to-child! @!view-state))
    :component-will-unmount
    (fn [{:as this !view-state ::v/state}]
      (re-frame/bind-frame (component-frame this)
-       (state/unset-context! :!view-state !view-state)))}
+                          (state/unset-context! :!view-state !view-state)))}
   [{:as this !view-state ::v/state :keys [shortcuts]}]
   (let [{:as view-state :keys [stack context]} @!view-state
         {:keys [subcommands/layout]} (last stack)
@@ -192,7 +210,7 @@
                  (= 1 category-count) :list
                  (<= rows 6) :list
                  :else :grid)
-        desktop? @(r/subscribe [:desktop?])]
+        desktop? true]
     [:div
      (when-not desktop?
        [:div.w-full.text-white.monospace.relative.text-md.overflow-x-scroll.min-w-full
@@ -237,11 +255,15 @@
            :auto-complete "off"
            :style {:height (if desktop? 20 40) :z-index 3 :width 200 :margin-left 6}
            :placeholder (if context "Filter…" "⌘J Search commands…")
-           :on-mouse-down #(do (state/set-context! :!view-state !view-state)
-                               (bar-state/activate-bar! !view-state))
+           :on-mouse-down #(re-frame/bind-frame (component-frame this)
+                                                (js/console.log :on-mouse-down-in-bind-frame
+                                                                (:frame/source (re-frame/current-frame))
+                                                                (:app-db (re-frame/current-frame)))
+                                                (state/set-context! :!view-state !view-state)
+                                                (bar-state/activate-bar! !view-state))
            :on-change #(bar-state/set-query! !view-state (j/get-in % [:target :value]))
            :on-blur #(when-not (some-> (j/get % :relatedTarget) ;; check if we are clicking within the command palette
-                                       (util/dom-closest ".command-bar"))
+                                       (dom-closest ".command-bar"))
                        (bar-state/blur-command-bar! !view-state))}]
          (when (bar-state/subcommands-loading? view-state)
            [spinner/view {:size 24 :class "fill-current opacity-30 ml-3 -mr-2"}])]
@@ -357,58 +379,13 @@
                              (some-> (nth candidates selected nil)
                                      (commands/eval-command))))}})
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; tests
 
 
 (let [make-devcard-state!
       #(-> (bar-state/initial-state {:categories [:test]})
            bar-state/activate-bar!)]
-  (dc/defcard search-states "Default starting state:"
-    [view {::v/initial-state #(make-devcard-state!)}]
-    (-> (state/empty-db!)
-        (commands/register {:test/hello {:action identity}
-                            :test/world {:action identity}})))
-
-  (dc/defcard search-2nd "Select the second search result:"
-    [view {::v/initial-state #(-> (make-devcard-state!)
-                                  (doto (swap! bar-state/set-selected! 1)))}]
-    (-> (state/empty-db!)
-        (commands/register {:test/greetings {:action identity}
-                            :test/person {:action identity}}))))
-
-(comment
-
-
-
- (dc/defcard search-2nd "Select the second search result:"
-   [commands {:absolute? false
-              ::v/initial-state (-> devcards-initial-state
-                                    (bar-state/search)
-                                    (assoc :selected 1))}])
-
- (dc/defcard search-doc
-   "Search for \"doc\". Current heuristic: we include subcommands (excluding async ones) after >1 character has been typed."
-   [commands {:absolute? false
-              ::v/initial-state (-> devcards-initial-state
-                                    (bar-state/search {:subcommands/query "doc"}))}])
-
- (dc/defcard user-selected-stack "With an item on the stack"
-   [commands {:absolute? false
-              ::v/initial-state (-> devcards-initial-state
-                                    (bar-state/search)
-                                    (assoc :stack [{:slug "Stack-Item"}])
-                                    (assoc :candidates [{:title "Hello"}]))}])
-
- (dc/defcard command-with-stack ""
-   [commands {:absolute? false
-              ::v/initial-state (-> devcards-initial-state
-                                    (bar-state/search)
-                                    (assoc :candidates [{:title "Hello"
-                                                         :stack [{:title "Stack-Item"}]}]))}])
-
- (dc/defcard subcommand-progress
-   [commands {:absolute? false
-              ::v/initial-state (-> devcards-initial-state
-                                    (bar-state/search)
-                                    (assoc :async/loading 1))}]))
+  (dc/defcard command-bar "Command bar"
+              [view {::v/initial-state #(make-devcard-state!)}]
+              (-> (state/empty-db!)
+                  (commands/register {:test/hello {:action identity}
+                                      :test/world {:action identity}}))))

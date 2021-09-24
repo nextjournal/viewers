@@ -221,7 +221,7 @@
 
 (defn activate-bar! [!view-state & [opts]]
   (when (or opts (not (active-stack? @!view-state)))
-    (let [context (commands.state/current-context opts)]
+    (let [context (assoc (commands.state/current-context opts) :!view-state !view-state)]
       (add-to-stack! context search-categories)))
   !view-state)
 
