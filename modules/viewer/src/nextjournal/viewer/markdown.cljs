@@ -3,5 +3,5 @@
 
 (defn viewer [value]
   (when value
-    {:nextjournal/value (md/render value)
-     :nextjournal/viewer :html}))
+    {:nextjournal/value  (md/->hiccup value)
+     :nextjournal/viewer :hiccup}))

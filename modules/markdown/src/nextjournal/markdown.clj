@@ -100,13 +100,21 @@
       tokenize-j ;; compare performances with `tokenize`
       markdown.data/<-tokens))
 
-(comment
-  (-> (tokenize "# markdown-it rulezz!\n\n${toc}\n## with markdown-it-toc-done-right rulezz even more!")
-      second)
+(defn ->hiccup [markdown-text] (-> markdown-text parse markdown.data/->hiccup))
 
-  (-> (tokenize "- [x] one
+(comment
+  (parse "# Hello Markdown 👋
+what _a_ parser with $$\\phi$$ formulas
+- [x] one
 - [ ] two
-") seq)
+[[TOC]]
+")
+
+  (->hiccup "# Hello Markdown 🔥
+- [x] done
+- [ ] pending
+
+![alt](/some/img/)")
 
   (-> (parse* "# Hello")
       polyglot-coll->token-iterator
@@ -119,7 +127,4 @@
 
   ;; esm module approach fails because of imports targeting files in shadow bundle with .js extension
   (.eval ctx (.. (Source/newBuilder "js" "import * from './public/js/markdown.mjs';" "source.mjs") build))
-
-  (require '[shadow.cljs.devtools.api :as shadow])
-  (shadow/repl :browser)
   )

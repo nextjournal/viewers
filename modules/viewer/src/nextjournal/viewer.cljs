@@ -647,7 +647,9 @@
                     "G_{\\mu\\nu}\\equiv R_{\\mu\\nu} - {\\textstyle 1 \\over 2}R\\,g_{\\mu\\nu} = {8 \\pi G \\over c^4} T_{\\mu\\nu}")])
 
 (dc/defcard viewer-markdown
-  [inspect (view-as :markdown "### Hello Markdown\n\n- a bullet point")])
+  [inspect (view-as :markdown "### Hello Markdown
+- a **bullet** *point*
+- another")])
 
 (dc/defcard viewer-code
   [inspect (view-as :code "(str (+ 1 2) \"some string\")")])
