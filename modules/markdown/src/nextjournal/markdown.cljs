@@ -12,10 +12,10 @@
 (def tokenize md/parse)
 (def tokenize-j md/parse)
 (defn parse [markdown-text] (-> markdown-text tokenize markdown.data/<-tokens))
-(def render md/render)
+(defn ->hiccup [markdown-text] (-> markdown-text parse markdown.data/->hiccup))
 
 (comment
-  (render "# Hello Markdown\nWhat's _going_ on?")
+  (->hiccup "# Hello Markdown\nWhat's _going_ on?")
   (js/console.log (tokenize "- [ ] one
 - [x] two
 "))

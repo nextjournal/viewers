@@ -1,5 +1,5 @@
 let MarkdownIt = require('markdown-it'),
-    MD = new MarkdownIt({html: true, linkify: true});
+    MD = new MarkdownIt({html: true, linkify: true})
 
 let texmath = require('markdown-it-texmath')
 MD.use(texmath, {delimiters: "dollars"})
@@ -54,6 +54,5 @@ MD.use(todoListPlugin)
 
 function parseJ(text) { return JSON.stringify(MD.parse(text, {})) }
 function parse(text)  { return MD.parse(text, {}) }
-function render(text) { return MD.render(text, {}) }
 
-module.exports = {parseJ: parseJ, parse: parse, render: render};
+module.exports = {parseJ: parseJ, parse: parse}
