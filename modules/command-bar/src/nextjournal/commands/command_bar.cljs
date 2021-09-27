@@ -211,7 +211,6 @@
                  (<= rows 6) :list
                  :else :grid)
         desktop? @(re-frame/subscribe [:desktop?])]
-    (js/console.log :app-db-rendering (:app-db (component-frame this)))
     [:div
      (when-not desktop?
        [:div.w-full.text-white.monospace.relative.text-md.overflow-x-scroll.min-w-full
@@ -257,9 +256,6 @@
            :style {:height (if desktop? 20 40) :z-index 3 :width 200 :margin-left 6}
            :placeholder (if context "Filter…" "⌘J Search commands…")
            :on-mouse-down #(re-frame/bind-frame (component-frame this)
-                                                (js/console.log :on-mouse-down-in-bind-frame
-                                                                (:frame/source (re-frame/current-frame))
-                                                                (:app-db (re-frame/current-frame)))
                                                 (state/set-context! :!view-state !view-state)
                                                 (bar-state/activate-bar! !view-state))
            :on-change #(bar-state/set-query! !view-state (j/get-in % [:target :value]))

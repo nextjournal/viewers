@@ -17,7 +17,6 @@
 (re-frame/reg-event-db
  :commands/set-context
  (fn [db [_ k value]]
-   (js/console.log :set-context db value)
    (let [!mutable-context (::!context db)]
      (if (some? value)
        (swap! !mutable-context assoc k value)

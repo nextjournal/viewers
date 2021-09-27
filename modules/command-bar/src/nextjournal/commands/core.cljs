@@ -203,7 +203,6 @@
   ([db commands]
    (reduce-kv (fn [db id data] (register db id data)) db commands))
   ([db id command]
-   (js/console.log :registering-commands command)
    (update db ::state/registry
            (fn [registry]
              (let [command (normalize-command (assoc command :id id))
