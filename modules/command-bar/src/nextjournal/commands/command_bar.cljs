@@ -210,7 +210,8 @@
                  (= 1 category-count) :list
                  (<= rows 6) :list
                  :else :grid)
-        desktop? true]
+        desktop? @(re-frame/subscribe [:desktop?])]
+    (js/console.log :app-db-rendering (:app-db (component-frame this)))
     [:div
      (when-not desktop?
        [:div.w-full.text-white.monospace.relative.text-md.overflow-x-scroll.min-w-full
@@ -380,10 +381,10 @@
                                      (commands/eval-command))))}})
 
 
-
 (let [make-devcard-state!
-      #(-> (bar-state/initial-state {:categories [:test]})
-           bar-state/activate-bar!)]
+      #(-> (bar-state/initial-state {:categories [:test]
+                                     :shortcuts {:test {:commands [:test/hello]}}})
+          bar-state/activate-bar!)]
   (dc/defcard command-bar "Command bar"
               [view {::v/initial-state #(make-devcard-state!)}]
               (-> (state/empty-db!)

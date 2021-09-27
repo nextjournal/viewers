@@ -2,10 +2,22 @@
   (:require [re-frame.context :as re-frame]
             [reagent.core :as reagent]))
 
+(re-frame/reg-sub
+  :db/get-in
+  (fn [db [_ path not-found]]
+    (get-in db path not-found)))
+
+(re-frame/reg-sub
+  :db/get
+  (fn [db [_ key]]
+    (get db key)))
+
+(re-frame/reg-sub :desktop? (fn [_db] (not (<= (.-innerWidth js/window) 768))))
+
 (re-frame/reg-event-db
  :commands/set-context
  (fn [db [_ k value]]
-   (js/console.log :set-context db)
+   (js/console.log :set-context db value)
    (let [!mutable-context (::!context db)]
      (if (some? value)
        (swap! !mutable-context assoc k value)
