@@ -674,7 +674,13 @@ I think I'll use it to format all of my documents from now on.
 
 ## Inlines
 
-I just love **bold text**. Italicized text is the *cat's meow*. This text is ***really important***. My favorite search engine is [Duck Duck Go](https://duckduckgo.com). At the command prompt, type `acme`. ~~Entirely uninteresting.~~
+- I just love **bold text**.
+- Italicized text is the *cat's meow*.
+- This text is ***really important***.
+- My favorite search engine is [Duck Duck Go](https://duckduckgo.com).
+- At the command prompt, type `acme`.
+- This was ~~entirely uninteresting.~~
+- The Dow Jones Industrial Average for February 7, 2006 ![Dow Jones Industrial Average for February 7, 2006](https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Sparkline_dowjones_new.svg/200px-Sparkline_dowjones_new.svg.png).
 
 ## Lists
 
@@ -799,6 +805,8 @@ as building hiccup is recursive, we're using the specific viewers for values occ
          [inspect (view-as :latex (md.data/->text node))]]))
 
 ;; hack to override styles globally
+
+
 (defn md-doc [node]
   (html [:div.notebook
          [:style ".notebook a {text-decoration: underline;}
