@@ -835,7 +835,20 @@ as building hiccup is recursive, we're using the specific viewers for values occ
                                           [:b.underline "Table of Contents"]
                                           (md.data/toc->hiccup %)])})]))
 
-
+(dc/defcard markdown-dark-mode
+  "Provide custom styles to e.g. support dark mode."
+  [markdown]
+  [inspect
+   (view-as
+     :hiccup
+     (-> @markdown
+         md/parse
+         (md.data/->hiccup {:doc #(html
+                                   [:div.viewer-markdown.dark:bg-gray-900.dark:text-white.rounded.shadow-sm.p-4
+                                    (md.data/->hiccup %)])})))]
+  {::dc/state "### Dark Mode Support
+Here is some code that provides a custom wrapper with styles to e.g. set the text color
+and background if dark mode is enabled in your system."})
 
 (dc/defcard markdown-data-to-hiccup
   "Renders Markdown data as Hiccup"
