@@ -416,6 +416,9 @@ h5, h6 {
   text-align: left;
   background-color: #f3f4f6;
 }
+.viewer-markdown figure {
+  margin-top: 1rem;
+}
 .viewer-markdown figcaption {
   font-size: 0.8rem;
   text-align: center;
