@@ -44,8 +44,7 @@ body {
   --dark-blue-60-color: rgba(28, 42, 56, 0.6);
   --gray-panel-color: rgba(239, 241, 245, 1.000);
   --brand-color: var(--dark-blue-color);
-  --tw-text-opacity: 1;
-  --tw-border-opacity: 1;
+  --link-color: #5046e4;
 }
 
 .border-color-teal { border-color: var(--dark-teal-color); }
@@ -58,7 +57,6 @@ body {
 .border-dark-blue-30 { border-color: rgba(28, 42, 56, 0.6); }
 .text-brand { color: var(--dark-blue-color); }
 .bg-brand { background: var(--dark-blue-color); }
-.bg-selected { background: var(--teal-color); }
 .text-selected { color: white; }
 .red { color: var(--red-color); }
 
@@ -321,6 +319,7 @@ h5, h6 {
   text-decoration: underline;
 }
 .viewer-markdown pre {
+  font-size: 0.9rem;
   background: var(--gray-panel-color);
   border-radius: 2px;
   padding: 1rem;
@@ -347,12 +346,14 @@ h5, h6 {
   border-top: 2px solid rgba(0,0,0,.2);
 }
 .viewer-markdown ol {
-  counter-reset: ol-counter;
-  list-style: none;
+  counter-reset: item
 }
-.viewer-markdown ol li::before {
-  content: counters(ol-counter, ".") ". ";
-  counter-increment: ol-counter;
+.viewer-markdown ol li:before {
+  content: counters(item, ".") ". ";
+  counter-increment: item;
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+  position: relative;
 }
 .viewer-markdown li {
   position: relative;
@@ -361,6 +362,7 @@ h5, h6 {
 }
 .viewer-markdown ol li {
   margin-left: 0;
+  display: flex;
 }
 .viewer-markdown .contains-task-list li {
   margin-left: 0;
@@ -424,6 +426,39 @@ h5, h6 {
 .viewer-markdown th {
   text-align: left;
   background-color: #f3f4f6;
+}
+.viewer-markdown figcaption {
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+.viewer-markdown .toc h1,
+.viewer-markdown .toc h2,
+.viewer-markdown .toc h3,
+.viewer-markdown .toc h4,
+.viewer-markdown .toc h5,
+.viewer-markdown .toc h6 {
+  font-size: inherit;
+  font-weight: normal;
+  font-family: var(--sans-serif-font);
+}
+.viewer-markdown .toc ul {
+  list-style: none;
+}
+.viewer-markdown .toc ul ul {
+  margin-left: 1rem;
+}
+.viewer-markdown .toc li {
+  margin-left: 0;
+}
+.viewer-markdown .toc li::before {
+  display: none;
+}
+.viewer-markdown a {
+  color: var(--link-color);
+}
+.viewer-markdown a:hover {
+  text-decoration: underline;
 }
 .viewer-markdown *:first-child {
   margin-top: 0;
