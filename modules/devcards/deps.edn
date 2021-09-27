@@ -7,7 +7,5 @@
         nextjournal/viewer {:local/root "../viewer"}
         nextjournal/ui {:local/root "../ui"}
 
-        ;; we've submitted the cljs implementation for ordered-map upstream, but
-        ;; will have to use this fork until that makes it in.
-        org.flatland/ordered {:git/url "https://github.com/plexus/ordered"
-                              :git/sha "0aa94cd7ac92d3991b29f34396a016fdc0ca1c1e"}}}
+        org.flatland/ordered {:git/url "https://github.com/clj-commons/ordered"
+                              :git/sha "e7afc3da49205727f28e0863aead79b021045b22"}}}
