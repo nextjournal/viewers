@@ -1,5 +1,5 @@
 let MarkdownIt = require('markdown-it'),
-    MD = new MarkdownIt({html: true, linkify: true})
+    MD = new MarkdownIt({html: true, linkify: true, breaks: false})
 
 let texmath = require('markdown-it-texmath')
 MD.use(texmath, {delimiters: "dollars"})
@@ -9,6 +9,12 @@ MD.use(blockImage)
 
 let mdToc = require("markdown-it-toc-done-right")
 MD.use(mdToc)
+
+// let footnotes = require("markdown-it-footnote")
+// MD.use(footnotes)
+
+let sidenotes = require("markdown-it-sidenote")
+MD.use(sidenotes)
 
 // TODO: move to its own requirable (local) package or file
 function todoListPlugin(md, opts) {
