@@ -203,6 +203,7 @@
   (let [{:as view-state :keys [stack context]} @!view-state
         {:keys [subcommands/layout]} (last stack)
         candidates (bar-state/candidates view-state)
+        shortcuts (:shortcuts view-state)
         category-count (count (into #{} (map :category) candidates))
         visible-items (+ category-count (count candidates))
         layout (or layout :grid) #_(cond
@@ -378,11 +379,13 @@
 
 
 (let [make-devcard-state!
-      #(-> (bar-state/initial-state {:categories [:test]
-                                     :shortcuts {:test {:commands [:test/hello]}}})
-          bar-state/activate-bar!)]
+      #(let [initial-state (bar-state/initial-state {:categories [:test]
+                                                     :shortcuts  {:test {:commands [:test/hello :test/world]}}})]
+         (do  (state/set-context! :!view-state initial-state)
+              (bar-state/activate-bar! initial-state)))]
   (dc/defcard command-bar "Command bar"
               [view {::v/initial-state #(make-devcard-state!)}]
+
               (-> (state/empty-db!)
                   (commands/register {:test/hello {:action identity}
                                       :test/world {:action identity}}))))
