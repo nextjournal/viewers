@@ -793,48 +793,6 @@ as building hiccup is recursive, we're using the specific viewers for values occ
                                                             (min 100)
                                                             (str "%"))}}]]])))]])
 
-(defn md-code-viewer [{:as node :keys [info]}]
-  (let [code (md.data/->text node)]
-    (html [:div
-           [:div.viewer.viewer-code [inspect (view-as :code code)]]
-           (when (= "clj" info) ;; TODO: parse fence info into language + attrs
-             [:dev.viewer-result.mt-10 [inspect (*eval-form* (cljs.reader/read-string code))]])])))
-
-(defn md-formula [node]
-  (html [:div.mt-2 {:style {:text-align "center"}}
-         [inspect (view-as :latex (md.data/->text node))]]))
-
-;; hack to override styles globally
-
-
-(defn md-doc [node]
-  (html [:div.notebook
-         [:style ".notebook a {text-decoration: underline;}
-                  figcaption {text-align: right; text-decoration: underline; font-family: sans-serif;}
-                  li {margin-left: 1rem;}
-                  li p {display: inline;}
-                  img.inline {display: inline; max-width: 33%}
-                  "]
-         (md.data/->hiccup node {:code md-code-viewer
-                                 #_#_:bullet-list #(html [:h2 (str "This is a " (:type %) " of length: " (-> % :content count))])
-                                 :formula md-formula
-                                 :table #(html [:div.viewer-markdown (md.data/->hiccup % {:formula md-formula})]) ;; just needed to get nice tables
-                                 :todo-list #(html [:div.viewer-markdown
-                                                    [:ul.contains-task-list.list-disc.list-inside
-                                                     (->> % :content
-                                                          (map (fn [node]
-                                                                 (md.data/->hiccup
-                                                                   node
-                                                                   {:todo-item (fn [node]
-                                                                                 (html [:li
-                                                                                        [:input {:type "checkbox"}]
-                                                                                        (map md.data/->hiccup (:content node))]))}))))]])
-                                 :toc #(html
-                                         [:div.text-sm {:style {:border "1px solid grey"}}
-                                          (js/console.log :TOC %)
-                                          [:b.underline "Table of Contents"]
-                                          (md.data/toc->hiccup %)])})]))
-
 (dc/defcard markdown-dark-mode
   "Provide custom styles to e.g. support dark mode."
   [markdown]
@@ -850,95 +808,64 @@ as building hiccup is recursive, we're using the specific viewers for values occ
 Here is some code that provides a custom wrapper with styles to e.g. set the text color
 and background if dark mode is enabled in your system."})
 
-(dc/defcard markdown-data-to-hiccup
-  "Renders Markdown data as Hiccup"
+(defn show-formula [node]
+  (html [inspect (view-as :latex (md.data/->text node))]))
+
+(defn doc-with-plugins [node]
+  (html [:div.viewer-markdown
+         (md.data/->hiccup node {:formula show-formula
+                                 :table #(html (md.data/->hiccup % {:formula show-formula}))
+                                 :todo-list #(html [:ul.contains-task-list
+                                                    (->> % :content
+                                                         (map (fn [node]
+                                                                (md.data/->hiccup
+                                                                  node
+                                                                  {:todo-item (fn [{:keys [attrs content]}]
+                                                                                (html [:li
+                                                                                       [:input {:type "checkbox" :checked (:checked attrs) :disabled true}]
+                                                                                       (map md.data/->hiccup content)]))}))))])})]))
+
+(dc/defcard markdown-plugins
   [markdown]
-  [:div
-   [:div.mt-10
-    [inspect (view-as :hiccup (-> @markdown md/parse (md.data/->hiccup {:doc md-doc})))]]
-   [:h3.underline "Reference Markdown"]
-   [:div.mt-10.viewer-code
-    [inspect (view-as :code @markdown)]]]
-  {::dc/state "# Markdown Data
+  [inspect (view-as :hiccup (-> @markdown md/parse (md.data/->hiccup {:doc doc-with-plugins})))]
+  {::dc/state "# Markdown Default Plugins
+## Sidenotes
+
+One of the most distinctive features of Tufte’s style is his extensive use of sidenotes.
+Sidenotes[^1] are like footnotes, except they don’t force the reader to jump their eye to
+the bottom of the page, but instead display off to the side in the margin.[^longnote]
+
+[^1]: Here’s a sidenote.
+
+[^longnote]: And here's one with multiple blocks.
+
+    Subsequent paragraphs are indented to show that they belong to the previous footnote.
+
+Sidenotes are a great example of the web not being like print. On sufficiently large viewports,
+Tufte CSS uses the margin for sidenotes, margin notes, and small figures. On smaller viewports,
+elements that would go in the margin are hidden until the user toggles them into view.
+
+The goal is to present related but not necessary information such as asides or citations as
+close as possible to the text that references them. At the same time, this secondary information
+should stay out of the way of the eye, not interfering with the progression of ideas in the
+main text.
+
 ## Todos
-- [x] Table of Contents as `[[TOC]]`
-- [ ] Hashtags
-- [ ] ~~Github Preamble~~
 
-## Code
-There's a whole lot of advantages in parsing Markdown into Clojure data:
-
-```clj
-(nextjournal.markdown/parse \"# Some markdown
-* one
-* two
-* here
-\")
-```
-
-In particular we can have _full control_ over the rendering pass, these code:
-
-```clj
-(-> \"# Hello Again
-    Please **render** me ~~wrong~~ _nicely_
-    \"
-    nextjournal.markdown/parse
-    nextjournal.markdown.data/->hiccup)
-```
-
-In this card we're overriding the default hiccup for `:code` nodes in order to add results when the fence language is `\"clj\"`
-
-```
-(nextjournal.markdown.data/->hiccup
- {:type :doc :content [...]}
- {:code some-fn})
-```
-
-You might want to see the markdown source at the ~~top~~ _bottom_ of this card.
-
----
-## Lists
-
-- bullet _one_
-  - nested
-  - nested two
-- bullet foo
-
-## Images
-
-Thanks to the [block-image Plugin](https://github.com/rotorz/markdown-it-block-image) we can actually discern images at block level from those inline:
-
-Inline images look like this one ![alt](https://nextjournal.com/images/nextjournal-logo.svg) while block images do their job differently
-
-![Some **nice** caption](https://nextjournal.com/images/nextjournal-logo.svg \"A nice logo\")
-
-also, an image node's text content might be used as caption 👆.
-
-```clj
-(reduce + 0 (range 0 10))
-```
+- [x] Checked
+- [ ] Unchecked
+  - [ ] Nested unchecked
 
 ## Formulas
 
-for formulas we're overriding the default markup with our katex viewer:
+### Block Formulas
 
 $$\\int_{\\omega} \\phi d\\omega$$
 
-## Tables
-
-as building hiccup is recursive, we're using the specific viewers for values occurring at any level in the structure
+### Formulas inside tables
 
 | Syntax |  JVM                     | JavaScript                                    |
 |--------|-------------------------:|:----------------------------------------------|
-|   foo  |  Loca _lDate_ ahoiii     | goog.date.Date                                |
-|   bar  |  java.time.LocalTime     | some [kinky](link/to/something)               |
-|   bag  |  java.time.LocalDateTime | $\\bigoplus_{\\alpha < \\omega}\\phi_\\alpha$ |
-
-### And some ~~deeper~~ Section
-
-```clj
-(reduce + 0 (range 0 10))
-```
-And a custom ToC inserted with the placeholder `[[TOC]]`
-
-[[TOC]]"})
+| foo    |  Local_Date_             | goog.date.Date                                |
+| bar    |  java.time.LocalDateTime | $\\bigoplus_{\\alpha < \\omega}\\phi_\\alpha$ |
+"})

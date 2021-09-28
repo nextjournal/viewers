@@ -383,6 +383,10 @@ h5, h6 {
   position: relative;
   top: 0.16rem;
 }
+.contains-task-list li p {
+  display: inline;
+  margin: 0;
+}
 .viewer-markdown .contains-task-list input[type="checkbox"]:checked {
   border-color: #4f46e5;
   background-color: #4f46e5;
@@ -477,6 +481,21 @@ h5, h6 {
   .viewer-notebook .viewer-code {
     padding: 1rem 0 1rem 3rem;
   }
+}
+
+/* Sidenotes */
+
+.viewer-markdown p {
+  max-width: 65%;
+}
+.viewer-markdown p aside {
+  margin-right: -54%;
+  margin-top: 0.2rem;
+  width: 50%;
+  float: right;
+  clear: right;
+  position: relative;
+  font-size: 0.8rem;
 }
 .viewer-code + .viewer:not(.viewer-markdown):not(.viewer-code) {
   margin-top: 0.5rem;

@@ -35,6 +35,7 @@
   ([text] (text-node text nil))
   ([text marks] (cond-> {:type :text :text text} (seq marks) (assoc :marks marks))))
 (defn formula [text] {:type :formula :text text})
+(defn sidenote-ref [ref] {:type :sidenote-ref :content [(text-node (inc ref))]})
 
 (defn empty-text-node? [{text :text t :type}] (and (= :text t) (empty? text)))
 
@@ -190,6 +191,15 @@ end"
       (open-node :code {} {:info i})
       (push-node (text-node c))
       close-node))
+
+;; footnotes
+
+(defmethod apply-token "sidenote_ref" [doc token] (push-node doc (sidenote-ref (j/get-in token [:meta :id]))))
+(defmethod apply-token "sidenote_anchor" [doc token] doc)
+(defmethod apply-token "sidenote_open" [doc token] (open-node doc :sidenote {:ref (j/get-in token [:meta :id])}))
+(defmethod apply-token "sidenote_close" [doc token] (close-node doc))
+(defmethod apply-token "sidenote_block_open" [doc token] (open-node doc :sidenote {:ref (j/get-in token [:meta :id])}))
+(defmethod apply-token "sidenote_block_close" [doc token] (close-node doc))
 
 ;; tables
 ;; table data tokens might have {:style "text-align:right|left"} attrs, maybe better nested node > :attrs > :style ?
@@ -374,11 +384,16 @@ or monospace mark [`real`](/foo/bar) fun
 (declare apply-marks apply-mark)
 (defmethod node->hiccup :softbreak [_ _] [:br])
 (defmethod node->hiccup :formula [ctx node] (wrap-content ctx [:span.formula] node))
+(defmethod node->hiccup :sidenote-ref [ctx node] (wrap-content ctx [:sup] node))
 (defmethod node->hiccup :text [_ctx {:keys [text marks]}] (cond-> text (seq marks) (apply-marks marks)))
 (defmethod node->hiccup :image [{:as ctx ::keys [parent]} {:as node :keys [attrs]}]
   (if (= :paragraph parent) ;; TODO: add classes instead of inline styles
     [:img.inline attrs]
     [:figure.image [:img attrs] (wrap-content ctx [:figcaption] node)]))
+
+;; sidenotes
+(defmethod node->hiccup :sidenote [ctx {:as node :keys [attrs]}]
+  (wrap-content ctx [:aside [:sup {:style {:margin-right "3px"}} (-> attrs :ref inc)]] node))
 
 ;; tables
 (defmethod node->hiccup :table [ctx node] (wrap-content ctx [:table] node))
