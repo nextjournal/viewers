@@ -238,7 +238,7 @@ end"
 (defmethod apply-token "math_inline" [doc {text :content}] (push-node doc (formula text)))
 (defmethod apply-token "math_inline_double" [doc {text :content}] (push-node doc (formula text)))
 
-(defmethod apply-token "softbreak" [doc {text :content}] (push-node doc {:type :softbreak}))
+(defmethod apply-token "softbreak" [doc _token] (push-node doc (text-node " ")))
 
 (defmethod apply-token "image" [doc {:keys [attrs children]}] (-> doc (open-node :image attrs) (apply-tokens children) close-node))
 
@@ -382,9 +382,8 @@ or monospace mark [`real`](/foo/bar) fun
 
 ;; inlines
 (declare apply-marks apply-mark)
-(defmethod node->hiccup :softbreak [_ _] [:br])
 (defmethod node->hiccup :formula [ctx node] (wrap-content ctx [:span.formula] node))
-(defmethod node->hiccup :sidenote-ref [ctx node] (wrap-content ctx [:sup] node))
+(defmethod node->hiccup :sidenote-ref [ctx node] (wrap-content ctx [:sup.sidenote-ref] node))
 (defmethod node->hiccup :text [_ctx {:keys [text marks]}] (cond-> text (seq marks) (apply-marks marks)))
 (defmethod node->hiccup :image [{:as ctx ::keys [parent]} {:as node :keys [attrs]}]
   (if (= :paragraph parent) ;; TODO: add classes instead of inline styles
@@ -393,7 +392,7 @@ or monospace mark [`real`](/foo/bar) fun
 
 ;; sidenotes
 (defmethod node->hiccup :sidenote [ctx {:as node :keys [attrs]}]
-  (wrap-content ctx [:aside [:sup {:style {:margin-right "3px"}} (-> attrs :ref inc)]] node))
+  (wrap-content ctx [:span.sidenote [:sup {:style {:margin-right "3px"}} (-> attrs :ref inc)]] node))
 
 ;; tables
 (defmethod node->hiccup :table [ctx node] (wrap-content ctx [:table] node))
