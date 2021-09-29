@@ -199,11 +199,10 @@
    (fn [{:as this !view-state ::v/state}]
      (re-frame/bind-frame (component-frame this)
                           (state/unset-context! :!view-state !view-state)))}
-  [{:as this !view-state ::v/state :keys [shortcuts]}]
-  (let [{:as view-state :keys [stack context]} @!view-state
+  [{:as this !view-state ::v/state}]
+  (let [{:as view-state :keys [stack context shortcuts]} @!view-state
         {:keys [subcommands/layout]} (last stack)
         candidates (bar-state/candidates view-state)
-        shortcuts (:shortcuts view-state)
         category-count (count (into #{} (map :category) candidates))
         visible-items (+ category-count (count candidates))
         layout (or layout :grid) #_(cond
@@ -378,13 +377,12 @@
                                      (commands/eval-command))))}})
 
 
-(let [make-devcard-state!
-      #(let [initial-state (bar-state/initial-state {:categories [:test]
-                                                     :shortcuts  {:test {:commands [:test/hello :test/world]}}})]
-         (do  (state/set-context! :!view-state initial-state)
-              (bar-state/activate-bar! initial-state)))]
+(let [make-devcard-state! (comp #(bar-state/activate-bar! % {:!view-state %})
+                                bar-state/initial-state)]
   (dc/defcard command-bar "Command bar"
-              [view {::v/initial-state #(make-devcard-state!)}]
+              [view {::v/initial-state #(make-devcard-state!
+                                          {:categories [:test]
+                                           :shortcuts  {:test {:commands [:test/hello :test/world]}}})}]
 
               (-> (state/empty-db!)
                   (commands/register {:test/hello {:action identity}
