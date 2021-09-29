@@ -846,9 +846,7 @@ the bottom of the page, but instead display off to the side in the margin.[^long
 
 [^1]: Here’s a sidenote.
 
-[^longnote]: And here's one with multiple blocks.
-
-    Subsequent paragraphs are indented to show that they belong to the previous footnote.
+[^longnote]: And here is another one with more text that wraps over multiple lines.
 
 Sidenotes are a great example of the web not being like print. On sufficiently large viewports,
 Tufte CSS uses the margin for sidenotes, margin notes, and small figures. On smaller viewports,

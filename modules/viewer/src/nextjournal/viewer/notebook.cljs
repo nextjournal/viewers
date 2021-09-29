@@ -180,10 +180,22 @@
 ## Paragraphs
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum velit nulla,
 sodales eu lorem ut, tincidunt consectetur diam. Donec in scelerisque risus.
-Suspendisse potenti. Nunc non hendrerit odio, at malesuada erat. Aenean rutrum quam
+Suspendisse potenti. Nunc non hendrerit[^1] odio, at malesuada erat. Aenean rutrum quam
 sed velit mollis imperdiet. Sed lacinia quam eget tempor tempus. Mauris et leo ac
-odio condimentum facilisis eu sed nibh. Morbi sed est sit amet risus blandit
+odio[^longnote] condimentum facilisis eu sed nibh. Morbi sed est sit amet risus blandit
 ullam corper. Pellentesque nisi metus, feugiat sed velit ut, dignissim finibus urna.
+
+[^1]: Here is a sidenote.
+
+[^1]: Here’s a sidenote.
+[^longnote]: And here's one with multiple blocks.
+
+    Subsequent paragraphs are indented to show that they belong to the previous footnote.
+
+    ```
+      {:x [1 6 3 1]
+       :y [4 1 2 5]}
+    ```
 
 ## Lists
 

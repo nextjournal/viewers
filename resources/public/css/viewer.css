@@ -296,7 +296,8 @@ h5, h6 {
 /* Viewers */
 
 .max-w-prose {
-  max-width: 46rem !important;
+  /*max-width: 46rem !important;*/
+  max-width: 56rem !important;
 }
 .max-w-wide {
   max-width: 48rem !important;
@@ -474,17 +475,61 @@ h5, h6 {
 
 /* Sidenotes */
 
-.viewer-markdown p {
-  max-width: 65%;
+.sidenote-ref {
+  top: -3px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 1em;
+  background: rgba(0,0,0,.1);
+  border: 1px solid rgba(0,0,0,.3);
+  margin: 0 0 0 4px;
+  cursor: pointer;
 }
-.viewer-markdown p aside {
-  margin-right: -54%;
-  margin-top: 0.2rem;
-  width: 50%;
-  float: right;
-  clear: right;
-  position: relative;
+.sidenote-ref:hover {
+  border-color: rgba(0,0,0,.4);
+  background-color: rgba(0,0,0,.15);
+}
+.sidenote {
+  display: none;
+  float: left;
+  clear: both;
+  margin: 1rem 2.5%;
   font-size: 0.8rem;
+  position: relative;
+  width: 95%;
+}
+.sidenote-ref.expanded + .sidenote {
+  display: block;
+}
+@media (min-width: 860px) {
+  .sidenote-ref {
+    top: -0.5em;
+    width: auto;
+    height: auto;
+    display: inline;
+    border: 0;
+    background: transparent;
+    margin: 0;
+    pointer-events: none;
+  }
+  .sidenote sup {
+    display: inline;
+  }
+  .viewer-markdown p {
+    max-width: 65%;
+  }
+  .viewer-markdown p .sidenote {
+    margin-right: -54%;
+    margin-top: 0.2rem;
+    width: 50%;
+    float: right;
+    clear: right;
+    position: relative;
+    display: block;
+  }
 }
 .viewer-code + .viewer:not(.viewer-markdown):not(.viewer-code) {
   margin-top: 0.5rem;
