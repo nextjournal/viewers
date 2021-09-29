@@ -16,6 +16,8 @@
 
 (defonce registry (reagent/atom (om/ordered-map)))
 
+(goog-define logoImage "https://cdn.nextjournal.com/images/nextjournal-logo.svg" #_"images/ductile-logo-white.svg")
+
 (defn scroll-to-fragment [el-id]
   (when-let [el (js/document.getElementById el-id)]
     (.scrollIntoView el)))
@@ -102,7 +104,7 @@
           " sidebar")]]
    [:a.block.mt-12
     {:href (rfe/href :devdocs/index)}
-    [:img {:src "images/ductile-logo-white.svg" :width "100%" :style {:max-width 235}}]]
+    [:img {:src logoImage :width "100%" :style {:max-width 235}}]]
    [:div.mt-12.pb-2.border-b.mb-2.uppercase.tracking-wide.text-base.md:text-sm.text-indigo-300
     {:style {:border-color "rgba(255,255,255,.2)"}}
     title]
@@ -186,7 +188,7 @@
              (interpose [:span.text-gray-500 " / "]))))
 
 ;; :devdocs/collection
-(defn devdocs-collection-view [{{:keys [collection]} :path-params}]
+(defn devdocs-collection-view [{:keys [collection]}]
   (let [{:keys [id title devdocs clerk? cljs-eval?] :as collection} (get @registry collection)]
     [:div.flex.h-screen
      [sidebar {:title title
@@ -222,8 +224,9 @@
 (defn- return [pred]
   (fn [val] (when (pred val) val)))
 
+
 ;; :devdocs/devdoc
-(defn devdocs-devdoc-view [{{:keys [collection devdoc fragment]} :path-params}]
+(defn devdocs-devdoc-view [{:keys [collection devdoc fragment]}]
   (let [{:keys [id title devdocs]} (get @registry collection)
         devdoc (some (return (comp #{devdoc} :id)) devdocs)]
     [:div.flex.h-screen
@@ -279,5 +282,7 @@
      :view devdocs-devdoc-view}]])
 
 (comment
+  (first (vals @registry))
+
   (commands/register! :dev/devdocs
     (devdoc-commands)))

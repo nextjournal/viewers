@@ -11,6 +11,16 @@
  {:slug "simple" :cljs-eval? false :view-source? true}
  [{:path "simple.md"}])
 
+(devdoc-collection
+ "Frontend"
+ {:slug "frontend" :cljs-eval? true :view-source? true}
+ [{:path "frontend.md"}])
+
+(devdoc-collection
+ "Clerk"
+ {:slug "clerk" :clerk? true :view-source? true :resource? false}
+ [{:path "docs/clerk.clj"}])
+
 (defonce router
   (rf/router devdocs/default-routes))
 
@@ -18,7 +28,6 @@
 
 (defn main []
   (let [{:keys [data path-params] :as match} @match]
-    (prn match)
     [:div.flex.h-screen.bg-white
      [:div.h-screen.overflow-y-auto.flex-auto.devcards-content.bg-gray-50
       (if-let [view (:view data)]

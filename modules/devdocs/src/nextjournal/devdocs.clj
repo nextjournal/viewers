@@ -99,7 +99,7 @@
    ;; step which just handles Clerk and writes EDN to disk, and pick that up
    ;; here.
    (let [coll-id (or slug (slugify name))]
-     (if (and clerk? (not (System/getenv "DUCTILE_STATIC_CLERK")))
+     (if (and clerk? (System/getenv "NJ_DEVDOCS_EXCLUDE_CLERK"))
        `(do)
        `(swap! registry
                assoc
