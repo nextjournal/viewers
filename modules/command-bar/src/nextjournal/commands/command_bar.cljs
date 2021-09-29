@@ -379,11 +379,37 @@
 
 (let [make-devcard-state! (comp #(bar-state/activate-bar! % {:!view-state %})
                                 bar-state/initial-state)]
-  (dc/defcard command-bar "Command bar"
-              [view {::v/initial-state #(make-devcard-state!
-                                          {:categories [:test]
-                                           :shortcuts  {:test {:commands [:test/hello :test/world]}}})}]
+  (dc/defcard command-bar "This is the default view of the command bar."
+              [view {::v/initial-state #(-> (make-devcard-state!
+                                              {:categories [:test]
+                                               :shortcuts  {:test {:commands [:test/hello :test/world]}}}))}]
 
               (-> (state/empty-db!)
                   (commands/register {:test/hello {:action identity}
-                                      :test/world {:action identity}}))))
+                                      :test/world {:action identity}})))
+  (dc/defcard command-bar-stack "This is the view of a command that contains its own subcommands."
+              [view {::v/initial-state #(-> (make-devcard-state!
+                                              {:categories [:test]
+                                               :candidates [{:title    "Fish 1"
+                                                             :action   identity
+                                                             :category "test"}
+                                                            {:title    "Fish 2"
+                                                             :action   identity
+                                                             :category "test"}
+                                                            {:title    "Fish 3"
+                                                             :action   identity
+                                                             :category "test"}]})
+                                            (doto (swap! bar-state/set-selected! 1)))}]
+
+              (-> (state/empty-db!)
+                  (commands/register {:test/ocean {:subcommands/layout
+                                                   :list :subcommands
+                                                   [{:title "Fish 1"
+                                                     :action identity
+                                                     :category "test"}
+                                                    {:title "Fish 2"
+                                                     :action identity
+                                                     :category "test"}
+                                                    {:title "Fish 3"
+                                                     :action identity
+                                                     :category "test"}]}}))))
