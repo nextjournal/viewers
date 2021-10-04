@@ -813,6 +813,9 @@ and background if dark mode is enabled in your system."})
 
 (defn doc-with-plugins [node]
   [:div.viewer-markdown
+   {:on-click (fn [^js e]
+                (when (.. e -target -classList (contains "sidenote-ref"))
+                  (.. e -target -classList (toggle "expanded"))))}
    (md.data/->hiccup
     node
     {:formula show-formula

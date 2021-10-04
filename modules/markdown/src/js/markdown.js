@@ -13,12 +13,6 @@ MD.use(mdToc)
 let sidenotes = require("markdown-it-sidenote")
 MD.use(sidenotes)
 
-document.addEventListener("click", function(event) {
-  if (event.target.classList.contains("sidenote-ref")) {
-    event.target.classList.toggle("expanded")
-  }
-})
-
 // TODO: move to its own requirable (local) package or file
 function todoListPlugin(md, opts) {
   console.log("using todo list plugin", md)
