@@ -10,13 +10,19 @@
   (-lookup [this key] (j/get this key)))
 
 (def tokenize md/parse)
-(def tokenize-j md/parse)
-(defn parse [markdown-text] (-> markdown-text tokenize markdown.data/<-tokens))
-(defn ->hiccup [markdown-text] (-> markdown-text parse markdown.data/->hiccup))
+
+(defn parse
+  "Turns a markdown string into a nested clojure structure."
+  [markdown-text] (-> markdown-text tokenize markdown.data/<-tokens))
+
+(defn ->hiccup
+  "Turns a markdown string into hiccup."
+  [markdown-text] (-> markdown-text parse markdown.data/->hiccup))
 
 (comment
-  (->hiccup "# Hello Markdown\nWhat's _going_ on?")
-  (js/console.log (tokenize "- [ ] one
+  (js/console.log
+   (tokenize "# Title
+- [ ] one
 - [x] two
 "))
 
@@ -26,4 +32,5 @@
 - [ ] [nice](very/nice/thing)
 - [x] ~~thing~~
 ")
-  )
+
+  (->hiccup "# Hello Markdown\nWhat's _going_ on?"))

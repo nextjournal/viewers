@@ -53,9 +53,10 @@ function todoListPlugin(md, opts) {
 
   md.core.ruler.after('inline', 'todo-list-rule', rule)
 }
+
 MD.use(todoListPlugin)
 
-function parseJ(text) { return JSON.stringify(MD.parse(text, {})) }
 function parse(text)  { return MD.parse(text, {}) }
+function parseJ(text) { return JSON.stringify(MD.parse(text, {})) }
 
 module.exports = {parseJ: parseJ, parse: parse}

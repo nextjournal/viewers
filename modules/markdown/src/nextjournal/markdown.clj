@@ -10,52 +10,7 @@
 
 (set! *warn-on-reflection* true)
 
-(declare value-as)
-
-(defprotocol IRawValue (get-raw [this] "Retrieves original Polyglot value from a Token instance"))
-
-(defn ->Token [^Value v]
-  (reify
-    Map
-    (get [_this key] (value-as (name key) (.getMember v (name key))))
-    (entrySet [_this] (into #{} (map (fn [k] [(keyword k) (value-as k (.getMember v k))])) (.getMemberKeys v)))
-    IRawValue
-    (get-raw [_this] v)))
-
-(defn polyglot-coll->token-iterator [^Value polyglot-coll]
-  (when (.hasIterator polyglot-coll)
-    (reify Iterable
-      (iterator [_this]
-        (let [^Value iterator (.getIterator polyglot-coll)]
-          (reify Iterator
-            (hasNext [_this] (.hasIteratorNextElement iterator))
-            (next [_this] (->Token (.getIteratorNextElement iterator)))))))))
-
-(defn scalar-value [^Value x]
-  (cond (.isString x) (.asString x)
-        (.isNumber x) (.asInt x)
-        (.isBoolean x) (.asBoolean x)))
-
-(defn map-like [^Value map-entries]
-  (map (fn [idx] (let [^Value e (.getArrayElement map-entries idx)]
-                   (MapEntry/create (keyword (.asString (.getArrayElement e 0)))
-                                    (scalar-value (.getArrayElement e 1)))))
-       (range (.getArraySize map-entries))))
-
-(defn value-as [key ^Value v]
-  (when (and v (not (.isNull v)))
-    (case key
-      ("type" "tag" "content" "markup" "info") (.asString v)
-      "children" (polyglot-coll->token-iterator v)
-      ("block" "hidden") (.asBoolean v)
-      ("level" "nesting") (.asInt v)
-      "attrs" (map-like v)
-      "meta" v
-      "map" [(as-> v val ^Value (.getArrayElement val 0) (.asInt val))
-             (as-> v val ^Value (.getArrayElement val 1) (.asInt val))]
-      nil)))
-
-(def engine (Engine/create))
+(def ^Engine engine (Engine/create))
 
 (def ^Context$Builder context-builder
   (doto (Context/newBuilder (into-array String ["js"]))
@@ -77,30 +32,23 @@
   (let [f (.getMember MD-imports fn-name)]
     (fn [& args] (.execute f (to-array args)))))
 
-(def parse* (make-js-fn "parse"))
-(def parseJ* (make-js-fn "parseJ"))
+(def parse* (make-js-fn "parseJ"))
 
 (comment
   (.execute (.getMember MD-imports "parse") (to-array ["# Hello"]))
-  (parseJ* "# Hello")
-  (json/read-str (.asString (parseJ* "# Hello"))))
+  (parse* "# Hello"))
 
 (defn tokenize [markdown-text]
-  (let [^Value token-collection (parse* markdown-text)]
-    (polyglot-coll->token-iterator token-collection)))
-
-(defn tokenize-j [markdown-text]
-  (let [^Value tokens-json (parseJ* markdown-text)]
+  (let [^Value tokens-json (parse* markdown-text)]
     (json/read-str (.asString tokens-json) :key-fn keyword)))
 
 (defn parse
-  "Takes a string of Markdown text, returns a nested Clojure structure."
-  [markdown-text]
-  (-> markdown-text
-      tokenize-j ;; compare performances with `tokenize`
-      markdown.data/<-tokens))
+  "Turns a markdown string into a nested clojure structure."
+  [markdown-text] (-> markdown-text tokenize markdown.data/<-tokens))
 
-(defn ->hiccup [markdown-text] (-> markdown-text parse markdown.data/->hiccup))
+(defn ->hiccup
+  "Turns a markdown string into hiccup."
+  [markdown-text] (-> markdown-text parse markdown.data/->hiccup))
 
 (comment
   (parse "# Hello Markdown 👋
@@ -114,17 +62,4 @@ what _a_ parser with $$\\phi$$ formulas
 - [x] done
 - [ ] pending
 
-![alt](/some/img/)")
-
-  (-> (parse* "# Hello")
-      polyglot-coll->token-iterator
-      second
-      ;;get-raw
-      (get :children)
-      first
-      (get :content)
-      )
-
-  ;; esm module approach fails because of imports targeting files in shadow bundle with .js extension
-  (.eval ctx (.. (Source/newBuilder "js" "import * from './public/js/markdown.mjs';" "source.mjs") build))
-  )
+![alt](/some/img/)"))
