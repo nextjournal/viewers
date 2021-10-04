@@ -8,4 +8,8 @@
                         binaryage/devtools   {:mvn/version "1.0.3"}
                         cider/cider-nrepl    {:mvn/version "0.26.0"}}
            :main-opts ["-m" "shadow.cljs.devtools.cli"]}
-  :examples {:extra-deps {metosin/reitit-frontend {:mvn/version "0.5.15"}}}}}
+  :examples {:extra-deps {metosin/reitit-frontend {:mvn/version "0.5.15"}}}
+
+  :test/markdown
+  {:extra-paths ["modules/markdown/test"]
+   :exec-fn test-runner/run}}}

@@ -24,6 +24,10 @@
   dev {:doc "Start app in dev mode, compiles cljs and css, starts an nrepl "
        :task (run '-dev {:parallel true})}
 
+  test:markdown {:doc "runs tests in the markdown module"
+                 :depends [build:markdown:esm]
+                 :task (clojure "-X:test/markdown")}
+
   release:cljs {:doc "Builds a cljs release artifact of the example app"
                 :task (clojure "-M:examples:shadow release browser")}}
 
