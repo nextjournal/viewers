@@ -800,39 +800,32 @@ as building hiccup is recursive, we're using the specific viewers for values occ
    (view-as
      :hiccup
      (->> @markdown
-          (md/->hiccup {:doc (fn [node]
-                               [:div.viewer-markdown.dark:bg-gray-900.dark:text-white.rounded.shadow-sm.p-4
-                                (md.data/->hiccup node)])})))]
+          (md/->hiccup
+           (assoc md.data/->hiccup-ctx ;; customizes the main container
+                  :doc (partial md.data/into-markup [:div.viewer-markdown.dark:bg-gray-900.dark:text-white.rounded.shadow-sm.p-4])))))]
   {::dc/state "### Dark Mode Support
 Here is some code that provides a custom wrapper with styles to e.g. set the text color
 and background if dark mode is enabled in your system."})
 
-(defn show-formula [node]
+(defn show-formula [_ctx node]
   [inspect (view-as :latex (md.data/->text node))])
 
-(defn doc-with-plugins [node]
-  [:div.viewer-markdown
-   {:on-click (fn [^js e]
-                (when (.. e -target -classList (contains "sidenote-ref"))
-                  (.. e -target -classList (toggle "expanded"))))}
-   (md.data/->hiccup
-    {:formula show-formula
-     :todo-list (fn todo-list [node]
-                  [:ul.contains-task-list
-                   (->> node
-                        :content
-                        (map (fn [node]
-                               (md.data/->hiccup
-                                {:todo-item (fn [{:keys [attrs content]}]
-                                              [:li
-                                               [:input {:type "checkbox" :checked (:checked attrs) :disabled true}]
-                                               (map (partial md.data/->hiccup {:todo-list todo-list}) content)])}
-                                node))))])}
-    node)])
+(defn sidenote-click-handler [^js e]
+  (when (.. e -target -classList (contains "sidenote-ref"))
+    (.. e -target -classList (toggle "expanded"))))
 
 (dc/defcard markdown-plugins
   [markdown]
-  [inspect (view-as :hiccup (->> @markdown (md/->hiccup {:doc doc-with-plugins})))]
+  [inspect (view-as :hiccup
+                    (->> @markdown
+                         (md/->hiccup (assoc md.data/->hiccup-ctx
+                                             :doc (partial md.data/into-markup [:div.viewer-markdown {:on-click sidenote-click-handler}])
+                                             :formula show-formula
+                                             :todo-list (partial md.data/into-markup [:ul.contains-task-list])
+                                             :todo-item (fn [ctx {:as node :keys [attrs]}]
+                                                          (md.data/into-markup [:li [:input {:type "checkbox" :checked (:checked attrs)}]]
+                                                                               ctx
+                                                                               node))))))]
   {::dc/state "# Markdown Default Plugins
 ## Sidenotes
 

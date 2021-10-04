@@ -234,14 +234,12 @@ end"
 
 ;; inlines
 (defmethod apply-token "inline" [doc {:as _token ts :children}] (apply-tokens doc ts))
-
 (defmethod apply-token "text" [{:as doc ms ::marks} {text :content}] (push-node doc (text-node text ms)))
-
 (defmethod apply-token "math_inline" [doc {text :content}] (push-node doc (formula text)))
 (defmethod apply-token "math_inline_double" [doc {text :content}] (push-node doc (formula text)))
+(defmethod apply-token "softbreak" [doc _token] (push-node doc {:type :softbreak}))
 
-(defmethod apply-token "softbreak" [doc _token] (push-node doc (text-node " ")))
-
+;; images
 (defmethod apply-token "image" [doc {:keys [attrs children]}] (-> doc (open-node :image attrs) (apply-tokens children) close-node))
 
 ;; marks
@@ -341,95 +339,104 @@ or monospace mark [`real`](/foo/bar) fun
 ;; endregion
 
 ;; region hiccup renderer (maybe move to .hiccup ns)
-(declare node->hiccup toc->hiccup)
-
-(defn wrap-content [ctx hiccup {:as node :keys [type attrs content]}]
-  (if-some [v (guard ifn? (get ctx type))]
-    (v node)
-    (into hiccup
-          (keep (partial node->hiccup (assoc ctx ::parent type)))
-          content)))
-
+;; TODO: rebuild toc
 (defn toc-item->hiccup [{:keys [content title-hiccup]}]
   [:li.toc-item
    [:div
     title-hiccup
     (when (seq content) (into [:ul] (map toc-item->hiccup) content))]])
+(defn toc->hiccup [{:as _toc :keys [content]}] (into [:ul.toc] (map toc-item->hiccup) content))
 
-(defmulti  node->hiccup (fn [_ctx {:as _node :keys [type]}] type))
-
-;; toc
-(defmethod node->hiccup :toc [{:as ctx ::keys [toc]} _]
-  (if-some [v (guard ifn? (get ctx :toc))] [v toc] (toc->hiccup toc)))
-
-;; blocks
-;; TODO: drop multimethods for a map { type => macro / fn }
 (defn dataset [attrs]
   (into {}
         (map (juxt (comp (partial str "data-") name first) second))
         attrs))
-(defmethod node->hiccup :doc [ctx node] (wrap-content ctx [:div] node))
-(defmethod node->hiccup :heading [ctx node] (wrap-content ctx [(keyword (str "h" (:heading-level node)))] node))
-(defmethod node->hiccup :paragraph [ctx node] (wrap-content ctx [:p] node))
-(defmethod node->hiccup :block-formula [ctx node] (wrap-content ctx [:figure.formula] node))
-(defmethod node->hiccup :bullet-list [ctx node] (wrap-content ctx [:ul] node))
-(defmethod node->hiccup :todo-list [ctx node] (wrap-content ctx [:ul {:data-todo-list true}] node))
-(defmethod node->hiccup :numbered-list [ctx node] (wrap-content ctx [:ol] node))
-(defmethod node->hiccup :list-item [ctx node] (wrap-content ctx [:li] node))
-(defmethod node->hiccup :todo-item [ctx {:as node :keys [attrs]}] (wrap-content ctx [:li (dataset attrs)] node))
-(defmethod node->hiccup :blockquote [ctx node] (wrap-content ctx [:blockquote] node))
-(defmethod node->hiccup :code [ctx node] (wrap-content ctx [:pre.viewer-code] node))
-(defmethod node->hiccup :ruler [_ctx _node] [:hr])
 
-;; inlines
-(declare apply-marks apply-mark)
-(defmethod node->hiccup :formula [ctx node] (wrap-content ctx [:span.formula] node))
-(defmethod node->hiccup :sidenote-ref [ctx node] (wrap-content ctx [:sup.sidenote-ref] node))
-(defmethod node->hiccup :text [_ctx {:keys [text marks]}] (cond-> text (seq marks) (apply-marks marks)))
-(defmethod node->hiccup :image [{:as ctx ::keys [parent]} {:as node :keys [attrs]}]
-  (if (= :paragraph parent) ;; TODO: add classes instead of inline styles
-    [:img.inline attrs]
-    [:figure.image [:img attrs] (wrap-content ctx [:figcaption] node)]))
-
-;; sidenotes
-(defmethod node->hiccup :sidenote [ctx {:as node :keys [attrs]}]
-  (wrap-content ctx [:span.sidenote [:sup {:style {:margin-right "3px"}} (-> attrs :ref inc)]] node))
-
-;; tables
-(defmethod node->hiccup :table [ctx node] (wrap-content ctx [:table] node))
-(defmethod node->hiccup :table-head [ctx node] (wrap-content ctx [:thead] node))
-(defmethod node->hiccup :table-body [ctx node] (wrap-content ctx [:tbody] node))
-(defmethod node->hiccup :table-row [ctx node] (wrap-content ctx [:tr] node))
-(defmethod node->hiccup :table-header [ctx node] (wrap-content ctx [:th] node))
-(defmethod node->hiccup :table-data [ctx node] (wrap-content ctx [:td] node))
-
-;; marks
-(defn apply-marks [ret m] (reduce apply-mark ret m))
+;; TODO: handle marks as other nodes
 (defmulti apply-mark (fn [_hiccup {m :mark}] m))
 (defmethod apply-mark :em [hiccup _] [:em hiccup])
 (defmethod apply-mark :monospace [hiccup _] [:code hiccup])
 (defmethod apply-mark :strong [hiccup _] [:strong hiccup])
 (defmethod apply-mark :strikethrough [hiccup _] [:s hiccup])
 (defmethod apply-mark :link [hiccup {:keys [attrs]}] [:a {:href (:href attrs)} hiccup])
+(defn apply-marks [ret m] (reduce apply-mark ret m))
 
-;; TODO: reverse args
+(declare ->hiccup)
+(defn into-markup [mkup ctx {:as node :keys [content]}]
+  (into mkup
+        (keep (partial ->hiccup (assoc ctx ::parent node)))
+        content))
+
+(def ->hiccup-ctx
+  {:doc (partial into-markup [:div])
+   :heading (fn [ctx {:as node :keys [heading-level]}] (into-markup [:h1 {:data-level heading-level}] ctx node))
+   :paragraph (partial into-markup [:p])
+   :text (fn [_ {:keys [text marks]}] (cond-> text (seq marks) (apply-marks marks)))
+   :blockquote (partial into-markup [:blockquote])
+   :ruler (partial into-markup [:hr])
+
+   ;; images
+   :image (fn [{:as ctx ::keys [parent]} {:as node :keys [attrs]}]
+            (if (= :paragraph (:type parent))
+              [:img.inline attrs]
+              [:figure.image [:img attrs] (into-markup [:figcaption] ctx node)]))
+
+   ;; code
+   :code (partial into-markup [:pre.viewer-code])
+
+   ;; softbreaks
+   ;; :softbreak (constantly [:br]) (treat as space)
+   :softbreak (constantly " ")
+
+   ;; formulas
+   :formula (partial into-markup [:span.formula])
+   :block-formula (partial into-markup [:figure.formula])
+
+   ;; lists
+   :bullet-list (partial into-markup [:ul])
+   :list-item (partial into-markup [:li])
+   :todo-list (partial into-markup [:ul {:data-todo-list true}])
+   :numbered-list (partial into-markup [:ol])
+   :todo-item (fn [ctx {:as node :keys [attrs]}] (into-markup [:li (dataset attrs)] ctx node))
+
+   ;; tables
+   :table (partial into-markup [:table])
+   :table-head (partial into-markup [:thead])
+   :table-body (partial into-markup [:tbody])
+   :table-row (partial into-markup [:tr])
+   :table-header (partial into-markup [:th])
+   :table-data (partial into-markup [:td])
+
+   ;; sidenodes
+   :sidenote-ref (partial into-markup [:sup.sidenote-ref])
+   :sidenote (fn [ctx {:as node :keys [attrs]}]
+               (into-markup [:span.sidenote [:sup {:style {:margin-right "3px"}} (-> attrs :ref inc)]]
+                            ctx
+                            node))
+   ;; TOC
+   ;; TODO: handle toc more regularly (copy toc content into node and use `into-markup`)
+   :toc (partial into-markup [:ul.toc])
+   })
+
 (defn ->hiccup
-  "Transforms MarkDown data into Hiccup
-
-  an optional second `options` map allows for customizing type => render-fn to be used in combination with reagent."
-  ([node] (->hiccup {} node))
-  ([opts node] (node->hiccup (assoc opts ::toc (:toc node))
-                             node)))
-
-(defn toc->hiccup [{:as _toc :keys [content]}] (into [:ul.toc] (map toc-item->hiccup) content))
+  ([node] (->hiccup ->hiccup-ctx node))
+  ([ctx {:as node :keys [type]}]
+   (if-some [f (get ctx type)]
+     (f ctx node)
+     [:div.error
+      (str "We don't know how to turn a node of type: '" type "' into hiccup.")]
+     )))
 
 (comment
   (-> "# Hello
 
+a nice paragraph with sidenotes[^my-note]
+
 [[TOC]]
 
 ## Section One
-A nice $\\phi$ formula [for _real_ **strong** fun](/path/to) \n soft
+A nice $\\phi$ formula [for _real_ **strong** fun](/path/to) soft
+break
 
 - [ ] one **ahoi** list
 - two `nice` and ~~three~~
@@ -437,8 +444,17 @@ A nice $\\phi$ formula [for _real_ **strong** fun](/path/to) \n soft
 
 > that said who?
 
-## Section Two
 ---
+
+## Section Two
+
+### Tables
+
+| Syntax |  JVM                     | JavaScript                      |
+|--------|-------------------------:|:--------------------------------|
+|   foo  |  Loca _lDate_ ahoiii     | goog.date.Date                  |
+|   bar  |  java.time.LocalTime     | some [kinky](link/to/something) |
+|   bag  |  java.time.LocalDateTime | $\\phi$                         |
 
 ### Images
 
@@ -448,10 +464,20 @@ and here as inline ![alt](foo/bar) image
 
 ```clj
 (some nice clojure)
-```"
+```
+
+[^my-note]: Here can discuss at length"
       nextjournal.markdown/parse
       ->hiccup
-      ))
+      )
+
+  ;; override defaults
+  (->> "# Foo
+
+and par"
+       (nextjournal.markdown/->hiccup
+        (assoc ->hiccup-ctx :doc (partial into-markup [:div.document])))
+       ))
 ;; endregion
 
 ;; region zoom into sections
@@ -503,7 +529,6 @@ some final par"
           nextjournal.markdown/parse
           (section-at [:content 9])                         ;; ⬅ paths are stored in TOC sections
           ->hiccup))
-
 ;; endregion
 (comment
   ;; boot browser repl

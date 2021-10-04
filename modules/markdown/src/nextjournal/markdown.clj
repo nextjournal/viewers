@@ -48,7 +48,7 @@
 
 (defn ->hiccup
   "Turns a markdown string into hiccup."
-  ([markdown-text] (->hiccup {} markdown-text))
+  ([markdown-text] (->hiccup markdown.data/->hiccup-ctx markdown-text))
   ([ctx markdown-text] (->> markdown-text parse (markdown.data/->hiccup ctx))))
 
 (comment
