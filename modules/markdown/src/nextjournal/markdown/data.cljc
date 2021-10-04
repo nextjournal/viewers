@@ -146,8 +146,7 @@ par
 #### Four
 
 end"
-     nextjournal.markdown/tokenize
-     <-tokens
+     nextjournal.markdown/parse
      :toc
      ))
 ;; endregion
@@ -229,8 +228,7 @@ end"
 |   bar  |  java.time.LocalTime     | some [kinky](link/to/something) |
 |   bag  |  java.time.LocalDateTime | $\\phi$                         |
 "
-    nextjournal.markdown/tokenize-j
-    nextjournal.markdown.data/<-tokens
+    nextjournal.markdown/parse
     nextjournal.markdown.data/->hiccup
     ))
 
@@ -322,8 +320,7 @@ Hline Section
 
 or monospace mark [`real`](/foo/bar) fun
 "
-      nextjournal.markdown/tokenize-j
-      nextjournal.markdown.data/<-tokens
+      nextjournal.markdown/parse
       ;;seq
       ;;(->> (take 10))
       ;;(->> (take-last 4))
@@ -420,8 +417,8 @@ or monospace mark [`real`](/foo/bar) fun
   "Transforms MarkDown data into Hiccup
 
   an optional second `options` map allows for customizing type => render-fn to be used in combination with reagent."
-  ([node] (->hiccup node {}))
-  ([node opts] (node->hiccup (assoc opts ::toc (:toc node))
+  ([node] (->hiccup {} node))
+  ([opts node] (node->hiccup (assoc opts ::toc (:toc node))
                              node)))
 
 (defn toc->hiccup [{:as _toc :keys [content]}] (into [:ul.toc] (map toc-item->hiccup) content))
@@ -452,11 +449,9 @@ and here as inline ![alt](foo/bar) image
 ```clj
 (some nice clojure)
 ```"
-      nextjournal.markdown/tokenize-j
-      nextjournal.markdown.data/<-tokens
+      nextjournal.markdown/parse
       ->hiccup
-      )
-  )
+      ))
 ;; endregion
 
 ;; region zoom into sections
@@ -505,8 +500,7 @@ two two two
 ## Section 3
 
 some final par"
-          nextjournal.markdown/tokenize-j
-          nextjournal.markdown.data/<-tokens
+          nextjournal.markdown/parse
           (section-at [:content 9])                         ;; ⬅ paths are stored in TOC sections
           ->hiccup))
 

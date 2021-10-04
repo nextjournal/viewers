@@ -17,7 +17,8 @@
 
 (defn ->hiccup
   "Turns a markdown string into hiccup."
-  [markdown-text] (-> markdown-text parse markdown.data/->hiccup))
+  ([markdown-text] (->hiccup {} markdown-text))
+  ([ctx markdown-text] (->> markdown-text parse (markdown.data/->hiccup ctx))))
 
 (comment
   (js/console.log

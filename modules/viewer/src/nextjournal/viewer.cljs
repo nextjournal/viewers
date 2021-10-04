@@ -799,11 +799,10 @@ as building hiccup is recursive, we're using the specific viewers for values occ
   [inspect
    (view-as
      :hiccup
-     (-> @markdown
-         md/parse
-         (md.data/->hiccup {:doc (fn [node]
-                                   [:div.viewer-markdown.dark:bg-gray-900.dark:text-white.rounded.shadow-sm.p-4
-                                    (md.data/->hiccup node)])})))]
+     (->> @markdown
+          (md/->hiccup {:doc (fn [node]
+                               [:div.viewer-markdown.dark:bg-gray-900.dark:text-white.rounded.shadow-sm.p-4
+                                (md.data/->hiccup node)])})))]
   {::dc/state "### Dark Mode Support
 Here is some code that provides a custom wrapper with styles to e.g. set the text color
 and background if dark mode is enabled in your system."})
@@ -817,7 +816,6 @@ and background if dark mode is enabled in your system."})
                 (when (.. e -target -classList (contains "sidenote-ref"))
                   (.. e -target -classList (toggle "expanded"))))}
    (md.data/->hiccup
-    node
     {:formula show-formula
      :todo-list (fn todo-list [node]
                   [:ul.contains-task-list
@@ -825,15 +823,16 @@ and background if dark mode is enabled in your system."})
                         :content
                         (map (fn [node]
                                (md.data/->hiccup
-                                node
                                 {:todo-item (fn [{:keys [attrs content]}]
                                               [:li
                                                [:input {:type "checkbox" :checked (:checked attrs) :disabled true}]
-                                               (map #(md.data/->hiccup % {:todo-list todo-list}) content)])}))))])})])
+                                               (map (partial md.data/->hiccup {:todo-list todo-list}) content)])}
+                                node))))])}
+    node)])
 
 (dc/defcard markdown-plugins
   [markdown]
-  [inspect (view-as :hiccup (-> @markdown md/parse (md.data/->hiccup {:doc doc-with-plugins})))]
+  [inspect (view-as :hiccup (->> @markdown (md/->hiccup {:doc doc-with-plugins})))]
   {::dc/state "# Markdown Default Plugins
 ## Sidenotes
 
