@@ -15,7 +15,8 @@
   - mark: the mark type (:em, :strong, :link, etc.)
   - attrs: mark attributes e.g. href in links
   "
-  (:require [applied-science.js-interop :as j]))
+  #?(:cljs
+     (:require [applied-science.js-interop :as j])))
 
 ;; clj common accessors
 (def get-in* #?(:clj get-in :cljs j/get-in))
