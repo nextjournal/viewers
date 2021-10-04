@@ -825,7 +825,7 @@ and background if dark mode is enabled in your system."})
    (md.data/->hiccup
     node
     {:formula show-formula
-     :todo-list (fn [node]
+     :todo-list (fn todo-list [node]
                   [:ul.contains-task-list
                    (->> node
                         :content
@@ -835,7 +835,7 @@ and background if dark mode is enabled in your system."})
                                 {:todo-item (fn [{:keys [attrs content]}]
                                               [:li
                                                [:input {:type "checkbox" :checked (:checked attrs) :disabled true}]
-                                               (map md.data/->hiccup content)])}))))])})])
+                                               (map #(md.data/->hiccup % {:todo-list todo-list}) content)])}))))])})])
 
 (dc/defcard markdown-plugins
   [markdown]
