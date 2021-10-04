@@ -810,29 +810,32 @@ as building hiccup is recursive, we're using the specific viewers for values occ
      :hiccup
      (-> @markdown
          md/parse
-         (md.data/->hiccup {:doc #(html
+         (md.data/->hiccup {:doc (fn [node]
                                    [:div.viewer-markdown.dark:bg-gray-900.dark:text-white.rounded.shadow-sm.p-4
-                                    (md.data/->hiccup %)])})))]
+                                    (md.data/->hiccup node)])})))]
   {::dc/state "### Dark Mode Support
 Here is some code that provides a custom wrapper with styles to e.g. set the text color
 and background if dark mode is enabled in your system."})
 
 (defn show-formula [node]
-  (html [inspect (view-as :latex (md.data/->text node))]))
+  [inspect (view-as :latex (md.data/->text node))])
 
 (defn doc-with-plugins [node]
-  (html [:div.viewer-markdown
-         (md.data/->hiccup node {:formula show-formula
-                                 :table #(html (md.data/->hiccup % {:formula show-formula}))
-                                 :todo-list #(html [:ul.contains-task-list
-                                                    (->> % :content
-                                                         (map (fn [node]
-                                                                (md.data/->hiccup
-                                                                  node
-                                                                  {:todo-item (fn [{:keys [attrs content]}]
-                                                                                (html [:li
-                                                                                       [:input {:type "checkbox" :checked (:checked attrs) :disabled true}]
-                                                                                       (map md.data/->hiccup content)]))}))))])})]))
+  [:div.viewer-markdown
+   (md.data/->hiccup
+    node
+    {:formula show-formula
+     :todo-list (fn [node]
+                  [:ul.contains-task-list
+                   (->> node
+                        :content
+                        (map (fn [node]
+                               (md.data/->hiccup
+                                node
+                                {:todo-item (fn [{:keys [attrs content]}]
+                                              [:li
+                                               [:input {:type "checkbox" :checked (:checked attrs) :disabled true}]
+                                               (map md.data/->hiccup content)])}))))])})])
 
 (dc/defcard markdown-plugins
   [markdown]
