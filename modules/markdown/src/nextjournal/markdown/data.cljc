@@ -17,6 +17,9 @@
   "
   (:require [applied-science.js-interop :as j]))
 
+;; clj common accessors
+(def get-in* #?(:clj get-in :cljs j/get-in))
+
 ;; region node operations
 (defn guard [pred val] (when (pred val) val))
 (defn inc-last [path] (update path (dec (count path)) inc))
@@ -194,11 +197,11 @@ end"
 
 ;; footnotes
 
-(defmethod apply-token "sidenote_ref" [doc token] (push-node doc (sidenote-ref (j/get-in token [:meta :id]))))
+(defmethod apply-token "sidenote_ref" [doc token] (push-node doc (sidenote-ref (get-in* token [:meta :id]))))
 (defmethod apply-token "sidenote_anchor" [doc token] doc)
-(defmethod apply-token "sidenote_open" [doc token] (open-node doc :sidenote {:ref (j/get-in token [:meta :id])}))
+(defmethod apply-token "sidenote_open" [doc token] (open-node doc :sidenote {:ref (get-in* token [:meta :id])}))
 (defmethod apply-token "sidenote_close" [doc token] (close-node doc))
-(defmethod apply-token "sidenote_block_open" [doc token] (open-node doc :sidenote {:ref (j/get-in token [:meta :id])}))
+(defmethod apply-token "sidenote_block_open" [doc token] (open-node doc :sidenote {:ref (get-in* token [:meta :id])}))
 (defmethod apply-token "sidenote_block_close" [doc token] (close-node doc))
 
 ;; tables
