@@ -348,7 +348,7 @@ or monospace mark [`real`](/foo/bar) fun
 
 (defn wrap-content [ctx hiccup {:as node :keys [type attrs content]}]
   (if-some [v (guard ifn? (get ctx type))]
-    [v node]
+    (v node)
     (into hiccup
           (keep (partial node->hiccup (assoc ctx ::parent type)))
           content)))
