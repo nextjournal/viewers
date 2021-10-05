@@ -365,9 +365,10 @@ or monospace mark [`real`](/foo/bar) fun
    ;; lists
    :bullet-list (partial into-markup [:ul])
    :list-item (partial into-markup [:li])
-   :todo-list (partial into-markup [:ul {:data-todo-list true}])
+   :todo-list (partial into-markup [:ul.contains-task-list])
    :numbered-list (partial into-markup [:ol])
-   :todo-item (fn [ctx {:as node :keys [attrs]}] (into-markup [:li (dataset attrs)] ctx node))
+   :todo-item (fn [ctx {:as node :keys [attrs]}]
+                (into-markup [:li [:input {:type "checkbox" :checked (:checked attrs)}]] ctx node))
 
    ;; tables
    :table (partial into-markup [:table])
@@ -403,7 +404,7 @@ or monospace mark [`real`](/foo/bar) fun
    (let [{:as node :keys [type]} (cond-> node (= :doc t) hydrate-toc)]
      (if-some [f (get ctx type)]
        (f ctx node)
-       [:div.error
+       [:div.error.red
         (str "We don't know how to turn a node of type: '" type "' into hiccup.")]
        ))))
 

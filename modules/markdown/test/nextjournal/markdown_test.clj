@@ -6,11 +6,12 @@
 (def markdown-text
   "# Hello
 
-some **strong** _assertion_
+some **strong** _assertion_ and a [link]
 
-- [ ] one
-- [x] two
-- [ ] three
+* one
+* two
+
+[link]:/path/to/something
 ")
 
 (deftest parse-test
@@ -21,39 +22,38 @@ some **strong** _assertion_
                        :type :heading}
                       {:content [{:text "some "
                                   :type :text}
-                                 {:content [{:text "strong" :type :text}]
+                                 {:content [{:text "strong"
+                                             :type :text}]
                                   :type :strong}
                                  {:text " "
                                   :type :text}
-                                 {:content [{:text "assertion" :type :text}]
-                                  :type :em}]
+                                 {:content [{:text "assertion"
+                                             :type :text}]
+                                  :type :em}
+                                 {:text " and a "
+                                  :type :text}
+                                 {:attrs {:href "/path/to/something"}
+                                  :content [{:text "link"
+                                             :type :text}]
+                                  :type :link}]
                        :type :paragraph}
-                      {:attrs {:has-todos true}
-                       :content [{:attrs {:checked false
-                                          :todo true}
-                                  :content [{:content [{:text "one"
+                      {:content [{:content [{:content [{:text "one"
                                                         :type :text}]
                                              :type :paragraph}]
-                                  :type :todo-item}
-                                 {:attrs {:checked true
-                                          :todo true}
-                                  :content [{:content [{:text "two"
+                                  :type :list-item}
+                                 {:content [{:content [{:text "two"
                                                         :type :text}]
                                              :type :paragraph}]
-                                  :type :todo-item}
-                                 {:attrs {:checked false
-                                          :todo true}
-                                  :content [{:content [{:text "three"
-                                                        :type :text}]
-                                             :type :paragraph}]
-                                  :type :todo-item}]
-                       :type :todo-list}]
-            :toc {:type :toc
-                  :content [{:level 1
-                             :type :toc
-                             :path [:content 0]
+                                  :type :list-item}]
+                       :type :bullet-list}]
+            :toc {:content [{:level 1
+                             :path [:content
+                                    0]
                              :title "Hello"
-                             :title-hiccup [:h1 "Hello"]}]}
+                             :title-hiccup [:h1
+                                            "Hello"]
+                             :type :toc}]
+                  :type :toc}
             :type :doc}
            (md/parse markdown-text)))))
 
@@ -68,24 +68,18 @@ some **strong** _assertion_
             "strong"]
            " "
            [:em
-            "assertion"]]
+            "assertion"]
+           " and a "
+           [:a
+            {:href "/path/to/something"}
+            "link"]]
           [:ul
-           {:data-todo-list true}
            [:li
-            {"data-checked" false
-             "data-todo" true}
             [:p
              "one"]]
            [:li
-            {"data-checked" true
-             "data-todo" true}
             [:p
-             "two"]]
-           [:li
-            {"data-checked" false
-             "data-todo" true}
-            [:p
-             "three"]]]]
+             "two"]]]]
          (md/->hiccup markdown-text))))
 
 
@@ -180,6 +174,37 @@ some **strong** _assertion_
             [:h3
              "Section 2.1"]]
           hiccup))))
+
+(deftest todo-lists
+  (testing "todo lists"
+    (is (= [:div
+            [:h1
+             "Todos"]
+            [:ul.contains-task-list
+             [:li
+              [:input
+               {:checked true
+                :type "checkbox"}]
+              [:p
+               "checked"]]
+             [:li
+              [:input
+               {:checked false
+                :type "checkbox"}]
+              [:p
+               "unchecked"]
+              [:ul.contains-task-list
+               [:li
+                [:input
+                 {:checked false
+                  :type "checkbox"}]
+                [:p
+                 "nested"]]]]]]
+           (md/->hiccup "# Todos
+- [x] checked
+- [ ] unchecked
+  - [ ] nested
+")))))
 
 (comment
   (run-tests 'nextjournal.markdown-test)
