@@ -14,6 +14,7 @@
 
 ;; clj common accessors
 (def get-in* #?(:clj get-in :cljs j/get-in))
+(def update* #?(:clj update :cljs j/update!))
 
 ;; region node operations
 (defn guard [pred val] (when (pred val) val))
@@ -243,7 +244,7 @@ end"
 ;; region data builder api
 (defn pairs->kmap [pairs] (into {} (map (juxt (comp keyword first) second)) pairs))
 (defn apply-tokens [doc tokens]
-  (let [mapify-attrs-xf (map (fn [x] (#?(:clj update :cljs j/update!) x :attrs pairs->kmap)))]
+  (let [mapify-attrs-xf (map (fn [x] (update* x :attrs pairs->kmap)))]
     (reduce (mapify-attrs-xf apply-token) doc tokens)))
 
 (def empty-doc {:type :doc
