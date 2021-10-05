@@ -26,7 +26,9 @@
 (def ^Context ctx (.build context-builder))
 
 (def ^Value MD-imports
-  (.eval ctx (.build (Source/newBuilder "js" "import MD from './modules/markdown/resources/js/markdown.mjs'; MD" "source.mjs"))))
+  (.eval ctx (.build (Source/newBuilder "js"
+                                        (str "import MD from '" (.getPath (io/resource "js/markdown.mjs")) "'; MD")
+                                        "source.mjs"))))
 
 (defn make-js-fn [fn-name]
   (let [f (.getMember MD-imports fn-name)]
