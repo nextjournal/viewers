@@ -369,7 +369,7 @@ or monospace mark [`real`](/foo/bar) fun
 
 (def ->hiccup-ctx
   {:doc (partial into-markup [:div])
-   :heading (fn [ctx {:as node :keys [heading-level]}] (into-markup [:h1 {:data-level heading-level}] ctx node))
+   :heading (fn [ctx {:as node :keys [heading-level]}] (into-markup [(keyword (str "h" heading-level))] ctx node))
    :paragraph (partial into-markup [:p])
    :text (fn [_ {:keys [text marks]}] (cond-> text (seq marks) (apply-marks marks)))
    :blockquote (partial into-markup [:blockquote])
