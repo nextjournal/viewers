@@ -133,10 +133,9 @@
 (v/defview show-main [{::v/keys [state props]
                        :keys [main initial-db initial-state ::dc/class]}]
   (when main
-    (reagent/with-let [app-db (let [{:keys [app-db]} (rf/current-frame)]
-                                (when (seq initial-db)
-                                  (reset! app-db initial-db))
-                                app-db)]
+    (reagent/with-let [_ (when (seq initial-db)
+                           (js/console.log :reseting-app-db initial-db)
+                           (reset! (:app-db (rf/current-frame)) initial-db))]
       (let [main (main)
             main (if (fn? main)
                    [main state]
@@ -147,7 +146,7 @@
          (when initial-state
            [inspector {:ratom state :label "state" :initial-value initial-state :label-aligned? initial-state}])
          (when (seq initial-db)
-           [inspector {:ratom app-db :label "db" :initial-value initial-db :label-aligned? initial-state}])]))))
+           [inspector {:ratom (:app-db (rf/current-frame)) :label "db" :initial-value initial-db :label-aligned? initial-state}])]))))
 
 (v/defview show-card* [{card ::v/props :keys [initial-state name ns doc loading-data?]}]
   (when card

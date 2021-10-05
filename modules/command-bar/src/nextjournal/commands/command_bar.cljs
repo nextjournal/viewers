@@ -14,7 +14,7 @@
             [re-frame.context :as re-frame]
             [reagent.core :as reagent]
             [reagent.impl.component :as comp]
-            [re-frame.core :as r]
+            [re-frame.core :as rf.core]
             [goog.dom :as gdom]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -199,78 +199,92 @@
    (fn [{:as this !view-state ::v/state}]
      (re-frame/bind-frame (component-frame this)
                           (state/unset-context! :!view-state !view-state)))}
-  [{:as this !view-state ::v/state}]
-  (let [{:as view-state :keys [stack context shortcuts]} @!view-state
-        {:keys [subcommands/layout]} (last stack)
-        candidates (bar-state/candidates view-state)
-        category-count (count (into #{} (map :category) candidates))
-        visible-items (+ category-count (count candidates))
-        layout (or layout :grid) #_(cond
-                 layout layout
-                 (= 1 category-count) :list
-                 (<= rows 6) :list
-                 :else :grid)
-        desktop? @(re-frame/subscribe [:desktop?])]
-    [:div
-     (when-not desktop?
-       [:div.w-full.text-white.monospace.relative.text-md.overflow-x-scroll.min-w-full
-        {:style {:background "rgba(31, 41, 55, 0.94)"}}
-        (when-not (:context view-state)
-          [shortcuts/view shortcuts])])
-     [:div.w-full.text-white.monospace.command-bar.relative
-      {:style {:z-index 1000 :background "#1f2937"}
-       :ref (j/get this :ref-fn)}
+  [{:as this !view-state ::v/state :keys [ref]}]
+  (js/console.log :view-frame-id (:frame-id (re-frame/current-frame)))
+  (reagent/with-let [!unlisten (atom nil)
+                     ref-fn (re-frame/bind-fn
+                              (fn [element]
+                                (js/console.log :ref-fn-frame-id (:frame-id (re-frame/current-frame)))
+                                (if element
+                                  (reset! !unlisten (commands/listen! {:element element
+                                                                       :get-registry state/get-registry}))
+                                  (when-let [unlisten @!unlisten]
+                                    (unlisten)))))]
+    (js/console.log :with-let-inner (:frame-id (re-frame/current-frame)))
+    (let [{:as view-state :keys [stack context shortcuts]} @!view-state
+          {:keys [subcommands/layout]} (last stack)
+          candidates (bar-state/candidates view-state)
+          category-count (count (into #{} (map :category) candidates))
+          visible-items (+ category-count (count candidates))
+          layout (or layout :grid) #_(cond
+                                       layout layout
+                                       (= 1 category-count) :list
+                                       (<= rows 6) :list
+                                       :else :grid)
+          desktop? @(re-frame/subscribe [:desktop?])]
       [:div
-       (when (and context (= layout :list))
-         {:class "absolute left-0 bottom-0"})
-       [:div.flex.px-4.items-center
-        (if context
-          {:class "flex items-center"
-           :style {:background "#11171e" :height 40 :font-size 13}}
-          {:style {:font-size 13 :background (get-in ui/theme [:bar :background])
-                   :height (if desktop?
-                             (get-in ui/theme [:bar :height])
-                             "50px")}})
-        [:div.flex.items-center
-         (when context
-           {:class "flex-auto"
-            :style {:background "#455568" :height 28 :border-radius 3
-                    :padding-left 2 :padding-right 2
-                    :box-shadow "inset 0 3px 3px rgba(0,0,0,.15)"
-                    :border "1px solid rgba(255,255,255,.1)"}})
-         (into [:div.flex.items-center.flex-shrink-0.nj-commands-stack]
-               (for [{:as item :keys [on-expose on-dispose]} (remove :invisible-stack? stack)
-                     :let [label (stack-label (:context item) item)]]
-                 [:div.relative.flex.items-center.whitespace-nowrap.pl-2.pr-1.mr-1
-                  {:style {:background "#11171e" :border-radius 2
-                           :height 22}
-                   :ref (fn [el]
-                          (if el
-                            (when on-expose (on-expose (:context item) item))
-                            (when on-dispose (on-dispose (:context item) item))))}
-                  label
-                  [icon/view "ChevronRight" {:size 12 :class "fill-current"}]]))
-         [:input.outline-none.nj-commands-input
-          {:value (bar-state/get-query @!view-state)
-           :auto-complete "off"
-           :style {:height (if desktop? 20 40) :z-index 3 :width 200 :margin-left 6}
-           :placeholder (if context "Filter…" "⌘J Search commands…")
-           :on-mouse-down #(re-frame/bind-frame (component-frame this)
-                                                (state/set-context! :!view-state !view-state)
-                                                (bar-state/activate-bar! !view-state))
-           :on-change #(bar-state/set-query! !view-state (j/get-in % [:target :value]))
-           :on-blur #(when-not (some-> (j/get % :relatedTarget) ;; check if we are clicking within the command palette
-                                       (dom-closest ".command-bar"))
-                       (bar-state/blur-command-bar! !view-state))}]
-         (when (bar-state/subcommands-loading? view-state)
-           [spinner/view {:size 24 :class "fill-current opacity-30 ml-3 -mr-2"}])]
-        (when-not (or (:context view-state) (not desktop?))
-          [shortcuts/view shortcuts])]
-       (when (seq candidates)
-         ^{:key "commands-list"}
-         [listing layout {:!view-state !view-state
-                          :candidates candidates
-                          :visible-items visible-items}])]]]))
+       {:ref ref-fn}
+       (when-not desktop?
+         [:div.w-full.text-white.monospace.relative.text-md.overflow-x-scroll.min-w-full
+          {:style {:background "rgba(31, 41, 55, 0.94)"}}
+          (when-not (:context view-state)
+            [shortcuts/view shortcuts])])
+       [:div.w-full.text-white.monospace.command-bar.relative
+        {:style {:z-index 1000 :background "#1f2937"}
+         :ref (j/get this :ref-fn)}
+        [:div
+         (when (and context (= layout :list))
+           {:class "absolute left-0 bottom-0"})
+         [:div.flex.px-4.items-center
+          (if context
+            {:class "flex items-center"
+             :style {:background "#11171e" :height 40 :font-size 13}}
+            {:style {:font-size 13 :background (get-in ui/theme [:bar :background])
+                     :height (if desktop?
+                               (get-in ui/theme [:bar :height])
+                               "50px")}})
+          [:div.flex.items-center
+           (when context
+             {:class "flex-auto"
+              :style {:background "#455568" :height 28 :border-radius 3
+                      :padding-left 2 :padding-right 2
+                      :box-shadow "inset 0 3px 3px rgba(0,0,0,.15)"
+                      :border "1px solid rgba(255,255,255,.1)"}})
+           (into [:div.flex.items-center.flex-shrink-0.nj-commands-stack]
+                 (for [{:as item :keys [on-expose on-dispose]} (remove :invisible-stack? stack)
+                       :let [label (stack-label (:context item) item)]]
+                   [:div.relative.flex.items-center.whitespace-nowrap.pl-2.pr-1.mr-1
+                    {:style {:background "#11171e" :border-radius 2
+                             :height 22}
+                     :ref (fn [el]
+                            (if el
+                              (when on-expose (on-expose (:context item) item))
+                              (when on-dispose (on-dispose (:context item) item))))}
+                    label
+                    [icon/view "ChevronRight" {:size 12 :class "fill-current"}]]))
+           [:input.outline-none.nj-commands-input
+            {:value (bar-state/get-query @!view-state)
+             :auto-complete "off"
+             :style {:height (if desktop? 20 40) :z-index 3 :width 200 :margin-left 6}
+             :placeholder (if context "Filter…" "⌘J Search commands…")
+             :on-mouse-down #(do
+                               (js/console.log :mouse-down-frame (:frame-id (component-frame this)))
+                               (re-frame/bind-frame (component-frame this)
+                                                      (state/set-context! :!view-state !view-state)
+                                                      (bar-state/activate-bar! !view-state)))
+             :on-change #(bar-state/set-query! !view-state (j/get-in % [:target :value]))
+             :on-blur #(when-not (some-> (j/get % :relatedTarget) ;; check if we are clicking within the command palette
+                                         (dom-closest ".command-bar"))
+                         (bar-state/blur-command-bar! !view-state))}]
+           (when (bar-state/subcommands-loading? view-state)
+             [spinner/view {:size 24 :class "fill-current opacity-30 ml-3 -mr-2"}])]
+          (when-not (or (:context view-state) (not desktop?))
+            [shortcuts/view shortcuts])]
+         (when (seq candidates)
+           ^{:key "commands-list"}
+           [listing layout {:!view-state !view-state
+                            :candidates candidates
+                            :visible-items visible-items}])]]])))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; keyboard control of command palette
@@ -321,6 +335,8 @@
                 :private? true
                 :blur-command-bar? false
                 :action (fn [{:keys [!view-state]}]
+                          (js/console.log "calling " direction)
+                          (js/console.log :command-action (:frame-id (re-frame/current-frame)))
                           (nav-to-visible-command !view-state direction)
                           :stop)}]))
        (into {})))
@@ -376,32 +392,30 @@
                              (some-> (nth candidates selected nil)
                                      (commands/eval-command))))}})
 
-
 (let [make-devcard-state! (comp #(bar-state/activate-bar! % {:!view-state %})
                                 bar-state/initial-state)]
   (dc/defcard command-bar "This is the default view of the command bar."
-              [view {::v/initial-state #(-> (make-devcard-state!
-                                              {:categories [:test]
-                                               :shortcuts  {:test {:commands [:test/hello :test/world]}}}))}]
+    [view {::v/initial-state #(-> (make-devcard-state!
+                                    {:categories [:test]
+                                     :shortcuts {:test {:commands [:test/hello :test/world]}}}))}]
+    (-> (state/empty-db!)
+        (commands/register {:test/hello {:action identity}
+                            :test/world {:action identity}})))
+  #_(dc/defcard command-bar-stack "This is the view of a command that contains its own subcommands."
+    [view {::v/initial-state #(-> (make-devcard-state!
+                                    {:categories [:test]
+                                     :candidates [{:title "Fish 1"
+                                                   :action identity
+                                                   :category "test"}
+                                                  {:title "Fish 2"
+                                                   :action identity
+                                                   :category "test"}
+                                                  {:title "Fish 3"
+                                                   :action identity
+                                                   :category "test"}]})
+                                  (doto (swap! bar-state/set-selected! 1)))}]
 
-              (-> (state/empty-db!)
-                  (commands/register {:test/hello {:action identity}
-                                      :test/world {:action identity}})))
-  (dc/defcard command-bar-stack "This is the view of a command that contains its own subcommands."
-              [view {::v/initial-state #(-> (make-devcard-state!
-                                              {:categories [:test]
-                                               :candidates [{:title    "Fish 1"
-                                                             :action   identity
-                                                             :category "test"}
-                                                            {:title    "Fish 2"
-                                                             :action   identity
-                                                             :category "test"}
-                                                            {:title    "Fish 3"
-                                                             :action   identity
-                                                             :category "test"}]})
-                                            (doto (swap! bar-state/set-selected! 1)))}]
-
-              (-> (state/empty-db!)
+    (-> (state/empty-db!)
                   (commands/register {:test/ocean {:subcommands/layout
                                                    :list :subcommands
                                                    [{:title "Fish 1"

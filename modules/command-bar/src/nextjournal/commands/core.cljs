@@ -60,6 +60,7 @@
   "Evaluates a command if possible given the current context"
   ([command] (eval-command command (or (:context command) (state/current-context))))
   ([command context]
+   (js/console.log "eval command" command context)
    (let [{:as command :keys [context]} (apply-context context (get-command command))
          {:keys [action prevent-default? blur-command-bar?]
           :or {prevent-default? true
@@ -76,14 +77,17 @@
          result)))))
 
 (defn dispatch [e state]
+  (js/console.log "dispatch" e state)
   (let [path (-> e keys/e->chord keys/chord->path)
         ids (:ids (get-in state path))]
     (log/trace :path path :ids ids)
+    (js/console.log "dispatch ids" ids)
     (when (seq ids)
       (let [context (state/current-context
-                     {:event e
-                      :event/trigger :keys
-                      :event/sequence sequence})]
+                      {:event e
+                       :event/trigger :keys
+                       :event/sequence sequence})]
+        (js/console.log "dispatch context" context)
         (doseq [id ids
                 :let [result (eval-command id context)]
                 :while (not= :stop result)])))))
@@ -185,14 +189,14 @@
         command
         (-> command
             (merge
-             (some-> keys (keys/parse-keys))
-             {:normalized? true
-              :title (or title (some-> id id->title))
-              :category (or category (some-> id namespace keyword))
-              :when (fn [ctx]
-                      (and
-                       (requirements-satisfied? ctx requires)
-                       (if when (when ctx) true)))})
+              (some-> keys (keys/parse-keys))
+              {:normalized? true
+               :title (or title (some-> id id->title))
+               :category (or category (some-> id namespace keyword))
+               :when (fn [ctx]
+                       (and
+                         (requirements-satisfied? ctx requires)
+                         (if when (when ctx) true)))})
             resolve-action)))))
 
 (defn add-to-category [registry category-id id]
@@ -201,7 +205,7 @@
 (defn register
   "pure function for adding command to context"
   ([db commands]
-   (reduce-kv (fn [db id data] (register db id data)) db commands))
+   (reduce-kv (fn [db id command] (register db id command)) db commands))
   ([db id command]
    (update db ::state/registry
            (fn [registry]
@@ -211,26 +215,26 @@
                                 (add-to-category (:category command) id))]
                (if (false? (:bind-keys? command))
                  registry
-                 (reduce (fn [context sequence]
-                           (update-in context (conj sequence :ids) (fnil (comp distinct conj) []) id))
+                 (reduce (fn [registry sequence]
+                           (update-in registry (conj sequence :ids) (fnil (comp distinct conj) []) id))
                          registry
                          (:keys/paths command))))))))
 
 (defn normalize-categories [categories]
   (->> categories
        (mapv
-        (fn [cat]
-          {:pre [(or (keyword? cat) (map? cat))]}
-          (let [[id category] (if (keyword? cat) [cat] (first cat))]
-            (-> category
-                (assoc :id id)
-                (update :title (fn [x] (or x (-> id name str/capitalize))))))))))
+         (fn [cat]
+           {:pre [(or (keyword? cat) (map? cat))]}
+           (let [[id category] (if (keyword? cat) [cat] (first cat))]
+             (-> category
+                 (assoc :id id)
+                 (update :title (fn [x] (or x (-> id name str/capitalize))))))))))
 
 ;; Main external API
 
 (re-frame/reg-event-db ::register
-  (fn [db [_ commands]]
-    (register db commands)))
+                       (fn [db [_ commands]]
+                         (register db commands)))
 
 (defn register!
   "Binds a sequence of button presses, specified by `keys`, to `action` when
@@ -239,9 +243,9 @@
 
   `keys` format is emacs-like strings a-la \"ctrl-c k\", \"meta-shift-k\", etc."
   ([commands]
-   (re-frame/dispatch [::register commands]))
+   (re-frame/dispatch-sync [::register commands]))
   ([id command]
-   (re-frame/dispatch [::register {id command}])))
+   (re-frame/dispatch-sync [::register {id command}])))
 
 ;; TODO
 ;; I think I found a bug where viewing the Collaborators modal
@@ -255,14 +259,18 @@
 (defn listen! [{:keys [get-registry element]
                 :or {element js/window}}]
   (when (exists? js/addEventListener)
-    (let [f #(dispatch % (get-registry))]
+    (js/console.log :listen-element! element)
+    (let [f (re-frame/bind-fn #(do (js/console.log "handle-event" % (.-currentTarget %) (.-target %))
+                                   (js/console.log :handler-bound-frame-id (:frame-id (re-frame/current-frame)))
+                                   (dispatch % (get-registry))))]
       (j/call element :addEventListener "keydown" f false)
-      #(j/call element :removeEventListener "keydown" f))))
+      identity #_#(j/call element :removeEventListener "keydown" f))))
 
 (defn listener
   "A component which listens for keyboard events, for the registry in the current app-db."
   [& body]
-  (reagent/with-let [unlisten (listen! {:get-registry (re-frame/bind-fn state/get-registry)})]
+  (reagent/with-let [listen! (re-frame/bind-fn listen!)
+                     unlisten (listen! {:get-registry (re-frame/bind-fn state/get-registry)})]
     (into [:<>] body)
     (finally
-     (unlisten))))
+      (unlisten))))

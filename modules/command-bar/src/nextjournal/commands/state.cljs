@@ -1,5 +1,6 @@
 (ns nextjournal.commands.state
   (:require [re-frame.context :as re-frame]
+            [re-frame.core :as rf.core]
             [reagent.core :as reagent]))
 
 (re-frame/reg-sub
@@ -42,7 +43,7 @@
 (defn empty-db!
   "Returns the required entries for re-frame's app-db, used by the commands system"
   []
-  {::registry (get-registry)                                ;; include commands registered before init
+  {::registry (or (get-registry) (::registry @(:app-db rf.core/default-frame)))                           ;; include commands registered before init
    ::!context (reagent/atom {})})
 
 ;; Context provides the inputs to commands, and is the basis for
@@ -90,8 +91,10 @@
   "Returns current context"
   ([] (current-context nil))
   ([initial-context]
-   (current-context @(re-frame/subscribe [:db/get-in [::registry ::context-fns]])
-                    @(get-context-atom)
+   (current-context @(doto (re-frame/subscribe [:db/get-in [::registry ::context-fns]])
+                      (js/console.log "context-fns-subscription"))
+                    @(doto (get-context-atom)
+                      (js/console.log "context-atom"))
                     initial-context))
   ([context-fns mutable-context initial-context]
    (dynamic-context context-fns (merge mutable-context initial-context))))
