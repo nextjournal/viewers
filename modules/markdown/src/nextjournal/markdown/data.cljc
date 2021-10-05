@@ -237,9 +237,9 @@ end"
 
 ;; html (ignored)
 (defmethod apply-token "html_inline" [doc _] doc)
-
-
+(defmethod apply-token "html_block" [doc _] doc)
 ;; endregion
+
 ;; region data builder api
 (defn pairs->kmap [pairs] (into {} (map (juxt (comp keyword first) second)) pairs))
 (defn apply-tokens [doc tokens]

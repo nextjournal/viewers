@@ -20,7 +20,6 @@
             [clojure.string :as str]
             [sci.impl.vars]))
 
-
 (defn edn-type [tag value]
   (case tag
     var :edn-var
