@@ -3,4 +3,6 @@
             [nextjournal.markdown-test]))
 
 (defn run [_]
-  (clojure.test/run-tests 'nextjournal.markdown-test))
+  (let [{:keys [fail error]} (clojure.test/run-tests 'nextjournal.markdown-test)]
+    (when (< 0 (+ fail error))
+      (System/exit 1))))
