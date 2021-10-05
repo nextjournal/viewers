@@ -21,14 +21,12 @@ some **strong** _assertion_
                        :type :heading}
                       {:content [{:text "some "
                                   :type :text}
-                                 {:marks [{:mark :strong}]
-                                  :text "strong"
-                                  :type :text}
+                                 {:content [{:text "strong" :type :text}]
+                                  :type :strong}
                                  {:text " "
                                   :type :text}
-                                 {:marks [{:mark :em}]
-                                  :text "assertion"
-                                  :type :text}]
+                                 {:content [{:text "assertion" :type :text}]
+                                  :type :em}]
                        :type :paragraph}
                       {:attrs {:has-todos true}
                        :content [{:attrs {:checked false

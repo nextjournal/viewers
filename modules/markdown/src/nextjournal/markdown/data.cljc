@@ -25,7 +25,7 @@
 (defn guard [pred val] (when (pred val) val))
 (defn inc-last [path] (update path (dec (count path)) inc))
 (defn hlevel [{:as _token hn :tag}] (when (string? hn) (some-> (re-matches #"h([\d])" hn) second #?(:clj read-string :cljs cljs.reader/read-string))))
-(defn ->text [{:as _node :keys [text formula content]}] (or text formula (apply str (map ->text content))))
+(defn ->text [{:as _node :keys [text content]}] (or text (apply str (map ->text content))))
 
 (defn node
   [type content attrs top-level]
@@ -244,16 +244,15 @@ end"
 (defmethod apply-token "image" [doc {:keys [attrs children]}] (-> doc (open-node :image attrs) (apply-tokens children) close-node))
 
 ;; marks
-(defmethod apply-token "em_open" [doc _token] (open-mark doc :em))
-(defmethod apply-token "em_close" [doc _token] (close-mark doc))
-(defmethod apply-token "strong_open" [doc _token] (open-mark doc :strong))
-(defmethod apply-token "strong_close" [doc _token] (close-mark doc))
-(defmethod apply-token "s_open" [doc _token] (open-mark doc :strikethrough))
-(defmethod apply-token "s_close" [doc _token] (close-mark doc))
-(defmethod apply-token "link_open" [doc token] (open-mark doc :link (:attrs token)))
-(defmethod apply-token "link_close" [doc _token] (close-mark doc))
-(defmethod apply-token "code_inline" [{:as doc ms ::marks} {text :content}]
-  (push-node doc (text-node text (conj ms (mark :monospace)))))
+(defmethod apply-token "em_open" [doc _token] (open-node doc :em))
+(defmethod apply-token "em_close" [doc _token] (close-node doc))
+(defmethod apply-token "strong_open" [doc _token] (open-node doc :strong))
+(defmethod apply-token "strong_close" [doc _token] (close-node doc))
+(defmethod apply-token "s_open" [doc _token] (open-node doc :strikethrough))
+(defmethod apply-token "s_close" [doc _token] (close-node doc))
+(defmethod apply-token "link_open" [doc token] (open-node doc :link (:attrs token)))
+(defmethod apply-token "link_close" [doc _token] (close-node doc))
+(defmethod apply-token "code_inline" [doc {text :content}] (-> doc (open-node :monospace) (push-node (text-node text)) close-node))
 
 ;; html (ignored)
 (defmethod apply-token "html_inline" [doc _] doc)
@@ -330,20 +329,7 @@ or monospace mark [`real`](/foo/bar) fun
       ;;seq
       ;;(->> (take 10))
       ;;(->> (take-last 4))
-      )
-
-  ;; Edge Cases
-  ;; * overlapping marks produce empty text nodes
-  (-> "*some text **with*** **mark overlap**"
-      nextjournal.markdown/tokenize
-      second
-      :children
-      seq
-      )
-
-  ;; * a strong with __ produces surrounding empty text nodes:
-  (-> "__text__" nextjournal.markdown/tokenize second :children seq)
-  (-> "__text__" nextjournal.markdown/tokenize <-tokens))
+      ))
 ;; endregion
 
 ;; region hiccup renderer (maybe move to .hiccup ns)
@@ -351,15 +337,6 @@ or monospace mark [`real`](/foo/bar) fun
   (into {}
         (map (juxt (comp (partial str "data-") name first) second))
         attrs))
-
-;; TODO: handle marks as other nodes
-(defmulti apply-mark (fn [_hiccup {m :mark}] m))
-(defmethod apply-mark :em [hiccup _] [:em hiccup])
-(defmethod apply-mark :monospace [hiccup _] [:code hiccup])
-(defmethod apply-mark :strong [hiccup _] [:strong hiccup])
-(defmethod apply-mark :strikethrough [hiccup _] [:s hiccup])
-(defmethod apply-mark :link [hiccup {:keys [attrs]}] [:a {:href (:href attrs)} hiccup])
-(defn apply-marks [ret m] (reduce apply-mark ret m))
 
 (declare ->hiccup)
 (defn into-markup [mkup ctx {:as node :keys [content]}]
@@ -382,7 +359,7 @@ or monospace mark [`real`](/foo/bar) fun
   {:doc (partial into-markup [:div])
    :heading (fn [ctx {:as node :keys [heading-level]}] (into-markup [(keyword (str "h" heading-level))] ctx node))
    :paragraph (partial into-markup [:p])
-   :text (fn [_ {:keys [text marks]}] (cond-> text (seq marks) (apply-marks marks)))
+   :text (fn [_ {:keys [text]}] text)
    :blockquote (partial into-markup [:blockquote])
    :ruler (partial into-markup [:hr])
 
@@ -426,6 +403,13 @@ or monospace mark [`real`](/foo/bar) fun
                             node))
    ;; TOC
    :toc toc->hiccup
+
+   ;; marks
+   :em (partial into-markup [:em])
+   :strong (partial into-markup [:strong])
+   :monospace (partial into-markup [:code])
+   :strikethrough (partial into-markup [:s])
+   :link (fn [ctx {:as node :keys [attrs]}] (into-markup [:a {:href (:href attrs)}] ctx node))
    })
 
 (defn ->hiccup
