@@ -283,7 +283,6 @@ end"
   ([tokens] (<-tokens empty-doc tokens))
   ([doc tokens] (-> doc
                     (apply-tokens tokens)
-                    hydrate-toc
                     (dissoc ::path ::marks))))
 
 (comment
@@ -431,12 +430,13 @@ or monospace mark [`real`](/foo/bar) fun
 
 (defn ->hiccup
   ([node] (->hiccup ->hiccup-ctx node))
-  ([ctx {:as node :keys [type]}]
-   (if-some [f (get ctx type)]
-     (f ctx node)
-     [:div.error
-      (str "We don't know how to turn a node of type: '" type "' into hiccup.")]
-     )))
+  ([ctx {:as node t :type}]
+   (let [{:as node :keys [type]} (cond-> node (= :doc t) hydrate-toc)]
+     (if-some [f (get ctx type)]
+       (f ctx node)
+       [:div.error
+        (str "We don't know how to turn a node of type: '" type "' into hiccup.")]
+       ))))
 
 (comment
   (-> "# Hello

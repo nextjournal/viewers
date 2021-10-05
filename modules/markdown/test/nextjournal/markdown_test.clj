@@ -1,6 +1,7 @@
 (ns nextjournal.markdown-test
   (:require [clojure.test :refer :all]
-            [nextjournal.markdown :as md]))
+            [nextjournal.markdown :as md]
+            [nextjournal.markdown.data :as md.data]))
 
 (def markdown-text
   "# Hello
@@ -88,6 +89,99 @@ some **strong** _assertion_
             [:p
              "three"]]]]
          (md/->hiccup markdown-text))))
+
+
+(deftest ->hiccup-toc-test
+  "Builds Toc"
+
+  (let [md "# Title
+
+## Section 1
+
+[[TOC]]
+
+## Section 2
+
+### Section 2.1
+"
+        data (md/parse md)
+        hiccup (md.data/->hiccup data)]
+
+    (is (= {:content [{:content [{:text "Title"
+                                  :type :text}]
+                       :heading-level 1
+                       :type :heading}
+                      {:content [{:text "Section 1"
+                                  :type :text}]
+                       :heading-level 2
+                       :type :heading}
+                      {:type :toc}
+                      {:content [{:text "Section 2"
+                                  :type :text}]
+                       :heading-level 2
+                       :type :heading}
+                      {:content [{:text "Section 2.1"
+                                  :type :text}]
+                       :heading-level 3
+                       :type :heading}]
+            :toc {:content [{:content [{:level 2
+                                        :path [:content 1]
+                                        :title "Section 1"
+                                        :title-hiccup [:h2 "Section 1"]
+                                        :type :toc}
+                                       {:content [{:level 3
+                                                   :path [:content 4]
+                                                   :title "Section 2.1"
+                                                   :title-hiccup [:h3 "Section 2.1"]
+                                                   :type :toc}]
+                                        :level 2
+                                        :path [:content 3]
+                                        :title "Section 2"
+                                        :title-hiccup [:h2 "Section 2"]
+                                        :type :toc}]
+                             :level 1
+                             :path [:content 0]
+                             :title "Title"
+                             :title-hiccup [:h1 "Title"]
+                             :type :toc}]
+                  :type :toc}
+            :type :doc}
+          data))
+
+    (is (= [:div
+            [:h1
+             "Title"]
+            [:h2
+             "Section 1"]
+            [:div.toc
+             [:div
+              nil
+              [:ul
+               [:li.toc-item
+                [:div
+                 [:h1
+                  "Title"]
+                 [:ul
+                  [:li.toc-item
+                   [:div
+                    [:h2
+                     "Section 1"]
+                    nil]]
+                  [:li.toc-item
+                   [:div
+                    [:h2
+                     "Section 2"]
+                    [:ul
+                     [:li.toc-item
+                      [:div
+                       [:h3
+                        "Section 2.1"]
+                       nil]]]]]]]]]]]
+            [:h2
+             "Section 2"]
+            [:h3
+             "Section 2.1"]]
+          hiccup))))
 
 (comment
   (run-tests 'nextjournal.markdown-test)
