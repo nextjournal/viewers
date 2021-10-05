@@ -1,5 +1,6 @@
 (ns nextjournal.commands.context-menu
-  (:require [applied-science.js-interop :as j]
+  (:require ["react" :as react]
+            [applied-science.js-interop :as j]
             [clojure.string :as str]
             [clojure.set :as set]
             [com.nextjournal.editor.config :as config]
@@ -8,15 +9,15 @@
             [nextjournal.devcards :as dc]
             [nextjournal.ui.components.positioning :as positioning]
             [nextjournal.ui.dom :as ui.dom]
-   ;[com.nextjournal.editor.doc.plugins.gutter :as gutter]
-   ;[com.nextjournal.editor.global-menu :as global-menu]
+                                        ;[com.nextjournal.editor.doc.plugins.gutter :as gutter]
+                                        ;[com.nextjournal.editor.global-menu :as global-menu]
             [nextjournal.view :as v]
             [nextjournal.view.context :as view.context]
             [reagent.core :as r]
             [nextjournal.commands.core :as commands]
             [re-frame.context :as re-frame]))
 
-(defonce menu-stack (view.context/createContext (list)))
+(defonce menu-stack (react/createContext (list)))
 (def z-base 1005)
 ;; temporary
 (defn command->item [{:as command :keys [subcommands]}]

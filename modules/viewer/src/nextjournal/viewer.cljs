@@ -12,12 +12,9 @@
             [nextjournal.viewer.mathjax :as mathjax]
             [nextjournal.viewer.plotly :as plotly]
             [nextjournal.viewer.vega-lite :as vega-lite]
-            [nextjournal.view.context :as context]
             [react :as react]
             [reagent.core :as reagent]
-            [reagent.ratom :as ratom]
             [reagent.dom]
-            [re-frame.context :as rf]
             [clojure.string :as str]
             [sci.impl.vars]))
 
@@ -92,15 +89,15 @@
       :style {:padding-left "0.5em" :padding-right "0.5em" :height "1.1em" :border-radius 7}}
      (count coll)]))
 
-(defn more-button [on-click {:keys [expanded? count num] :as _opts}]
+(defn more-button [visible-nb-items-ratom {:keys [expanded? count] :as _opts}]
   [(if expanded? :div.result-data-field :span)
-   {:on-click on-click}
+   {:on-click  #(swap! visible-nb-items-ratom + increase-items)}
    [:span.monospace
     (if expanded?
       {:class "p-1 mt-3 -ml-1 hover:bg-gray-200 rounded cursor-pointer"
        :style {:font-size 12}}
       {:class "pl-2 text-gray-500 inspected-value"})
-    num
+    (- count @visible-nb-items-ratom)
     [:span " more…"]]])
 
 (defn browsify-button [path {:nextjournal/keys [dispatch]} view]
@@ -127,7 +124,7 @@
 (declare inspect)
 
 (defn inspect-coll [_type _options _coll]
-  (let [!opts (reagent/atom {:num increase-items :offset 0})]
+  (let [visible-nb-items (reagent/atom 20)]
     (fn [type {:as options :keys [expanded path]} coll]
       (let [truncated? (:nextjournal/truncated? (core/meta coll))
             expanded? (get @expanded path)
@@ -135,12 +132,10 @@
             short? (and (seq path) (not (get @expanded parent)))
             items (cond-> coll
                     (object? coll) js->clj)
-            item-count (count items)
-            count (:count (core/meta coll) item-count)
-            visible-items (take (:num @!opts) items)
+            count (count items)
+            visible-items (take @visible-nb-items items)
             map-like? (case type (:map :object) true false)
-            [open close] (coll-decoration type)
-            frame (rf/current-frame)]
+            [open close] (coll-decoration type)]
         [:span {:class (if expanded? "result-data-expanded" "result-data-collapsed")}
          [:span
           (when-not short?
@@ -178,22 +173,13 @@
                                                    (object? coll) (goog.object/get coll item)
                                                    :else item)]
                                     [inspect (update options :path conj i) item])
-                                  (when (or (> count (:num @!opts)) (< i (dec count)))
+                                  (when (or (> count @visible-nb-items) (< i (dec count)))
                                     [:span.inspected-value ", "])])
                                (if map-like?
                                  (keys visible-items)
                                  visible-items))))
-         (when (and (not short?) (> count (:num @!opts)))
-           [context/consume :fetch!
-            (fn [fetch!]
-              [more-button (fn []
-                             (rf/bind-frame frame
-                               (when (fn? fetch!)
-                                 (fetch! {:n (+ increase-items item-count)}))
-                               (swap! !opts #(-> %
-                                                 (update :num + increase-items)
-                                                 (update :offset + increase-items)))))
-               {:expanded? expanded? :count count :num (- count (:num @!opts))}])])
+         (when (and (not short?) (> count @visible-nb-items))
+           [more-button visible-nb-items {:expanded? expanded? :count count}])
          (when-not short? [:span.inspected-value close])]))))
 
 (defn value-of
@@ -349,12 +335,11 @@
   ([options data]
    (let [{:as options :keys [path expanded]} (cond-> options (not (:path options)) (merge {:path [] :expanded (reagent/state-atom (reagent/current-component))}))
          {:as value-meta
-          :nextjournal/keys [value tag type-key]} (meta data)
+          :nextjournal/keys [value tag]} (meta data)
          options (update options :nextjournal/viewers merge (:nextjournal/viewers value-meta))
-         type-key (cond
-                    type-key type-key
-                    tag (edn-type tag value)
-                    :else (value-type value))
+         type-key (if tag
+                    (edn-type tag value)
+                    (value-type value))
          viewer-key (:nextjournal/viewer value-meta type-key)
          viewer (or (when (or (fn? viewer-key) (list? viewer-key)) viewer-key)
                     (get-in options [:nextjournal/viewers viewer-key])
@@ -452,6 +437,14 @@
   :nav/path node-id ;; a list of keys we have navigated down to
   :nav/value node-id nav-path;; the object for a node-id and a nav-path (see above) ,
   )
+
+(dc/defcard markdown-doc
+  "Shows how to display a markdown document and viewers using the `:flex-col` viewer."
+  [state]
+  [inspect ^{:nextjournal/viewer :flex-col} [(view-as :markdown "# Hello Markdown\nLet's give *this* a try!")
+                                             [1 2 3 4]
+                                             {:hello [0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9]}
+                                             (view-as :markdown "And some more [markdown](https://daringfireball.net/projects/markdown/).")]])
 
 (dc/defcard viewer-overlays
   "Shows how to override how values are being displayed."
@@ -584,7 +577,7 @@
                      #js ["array"]
                      (js/Date.)
                      (random-uuid)
-                     (fn a-function [_foo])
+                     (fn a-function [foo])
                      (atom "an atom")
                      ^{:nextjournal/tag 'object} ['clojure.lang.Atom 0x2c42b421 {:status :ready, :val 1}]
                      ^{:nextjournal/tag 'var} ['user/a {:foo :bar}]
@@ -592,13 +585,6 @@
           [:div.mb-3.result-viewer
            [:pre [:code.inspected-value (binding [*print-meta* true] (pr-str value))]] [:span.inspected-value " => "]
            [inspect {} value]])))
-
-(dc/defcard inspect-in-process
-  "Different datastructures that live in-process in the browser. More values can just be displayed without needing to fetch more data."
-  [:div
-   [:div [inspect (range 1000)]]
-   [:div [inspect (vec (range 1000))]]
-   [:div [inspect (zipmap (range 1000) (range 1000))]]])
 
 (dc/defcard inspect-large-values
   "Defcard for larger datastructures clj and json, we make use of the db viewer."
@@ -645,7 +631,7 @@
                      :encoding
                      {:color {:field "rate" :type "quantitative"}}})])
 
-(dc/defcard viewer-plotly
+(dc/defcard viewer-plolty
   [inspect (view-as :plotly
                     {:data [{:y (shuffle (range 10)) :name "The Federation" }
                             {:y (shuffle (range 10)) :name "The Empire"}]})])
@@ -677,10 +663,8 @@
                          [:button.rounded.bg-blue-500.text-white.py-2.px-4.font-bold.mr-2 {:on-click #(swap! c inc)} "increment"]
                          [:button.rounded.bg-blue-500.text-white.py-2.px-4.font-bold {:on-click #(swap! c dec)} "decrement"]])))])
 
-;; TODO add svg viewer
-
 (dc/defcard progress-bar
-  "Show how to use a function as a viewer, supports both one and two arity versions."
+  "Show how to use a function as a viewer, supports both one and two artity versions."
   [:div
    [inspect (with-viewer 0.33
               #(view-as :hiccup
