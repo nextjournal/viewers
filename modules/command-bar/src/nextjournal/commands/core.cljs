@@ -60,7 +60,6 @@
   "Evaluates a command if possible given the current context"
   ([command] (eval-command command (or (:context command) (state/current-context))))
   ([command context]
-   (js/console.log "eval command" command context)
    (let [{:as command :keys [context]} (apply-context context (get-command command))
          {:keys [action prevent-default? blur-command-bar?]
           :or {prevent-default? true
@@ -77,17 +76,14 @@
          result)))))
 
 (defn dispatch [e state]
-  (js/console.log "dispatch" e state)
   (let [path (-> e keys/e->chord keys/chord->path)
         ids (:ids (get-in state path))]
     (log/trace :path path :ids ids)
-    (js/console.log "dispatch ids" ids)
     (when (seq ids)
       (let [context (state/current-context
                       {:event e
                        :event/trigger :keys
                        :event/sequence sequence})]
-        (js/console.log "dispatch context" context)
         (doseq [id ids
                 :let [result (eval-command id context)]
                 :while (not= :stop result)])))))
@@ -243,9 +239,9 @@
 
   `keys` format is emacs-like strings a-la \"ctrl-c k\", \"meta-shift-k\", etc."
   ([commands]
-   (re-frame/dispatch-sync [::register commands]))
+   (re-frame/dispatch [::register commands]))
   ([id command]
-   (re-frame/dispatch-sync [::register {id command}])))
+   (re-frame/dispatch [::register {id command}])))
 
 ;; TODO
 ;; I think I found a bug where viewing the Collaborators modal
@@ -256,21 +252,27 @@
   [id command]
   (register! id (assoc command :dispatch [id])))
 
-(defn listen! [{:keys [get-registry element]
-                :or {element js/window}}]
+(defn listen!
+  "Begin responding to `keydown` events on `element` (default: window)
+
+  Accepts options which are mainly used only in dev / devcards situations.
+  :element - only take action when a provided dom element is focused
+  :get-registry - function to return the current registry, called for every event"
+  [{:keys [element
+           get-registry]
+    :or {element js/window
+         global? true}}]
   (when (exists? js/addEventListener)
-    (js/console.log :listen-element! element)
-    (let [f (re-frame/bind-fn #(do (js/console.log "handle-event" % (.-currentTarget %) (.-target %))
-                                   (js/console.log :handler-bound-frame-id (:frame-id (re-frame/current-frame)))
+    (let [f (re-frame/bind-fn #(when (or (= js/window element)
+                                         (.contains ^js element (.-target ^js %)))
                                    (dispatch % (get-registry))))]
       (j/call element :addEventListener "keydown" f false)
-      identity #_#(j/call element :removeEventListener "keydown" f))))
+      #(j/call element :removeEventListener "keydown" f))))
 
 (defn listener
   "A component which listens for keyboard events, for the registry in the current app-db."
   [& body]
-  (reagent/with-let [listen! (re-frame/bind-fn listen!)
-                     unlisten (listen! {:get-registry (re-frame/bind-fn state/get-registry)})]
+  (reagent/with-let [unlisten (listen! {:get-registry (re-frame/bind-fn state/get-registry)})]
     (into [:<>] body)
     (finally
-      (unlisten))))
+     (unlisten))))

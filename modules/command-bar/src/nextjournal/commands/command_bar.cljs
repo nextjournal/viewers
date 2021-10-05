@@ -169,6 +169,16 @@
   (binding [comp/*current-component* this]
     (re-frame/current-frame)))
 
+(defn command-listener-ref []
+  (let [!unlisten (atom nil)]
+    (re-frame/bind-fn
+     (fn [element]
+       (if element
+         (reset! !unlisten
+                 (commands/listen! {:element element
+                                    :get-registry state/get-registry}))
+         (some-> ^js @!unlisten .call))))))
+
 (v/defview view
   {:context-type     re-frame/frame-context
    ::v/initial-state (comp bar-state/initial-state ::v/props)
@@ -187,9 +197,7 @@
                   (when (and (bar-state/active-stack? old)
                              (not (bar-state/active-stack? new)))
                     (bar-state/refocus! @!view-state))))
-     (add-watch (:app-db (component-frame this))
-                :component-did-mount
-                (fn [ref key old new] (prn :app-db old new)))
+
      (re-frame/bind-frame (component-frame this)
                           (state/set-context! :!view-state !view-state)))
    :component-did-update
@@ -200,17 +208,7 @@
      (re-frame/bind-frame (component-frame this)
                           (state/unset-context! :!view-state !view-state)))}
   [{:as this !view-state ::v/state :keys [ref]}]
-  (js/console.log :view-frame-id (:frame-id (re-frame/current-frame)))
-  (reagent/with-let [!unlisten (atom nil)
-                     ref-fn (re-frame/bind-fn
-                              (fn [element]
-                                (js/console.log :ref-fn-frame-id (:frame-id (re-frame/current-frame)))
-                                (if element
-                                  (reset! !unlisten (commands/listen! {:element element
-                                                                       :get-registry state/get-registry}))
-                                  (when-let [unlisten @!unlisten]
-                                    (unlisten)))))]
-    (js/console.log :with-let-inner (:frame-id (re-frame/current-frame)))
+  (reagent/with-let [ref-fn (command-listener-ref)]
     (let [{:as view-state :keys [stack context shortcuts]} @!view-state
           {:keys [subcommands/layout]} (last stack)
           candidates (bar-state/candidates view-state)
@@ -267,11 +265,9 @@
              :auto-complete "off"
              :style {:height (if desktop? 20 40) :z-index 3 :width 200 :margin-left 6}
              :placeholder (if context "Filter…" "⌘J Search commands…")
-             :on-mouse-down #(do
-                               (js/console.log :mouse-down-frame (:frame-id (component-frame this)))
-                               (re-frame/bind-frame (component-frame this)
-                                                      (state/set-context! :!view-state !view-state)
-                                                      (bar-state/activate-bar! !view-state)))
+             :on-mouse-down #(re-frame/bind-frame (component-frame this)
+                               (state/set-context! :!view-state !view-state)
+                               (bar-state/activate-bar! !view-state))
              :on-change #(bar-state/set-query! !view-state (j/get-in % [:target :value]))
              :on-blur #(when-not (some-> (j/get % :relatedTarget) ;; check if we are clicking within the command palette
                                          (dom-closest ".command-bar"))
@@ -335,8 +331,6 @@
                 :private? true
                 :blur-command-bar? false
                 :action (fn [{:keys [!view-state]}]
-                          (js/console.log "calling " direction)
-                          (js/console.log :command-action (:frame-id (re-frame/current-frame)))
                           (nav-to-visible-command !view-state direction)
                           :stop)}]))
        (into {})))
@@ -401,7 +395,7 @@
     (-> (state/empty-db!)
         (commands/register {:test/hello {:action identity}
                             :test/world {:action identity}})))
-  #_(dc/defcard command-bar-stack "This is the view of a command that contains its own subcommands."
+  (dc/defcard command-bar-stack "This is the view of a command that contains its own subcommands."
     [view {::v/initial-state #(-> (make-devcard-state!
                                     {:categories [:test]
                                      :candidates [{:title "Fish 1"

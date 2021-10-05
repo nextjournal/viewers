@@ -133,8 +133,9 @@
 (v/defview show-main [{::v/keys [state props]
                        :keys [main initial-db initial-state ::dc/class]}]
   (when main
+    ;; reset app-db once (using with-let) when the component mounts
+    ;; (further actions should not reset the db again)
     (reagent/with-let [_ (when (seq initial-db)
-                           (js/console.log :reseting-app-db initial-db)
                            (reset! (:app-db (rf/current-frame)) initial-db))]
       (let [main (main)
             main (if (fn? main)
@@ -185,6 +186,9 @@
         (log/trace :devcards/show-card {:card card :frame-id (:frame-id (rf/current-frame))})
         [:div
          (if (fn? data)
+           ;; `compile-key` is used to force a re-mount of show-card*
+           ;; when the _literal code_ for the card's data has changed.
+           ;; (a macro sets compile-key's value to the hash of the code)
            ^{:key compile-key}
            [promises/view
             {:promise (data)

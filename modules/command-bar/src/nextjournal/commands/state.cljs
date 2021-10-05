@@ -43,6 +43,10 @@
 (defn empty-db!
   "Returns the required entries for re-frame's app-db, used by the commands system"
   []
+  ;; we call reagent/flush here to clear out the reagent/re-frame task queue,
+  ;; ensuring that calls to commands/register! and register-context-fn! are taken
+  ;; care of before we read from the db.
+  (reagent/flush)
   {::registry (or (get-registry) (::registry @(:app-db rf.core/default-frame)))                           ;; include commands registered before init
    ::!context (reagent/atom {})})
 
@@ -91,10 +95,8 @@
   "Returns current context"
   ([] (current-context nil))
   ([initial-context]
-   (current-context @(doto (re-frame/subscribe [:db/get-in [::registry ::context-fns]])
-                      (js/console.log "context-fns-subscription"))
-                    @(doto (get-context-atom)
-                      (js/console.log "context-atom"))
+   (current-context @(re-frame/subscribe [:db/get-in [::registry ::context-fns]])
+                    @(get-context-atom)
                     initial-context))
   ([context-fns mutable-context initial-context]
    (dynamic-context context-fns (merge mutable-context initial-context))))
