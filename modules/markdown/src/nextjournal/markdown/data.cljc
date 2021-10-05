@@ -392,6 +392,9 @@ or monospace mark [`real`](/foo/bar) fun
    :monospace (partial into-markup [:code])
    :strikethrough (partial into-markup [:s])
    :link (fn [ctx {:as node :keys [attrs]}] (into-markup [:a {:href (:href attrs)}] ctx node))
+
+   ;; default convenience fn to wrap extra markup around the default one from within the overriding function
+   :default (fn [ctx {:as node t :type}] (when-some [d (get default-renderers t)] (d ctx node)))
    })
 
 (defn ->hiccup
@@ -449,12 +452,16 @@ and here as inline ![alt](foo/bar) image
       )
 
   ;; override defaults
-  (->> "# Foo
+  (->> "## Title
+par one
 
-and par"
-       (nextjournal.markdown/->hiccup
-        (assoc ->hiccup-ctx :doc (partial into-markup [:div.document])))
-       ))
+par two"
+       nextjournal.markdown/parse
+       (->hiccup (assoc default-renderers
+                        :heading (partial into-markup [:h1.at-all-levels])
+                        ;; wrap something around the default
+                        :paragraph (fn [{:as ctx d :default} node] [:div.p-container (d ctx node)]))))
+  )
 ;; endregion
 
 ;; region zoom into sections
