@@ -7,16 +7,10 @@
   - info: (optional) fenced code info
   - content: (optional) a collection of Nodes representing nested content
   - text: (optional) content of text nodes, a collection of Nodes
-  - marks: (optional) in text nodes, a collection of marks insisting on the node's text
   - level: (optional) heading level
   - attrs: attributes as passed by markdownit tokens (e.g {:attrs {:style \"some style info\"}})
-
-  Mark:
-  - mark: the mark type (:em, :strong, :link, etc.)
-  - attrs: mark attributes e.g. href in links
   "
-  #?(:cljs
-     (:require [applied-science.js-interop :as j])))
+  #?(:cljs (:require [applied-science.js-interop :as j])))
 
 ;; clj common accessors
 (def get-in* #?(:clj get-in :cljs j/get-in))
@@ -32,14 +26,9 @@
   (cond-> {:type type :content content}
     (seq attrs) (assoc :attrs attrs)
     (seq top-level) (merge top-level)))
-(defn mark
-  ([type] (mark type nil))
-  ([type attrs] (cond-> {:mark type} (seq attrs) (assoc :attrs attrs))))
-(defn text-node
-  ([text] (text-node text nil))
-  ([text marks] (cond-> {:type :text :text text} (seq marks) (assoc :marks marks))))
+(defn text-node [text] {:type :text :text text})
 (defn formula [text] {:type :formula :text text})
-(defn sidenote-ref [ref] {:type :sidenote-ref :content [(text-node (inc ref))]})
+(defn sidenote-ref [ref] {:type :sidenote-ref :content [(text-node (str (inc ref)))]})
 
 (defn empty-text-node? [{text :text t :type}] (and (= :text t) (empty? text)))
 
@@ -61,12 +50,6 @@
 ;; after closing a node, document ::path will point at it
 (defn close-node [doc] (update doc ::path (comp pop pop)))
 (defn update-current [{:as doc path ::path} fn & args] (apply update-in doc path fn args))
-(defn open-mark
-  ([doc type] (open-mark doc type {}))
-  ([doc type attrs]
-   (update doc ::marks conj (mark type attrs))))
-
-(defn close-mark [doc] (update doc ::marks pop))
 
 (comment                                                    ;; path after call
   (-> empty-doc                                             ;; [:content -1]
@@ -182,7 +165,7 @@ end"
 (defmethod apply-token "blockquote_close" [doc _token] (close-node doc))
 
 (defmethod apply-token "tocOpen" [doc _token] (open-node doc :toc))
-(defmethod apply-token "tocBody" [doc _token] doc ) ;; ignore body
+(defmethod apply-token "tocBody" [doc _token] doc) ;; ignore body
 (defmethod apply-token "tocClose" [doc _token] (-> doc close-node (update-current dissoc :content)))
 
 (defmethod apply-token "code_block" [doc {:as _token c :content}]
@@ -197,7 +180,6 @@ end"
       close-node))
 
 ;; footnotes
-
 (defmethod apply-token "sidenote_ref" [doc token] (push-node doc (sidenote-ref (get-in* token [:meta :id]))))
 (defmethod apply-token "sidenote_anchor" [doc token] doc)
 (defmethod apply-token "sidenote_open" [doc token] (open-node doc :sidenote {:ref (get-in* token [:meta :id])}))
@@ -232,10 +214,9 @@ end"
     nextjournal.markdown/parse
     nextjournal.markdown.data/->hiccup
     ))
-
 ;; inlines
 (defmethod apply-token "inline" [doc {:as _token ts :children}] (apply-tokens doc ts))
-(defmethod apply-token "text" [{:as doc ms ::marks} {text :content}] (push-node doc (text-node text ms)))
+(defmethod apply-token "text" [doc {text :content}] (push-node doc (text-node text)))
 (defmethod apply-token "math_inline" [doc {text :content}] (push-node doc (formula text)))
 (defmethod apply-token "math_inline_double" [doc {text :content}] (push-node doc (formula text)))
 (defmethod apply-token "softbreak" [doc _token] (push-node doc {:type :softbreak}))
@@ -269,8 +250,7 @@ end"
                 :content []
                 :toc {:type :toc}
                 ;; private
-                ::path [:content -1]
-                ::marks []})
+                ::path [:content -1]})
 
 (defn hydrate-toc
   "Scans doc contents and replaces toc placeholder with the toc node accumulated during parse."
@@ -282,7 +262,7 @@ end"
   ([tokens] (<-tokens empty-doc tokens))
   ([doc tokens] (-> doc
                     (apply-tokens tokens)
-                    (dissoc ::path ::marks))))
+                    (dissoc ::path))))
 
 (comment
   (-> "# Markdown Data
@@ -339,7 +319,9 @@ or monospace mark [`real`](/foo/bar) fun
         attrs))
 
 (declare ->hiccup)
-(defn into-markup [mkup ctx {:as node :keys [content]}]
+(defn into-markup
+  "Takes a hiccup vector, a context and a node, puts node's `:content` into markup mapping through `->hiccup`."
+  [mkup ctx {:as node :keys [content]}]
   (into mkup
         (keep (partial ->hiccup (assoc ctx ::parent node)))
         content))
@@ -355,7 +337,7 @@ or monospace mark [`real`](/foo/bar) fun
     (not= :toc (:type parent))
     (conj [:div.toc])))
 
-(def ->hiccup-ctx
+(def default-renderers
   {:doc (partial into-markup [:div])
    :heading (fn [ctx {:as node :keys [heading-level]}] (into-markup [(keyword (str "h" heading-level))] ctx node))
    :paragraph (partial into-markup [:p])
@@ -413,7 +395,7 @@ or monospace mark [`real`](/foo/bar) fun
    })
 
 (defn ->hiccup
-  ([node] (->hiccup ->hiccup-ctx node))
+  ([node] (->hiccup default-renderers node))
   ([ctx {:as node t :type}]
    (let [{:as node :keys [type]} (cond-> node (= :doc t) hydrate-toc)]
      (if-some [f (get ctx type)]
