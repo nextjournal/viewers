@@ -107,6 +107,7 @@
     (cond-> doc
       (pos-int? heading-level)
       (update :toc into-toc {:level heading-level
+                             :type :toc
                              :title (->text h)
                              :title-hiccup (->hiccup h)
                              :path path}))))
@@ -267,15 +268,23 @@ end"
 
 (def empty-doc {:type :doc
                 :content []
-                :toc {}
+                :toc {:type :toc}
                 ;; private
                 ::path [:content -1]
                 ::marks []})
 
+(defn hydrate-toc
+  "Scans doc contents and replaces toc placeholder with the toc node accumulated during parse."
+  [{:as doc :keys [toc]}]
+  (update doc :content (partial into [] (map (fn [{:as node t :type}] (if (= :toc t) toc node))))))
+
 (defn <-tokens
   "Takes a doc and a collection of markdown-it tokens, applies tokens to doc. Uses an emtpy doc in arity 1."
   ([tokens] (<-tokens empty-doc tokens))
-  ([doc tokens] (-> doc (apply-tokens tokens) (dissoc ::path ::marks))))
+  ([doc tokens] (-> doc
+                    (apply-tokens tokens)
+                    hydrate-toc
+                    (dissoc ::path ::marks))))
 
 (comment
   (-> "# Markdown Data
@@ -339,14 +348,6 @@ or monospace mark [`real`](/foo/bar) fun
 ;; endregion
 
 ;; region hiccup renderer (maybe move to .hiccup ns)
-;; TODO: rebuild toc
-(defn toc-item->hiccup [{:keys [content title-hiccup]}]
-  [:li.toc-item
-   [:div
-    title-hiccup
-    (when (seq content) (into [:ul] (map toc-item->hiccup) content))]])
-(defn toc->hiccup [{:as _toc :keys [content]}] (into [:ul.toc] (map toc-item->hiccup) content))
-
 (defn dataset [attrs]
   (into {}
         (map (juxt (comp (partial str "data-") name first) second))
@@ -366,6 +367,17 @@ or monospace mark [`real`](/foo/bar) fun
   (into mkup
         (keep (partial ->hiccup (assoc ctx ::parent node)))
         content))
+(defn toc->hiccup [{:as ctx ::keys [parent]} {:as node :keys [content title-hiccup]}]
+  (cond->> [:div
+            title-hiccup
+            (when (seq content)
+              (into [:ul]
+                (map (partial ->hiccup (assoc ctx ::parent node)))
+                content))]
+    (= :toc (:type parent))
+    (conj [:li.toc-item])
+    (not= :toc (:type parent))
+    (conj [:div.toc])))
 
 (def ->hiccup-ctx
   {:doc (partial into-markup [:div])
@@ -414,8 +426,7 @@ or monospace mark [`real`](/foo/bar) fun
                             ctx
                             node))
    ;; TOC
-   ;; TODO: handle toc more regularly (copy toc content into node and use `into-markup`)
-   :toc (partial into-markup [:ul.toc])
+   :toc toc->hiccup
    })
 
 (defn ->hiccup

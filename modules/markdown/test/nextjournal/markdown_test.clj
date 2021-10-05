@@ -49,11 +49,12 @@ some **strong** _assertion_
                                              :type :paragraph}]
                                   :type :todo-item}]
                        :type :todo-list}]
-            :toc {:content [{:level 1
+            :toc {:type :toc
+                  :content [{:level 1
+                             :type :toc
                              :path [:content 0]
                              :title "Hello"
-                             :title-hiccup [:h1
-                                            "Hello"]}]}
+                             :title-hiccup [:h1 "Hello"]}]}
             :type :doc}
            (md/parse markdown-text)))))
 
