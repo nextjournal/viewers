@@ -155,8 +155,8 @@
              :bindings {'atom ratom/atom}
              :namespaces {'nextjournal.viewer sci-viewer-namespace
                           'v sci-viewer-namespace
-                          'nextjournal.markdown {'parse nextjournal.markdown/parse}
-                          'nextjournal.markdown.transform {'->hiccup nextjournal.markdown.transform/->hiccup}}}))
+                          'nextjournal.markdown {'parse nextjournal.markdown/parse
+                                                 '->hiccup nextjournal.markdown/->hiccup}}}))
 
 
 (defn eval-form [f]

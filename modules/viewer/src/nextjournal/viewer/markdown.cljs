@@ -9,16 +9,23 @@
   (let [i (resolve 'nextjournal.viewer/inspect)]
     (apply i args)))
 
+(defn eval-form* [f]
+  (let [ef (resolve 'nextjournal.viewer.notebook/eval-form)]
+    (ef f)))
+
 (defn sidenote-click-handler [^js e]
   (when (.. e -target -classList (contains "sidenote-ref"))
     (.. e -target -classList (toggle "expanded"))))
 
+(defn code-viewer [node]
+  [:div.viewer-code
+   [inspect* {:nextjournal/viewer :code
+              :nextjournal/value (md.parser/->text node)}]])
+
 (def default-renderers
   (assoc md.transform/default-hiccup-renderers
          :doc (partial md.transform/into-markup [:div.viewer-markdown {:on-click sidenote-click-handler}])
-         :code (fn [_ctx node] [:div.viewer-code
-                                   [inspect* {:nextjournal/viewer :code
-                                              :nextjournal/value (md.parser/->text node)}]])
+         :code (fn [_ctx node] (code-viewer node))
          :formula (fn [_ctx node] [inspect* {:nextjournal/viewer :latex
                                              :nextjournal/value (md.parser/->text node)}])))
 
@@ -79,11 +86,60 @@ $$\\int_{\\omega} \\phi d\\omega$$
   [inspect* {:nextjournal/viewer :hiccup
              :nextjournal/value (->> @markdown
                                      (md/->hiccup
-                                      (assoc md.transform/default-hiccup-renderers
+                                      (assoc default-renderers
                                              :doc (partial md.transform/into-markup [:div.viewer-markdown.dark:bg-gray-900.dark:text-white.rounded.shadow-sm.p-4]))))}]
   {::dc/state "### Dark Mode Support
 Here is some code that provides a custom wrapper with styles to e.g. set the text color
 and background if dark mode is enabled in your system."})
+
+(dc/defcard custom-code-eval
+  [markdown]
+  [inspect* {:nextjournal/viewer :hiccup
+             :nextjournal/value (->> @markdown
+                                     (md/->hiccup
+                                      (assoc default-renderers
+                                             :code (fn [_ {:as node :keys [language]}]
+                                                     [:div
+                                                      (code-viewer node)
+                                                      (when (= "cljs" language)
+                                                        [:dev.viewer-result.mt-10
+                                                         [inspect* (eval-form* (cljs.reader/read-string (md.parser/->text node)))]])]))))}]
+  {::dc/state "# Custom `.cljs` Code Eval
+
+Overrides the default `:code` renderer to add an extra sci pass for fenced code blocks with a `cljs` language info
+
+```cljs
+{:foo (reduce + 0 (range 10)) }
+```
+
+Can show what markdown parser actually do
+
+```cljs
+(nextjournal.markdown/parse \"# 👋🏻 Hello markdown parsing
+- [x] with
+- [ ] some
+- [ ] fun
+\")
+
+```
+same for hiccup transform
+```cljs
+(nextjournal.markdown/->hiccup \"# 👋🏻 Hello markdown parsing
+- [x] with
+- [ ] some
+- [ ] fun
+\")
+
+```
+
+code in other languages than clojurescript is just inert:
+
+```python
+import sys
+sys.version
+```
+
+"})
 
 (dc/defcard table-of-contents
   [markdown]
