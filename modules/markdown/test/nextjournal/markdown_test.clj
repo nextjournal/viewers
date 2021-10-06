@@ -1,7 +1,7 @@
 (ns nextjournal.markdown-test
   (:require [clojure.test :refer :all]
             [nextjournal.markdown :as md]
-            [nextjournal.markdown.data :as md.data]))
+            [nextjournal.markdown.transform :as md.transform]))
 
 (def markdown-text
   "# Hello
@@ -55,11 +55,11 @@ some **strong** _assertion_ and a [link]
                                   :type :list-item}]
                        :type :bullet-list}]
             :toc {:content [{:level 1
-                             :path [:content
-                                    0]
+                             :node {:content [{:text "Hello" :type :text}]
+                                    :heading-level 1
+                                    :type :heading}
+                             :path [:content 0]
                              :title "Hello"
-                             :title-hiccup [:h1
-                                            "Hello"]
                              :type :toc}]
                   :type :toc}
             :type :doc}
@@ -106,7 +106,7 @@ some **strong** _assertion_ and a [link]
 ### Section 2.1
 "
         data (md/parse md)
-        hiccup (md.data/->hiccup data)]
+        hiccup (md.transform/->hiccup data)]
 
     (is (= {:content [{:content [{:text "Title"
                                   :type :text}]
@@ -126,28 +126,44 @@ some **strong** _assertion_ and a [link]
                        :heading-level 3
                        :type :heading}]
             :toc {:content [{:content [{:level 2
-                                        :path [:content 1]
+                                        :node {:content [{:text "Section 1"
+                                                          :type :text}]
+                                               :heading-level 2
+                                               :type :heading}
+                                        :path [:content
+                                               1]
                                         :title "Section 1"
-                                        :title-hiccup [:h2 "Section 1"]
                                         :type :toc}
                                        {:content [{:level 3
-                                                   :path [:content 4]
+                                                   :node {:content [{:text "Section 2.1"
+                                                                     :type :text}]
+                                                          :heading-level 3
+                                                          :type :heading}
+                                                   :path [:content
+                                                          4]
                                                    :title "Section 2.1"
-                                                   :title-hiccup [:h3 "Section 2.1"]
                                                    :type :toc}]
                                         :level 2
-                                        :path [:content 3]
+                                        :node {:content [{:text "Section 2"
+                                                          :type :text}]
+                                               :heading-level 2
+                                               :type :heading}
+                                        :path [:content
+                                               3]
                                         :title "Section 2"
-                                        :title-hiccup [:h2 "Section 2"]
                                         :type :toc}]
                              :level 1
-                             :path [:content 0]
+                             :node {:content [{:text "Title"
+                                               :type :text}]
+                                    :heading-level 1
+                                    :type :heading}
+                             :path [:content
+                                    0]
                              :title "Title"
-                             :title-hiccup [:h1 "Title"]
                              :type :toc}]
                   :type :toc}
             :type :doc}
-          data))
+           data))
 
     (is (= [:div
             [:h1

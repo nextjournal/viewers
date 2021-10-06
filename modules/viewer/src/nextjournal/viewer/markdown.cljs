@@ -1,6 +1,7 @@
 (ns nextjournal.viewer.markdown
   (:require [nextjournal.markdown :as md]
-            [nextjournal.markdown.data :as md.data]
+            [nextjournal.markdown.parser :as md.parser]
+            [nextjournal.markdown.transform :as md.transform]
             [nextjournal.devcards :as dc]))
 
 ;; FIXME: inspect should be passed down to viewers via ctx or something
@@ -12,23 +13,22 @@
   (when (.. e -target -classList (contains "sidenote-ref"))
     (.. e -target -classList (toggle "expanded"))))
 
-(def default-viewers
-  (assoc md.data/default-renderers
-         :doc     (partial md.data/into-markup [:div.viewer-markdown {:on-click sidenote-click-handler}])
-         :code    (fn [_ctx node] [:div.viewer-code
+(def default-renderers
+  (assoc md.transform/default-hiccup-renderers
+         :doc (partial md.transform/into-markup [:div.viewer-markdown {:on-click sidenote-click-handler}])
+         :code (fn [_ctx node] [:div.viewer-code
                                    [inspect* {:nextjournal/viewer :code
-                                              :nextjournal/value (md.data/->text node)}]])
+                                              :nextjournal/value (md.parser/->text node)}]])
          :formula (fn [_ctx node] [inspect* {:nextjournal/viewer :latex
-                                             :nextjournal/value (md.data/->text node)}])))
+                                             :nextjournal/value (md.parser/->text node)}])))
 
 (defn viewer [value]
   ;; TODO: allow to pass "modes" with different sets of overrides
   (when value
-    {:nextjournal/value (md/->hiccup default-viewers value)
+    {:nextjournal/value (md/->hiccup default-renderers value)
      :nextjournal/viewer :hiccup}))
 
 (dc/defcard default-markdown
-  [markdown]
   [inspect* (viewer "# Markdown Default Rendering
 ## Sidenotes
 
@@ -79,8 +79,8 @@ $$\\int_{\\omega} \\phi d\\omega$$
   [inspect* {:nextjournal/viewer :hiccup
              :nextjournal/value (->> @markdown
                                      (md/->hiccup
-                                      (assoc md.data/default-renderers
-                                             :doc (partial md.data/into-markup [:div.viewer-markdown.dark:bg-gray-900.dark:text-white.rounded.shadow-sm.p-4]))))}]
+                                      (assoc md.transform/default-hiccup-renderers
+                                             :doc (partial md.transform/into-markup [:div.viewer-markdown.dark:bg-gray-900.dark:text-white.rounded.shadow-sm.p-4]))))}]
   {::dc/state "### Dark Mode Support
 Here is some code that provides a custom wrapper with styles to e.g. set the text color
 and background if dark mode is enabled in your system."})

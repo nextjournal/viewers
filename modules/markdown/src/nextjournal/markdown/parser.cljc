@@ -1,9 +1,11 @@
-(ns nextjournal.markdown.data
-  "Transforms a collection of markdown-it tokens obtained from parsing markdown text into a nested structure composed
-   of nodes.
+(ns nextjournal.markdown.parser
+  "Deals with transforming a collection of markdown-it tokens obtained from parsing markdown text into an AST composed
+  of nested clojure structures.
 
-  Node:
-  - type: a Node's type as keyword (:heading, :paragraph, :text, etc.)
+  See `parse` function.
+
+  A \"Node\" has the following keys:
+  - type: a Node's type as keyword (:heading, :paragraph, :text, :code etc.)
   - info: (optional) fenced code info
   - content: (optional) a collection of Nodes representing nested content
   - text: (optional) content of text nodes, a collection of Nodes
@@ -18,7 +20,7 @@
 (def update* #?(:clj update :cljs j/update!))
 
 ;; region node operations
-(defn guard [pred val] (when (pred val) val))
+;; helpers
 (defn inc-last [path] (update path (dec (count path)) inc))
 (defn hlevel [{:as _token hn :tag}] (when (string? hn) (some-> (re-matches #"h([\d])" hn) second #?(:clj read-string :cljs cljs.reader/read-string))))
 (defn ->text [{:as _node :keys [text content]}] (or text (apply str (map ->text content))))
@@ -98,7 +100,6 @@
    (-> doc
        (push-node (node type [] attrs top-level))
        (update ::path into [:content -1]))))
-
 ;; after closing a node, document ::path will point at it
 (defn close-node [doc] (update doc ::path (comp pop pop)))
 (defn update-current [{:as doc path ::path} fn & args] (apply update-in doc path fn args))
@@ -136,7 +137,6 @@
                    (max 0 (dec (count (get-in toc toc-path)))) ;; select last child at level if it exists
                    :content)))))
 
-(declare ->hiccup)
 (defn add-to-toc [{:as doc :keys [toc] path ::path}]
   (let [{:as h :keys [heading-level]} (get-in doc path)]
     (cond-> doc
@@ -144,7 +144,7 @@
       (update :toc into-toc {:level heading-level
                              :type :toc
                              :title (->text h)
-                             :title-hiccup (->hiccup h)
+                             :node h
                              :path path}))))
 
 (comment
@@ -263,7 +263,7 @@ end"
 |   bag  |  java.time.LocalDateTime | $\\phi$                         |
 "
     nextjournal.markdown/parse
-    nextjournal.markdown.data/->hiccup
+    nextjournal.markdown.parser/->hiccup
     ))
 ;; inlines
 (defmethod apply-token "inline" [doc {:as _token ts :children}] (apply-tokens doc ts))
@@ -303,20 +303,16 @@ end"
                 ;; private
                 ::path [:content -1]})
 
-(defn hydrate-toc
-  "Scans doc contents and replaces toc placeholder with the toc node accumulated during parse."
-  [{:as doc :keys [toc]}]
-  (update doc :content (partial into [] (map (fn [{:as node t :type}] (if (= :toc t) toc node))))))
-
-(defn <-tokens
+(defn parse
   "Takes a doc and a collection of markdown-it tokens, applies tokens to doc. Uses an emtpy doc in arity 1."
-  ([tokens] (<-tokens empty-doc tokens))
+  ([tokens] (parse empty-doc tokens))
   ([doc tokens] (-> doc
                     (apply-tokens tokens)
                     (dissoc ::path))))
 
 (comment
-  (-> "# Markdown Data
+
+ (-> "# Markdown Data
 
 some _emphatic_ **strong** [link](https://foo.com)
 
@@ -356,167 +352,15 @@ Hline Section
 
 or monospace mark [`real`](/foo/bar) fun
 "
-      nextjournal.markdown/parse
-      ;;seq
-      ;;(->> (take 10))
-      ;;(->> (take-last 4))
-      ))
+     nextjournal.markdown/tokenize
+     parse
+     ;;seq
+     ;;(->> (take 10))
+     ;;(->> (take-last 4))
+     ))
 ;; endregion
 
-;; region hiccup renderer (maybe move to .hiccup ns)
-(defn dataset [attrs]
-  (into {}
-        (map (juxt (comp (partial str "data-") name first) second))
-        attrs))
-
-(declare ->hiccup)
-(defn into-markup
-  "Takes a hiccup vector, a context and a node, puts node's `:content` into markup mapping through `->hiccup`."
-  [mkup ctx {:as node :keys [content]}]
-  (into mkup
-        (keep (partial ->hiccup (assoc ctx ::parent node)))
-        content))
-(defn toc->hiccup [{:as ctx ::keys [parent]} {:as node :keys [content title-hiccup]}]
-  (cond->> [:div
-            title-hiccup
-            (when (seq content)
-              (into [:ul]
-                (map (partial ->hiccup (assoc ctx ::parent node)))
-                content))]
-    (= :toc (:type parent))
-    (conj [:li.toc-item])
-    (not= :toc (:type parent))
-    (conj [:div.toc])))
-
-(def default-renderers
-  {:doc (partial into-markup [:div])
-   :heading (fn [ctx {:as node :keys [heading-level]}] (into-markup [(keyword (str "h" heading-level))] ctx node))
-   :paragraph (partial into-markup [:p])
-   :text (fn [_ {:keys [text]}] text)
-   :blockquote (partial into-markup [:blockquote])
-   :ruler (partial into-markup [:hr])
-
-   ;; images
-   :image (fn [{:as ctx ::keys [parent]} {:as node :keys [attrs]}]
-            (if (= :paragraph (:type parent))
-              [:img.inline attrs]
-              [:figure.image [:img attrs] (into-markup [:figcaption] ctx node)]))
-
-   ;; code
-   :code (partial into-markup [:pre.viewer-code])
-
-   ;; softbreaks
-   ;; :softbreak (constantly [:br]) (treat as space)
-   :softbreak (constantly " ")
-
-   ;; formulas
-   :formula (partial into-markup [:span.formula])
-   :block-formula (partial into-markup [:figure.formula])
-
-   ;; lists
-   :bullet-list (partial into-markup [:ul])
-   :list-item (partial into-markup [:li])
-   :todo-list (partial into-markup [:ul.contains-task-list])
-   :numbered-list (partial into-markup [:ol])
-   :todo-item (fn [ctx {:as node :keys [attrs]}]
-                (into-markup [:li [:input {:type "checkbox" :checked (:checked attrs)}]] ctx node))
-
-   ;; tables
-   :table (partial into-markup [:table])
-   :table-head (partial into-markup [:thead])
-   :table-body (partial into-markup [:tbody])
-   :table-row (partial into-markup [:tr])
-   :table-header (partial into-markup [:th])
-   :table-data (partial into-markup [:td])
-
-   ;; sidenodes
-   :sidenote-ref (partial into-markup [:sup.sidenote-ref])
-   :sidenote (fn [ctx {:as node :keys [attrs]}]
-               (into-markup [:span.sidenote [:sup {:style {:margin-right "3px"}} (-> attrs :ref inc)]]
-                            ctx
-                            node))
-   ;; TOC
-   :toc toc->hiccup
-
-   ;; marks
-   :em (partial into-markup [:em])
-   :strong (partial into-markup [:strong])
-   :monospace (partial into-markup [:code])
-   :strikethrough (partial into-markup [:s])
-   :link (fn [ctx {:as node :keys [attrs]}] (into-markup [:a {:href (:href attrs)}] ctx node))
-
-   ;; default convenience fn to wrap extra markup around the default one from within the overriding function
-   :default (fn [ctx {:as node t :type}] (when-some [d (get default-renderers t)] (d ctx node)))
-   })
-
-(defn ->hiccup
-  ([node] (->hiccup default-renderers node))
-  ([ctx {:as node t :type}]
-   (let [{:as node :keys [type]} (cond-> node (= :doc t) hydrate-toc)]
-     (if-some [f (get ctx type)]
-       (f ctx node)
-       [:div.error.red
-        (str "We don't know how to turn a node of type: '" type "' into hiccup.")]
-       ))))
-
-(comment
-  (-> "# Hello
-
-a nice paragraph with sidenotes[^my-note]
-
-[[TOC]]
-
-## Section One
-A nice $\\phi$ formula [for _real_ **strong** fun](/path/to) soft
-break
-
-- [ ] one **ahoi** list
-- two `nice` and ~~three~~
-- [x] checked
-
-> that said who?
-
----
-
-## Section Two
-
-### Tables
-
-| Syntax |  JVM                     | JavaScript                      |
-|--------|-------------------------:|:--------------------------------|
-|   foo  |  Loca _lDate_ ahoiii     | goog.date.Date                  |
-|   bar  |  java.time.LocalTime     | some [kinky](link/to/something) |
-|   bag  |  java.time.LocalDateTime | $\\phi$                         |
-
-### Images
-
-![Some **nice** caption](https://www.example.com/images/dinosaur.jpg)
-
-and here as inline ![alt](foo/bar) image
-
-```clj
-(some nice clojure)
-```
-
-[^my-note]: Here can discuss at length"
-      nextjournal.markdown/parse
-      ->hiccup
-      )
-
-  ;; override defaults
-  (->> "## Title
-par one
-
-par two"
-       nextjournal.markdown/parse
-       (->hiccup (assoc default-renderers
-                        :heading (partial into-markup [:h1.at-all-levels])
-                        ;; wrap something around the default
-                        :paragraph (fn [{:as ctx d :default} node] [:div.p-container (d ctx node)]))))
-  )
-;; endregion
-
-;; region zoom into sections
+;; region zoom-in at section
 (defn section-at [{:as doc :keys [content]} [_ pos :as path]]
   ;; TODO: generalize over path (zoom-in at)
   ;; supports only top-level headings atm (as found in TOC)
@@ -530,7 +374,7 @@ par two"
                            (take-while in-section?)))})))
 
 (comment
-  (some-> "# Title
+ (some-> "# Title
 
 ## Section 1
 
@@ -562,10 +406,11 @@ two two two
 ## Section 3
 
 some final par"
-          nextjournal.markdown/parse
-          (section-at [:content 9])                         ;; ⬅ paths are stored in TOC sections
-          ->hiccup))
+    nextjournal.markdown/parse
+    (section-at [:content 9])                         ;; ⬅ paths are stored in TOC sections
+    nextjournal.markdown.transform/->hiccup))
 ;; endregion
+
 (comment
   ;; boot browser repl
   (require '[shadow.cljs.devtools.api :as shadow])

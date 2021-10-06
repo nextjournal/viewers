@@ -2,7 +2,8 @@
   "Facility functions for handling markdown conversions"
   (:require [clojure.java.io :as io]
             [clojure.data.json :as json]
-            [nextjournal.markdown.data :as markdown.data])
+            [nextjournal.markdown.parser :as markdown.parser]
+            [nextjournal.markdown.transform :as markdown.transform])
   (:import [org.graalvm.polyglot Context Context$Builder Engine Source Value]
            [clojure.lang MapEntry]
            [java.util Iterator Map]
@@ -46,12 +47,12 @@
 
 (defn parse
   "Turns a markdown string into a nested clojure structure."
-  [markdown-text] (-> markdown-text tokenize markdown.data/<-tokens))
+  [markdown-text] (-> markdown-text tokenize markdown.parser/parse))
 
 (defn ->hiccup
   "Turns a markdown string into hiccup."
-  ([markdown-text] (->hiccup markdown.data/default-renderers markdown-text))
-  ([ctx markdown-text] (->> markdown-text parse (markdown.data/->hiccup ctx))))
+  ([markdown-text] (->hiccup markdown.transform/default-hiccup-renderers markdown-text))
+  ([ctx markdown-text] (->> markdown-text parse (markdown.transform/->hiccup ctx))))
 
 (comment
   (parse "# Hello Markdown 👋

@@ -6,8 +6,6 @@
             [cognitect.transit :as transit]
             [goog.object]
             [nextjournal.devcards :as dc]
-            [nextjournal.markdown :as md]
-            [nextjournal.markdown.data :as md.data]
             [nextjournal.viewer.code :as code]
             [nextjournal.viewer.katex :as katex]
             [nextjournal.viewer.markdown :as markdown]
