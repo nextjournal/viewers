@@ -26,6 +26,9 @@
   (assoc md.transform/default-hiccup-renderers
          :doc (partial md.transform/into-markup [:div.viewer-markdown {:on-click sidenote-click-handler}])
          :code (fn [_ctx node] (code-viewer node))
+         :todo-item (fn [ctx {:as node :keys [attrs]}]
+                      (md.transform/into-markup [:li [:input {:type "checkbox" :default-checked (:checked attrs)}]] ctx node))
+                                                                               ;; ⬆ defaultChecked only makes senst in react/reagent
          :formula (fn [_ctx node] [inspect* {:nextjournal/viewer :latex
                                              :nextjournal/value (md.parser/->text node)}])))
 
@@ -102,7 +105,7 @@ and background if dark mode is enabled in your system."})
                                                      [:div
                                                       (code-viewer node)
                                                       (when (= "cljs" language)
-                                                        [:dev.viewer-result.mt-10
+                                                        [:div.viewer-result.mt-10
                                                          [inspect* (eval-form* (cljs.reader/read-string (md.parser/->text node)))]])]))))}]
   {::dc/state "# Custom `.cljs` Code Eval
 
