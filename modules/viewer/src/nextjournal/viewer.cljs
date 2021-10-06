@@ -730,7 +730,7 @@ I think I'll use it to format all of my documents from now on.
 
 ## Formulas
 
-$$\\\\int_{\\\\omega} \\\\phi d\\\\omega$$
+$$\\int_{\\omega} \\phi d\\omega$$
 
 ## Tables
 
