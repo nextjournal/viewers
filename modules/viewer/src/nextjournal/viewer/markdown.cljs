@@ -105,7 +105,7 @@ and background if dark mode is enabled in your system."})
                                                      [:div
                                                       (code-viewer node)
                                                       (when (= "cljs" language)
-                                                        [:div.viewer-result.mt-10
+                                                        [:div.viewer-result.mt-3
                                                          [inspect* (eval-form* (cljs.reader/read-string (md.parser/->text node)))]])]))))}]
   {::dc/state "# Custom `.cljs` Code Eval
 
