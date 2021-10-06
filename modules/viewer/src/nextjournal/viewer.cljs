@@ -726,7 +726,7 @@ I think I'll use it to format all of my documents from now on.
 
 ## Images
 
-![An old rock in the desert, Shiprock, New Mexico, by Beau Rogers](https://live.staticflickr.com/389/31833779864_38b5c9d52e_c_d.jpg)
+![_An old rock in the desert_, Shiprock, New Mexico, by Beau Rogers](https://live.staticflickr.com/389/31833779864_38b5c9d52e_c_d.jpg)
 
 ## Formulas
 
