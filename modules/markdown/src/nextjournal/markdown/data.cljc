@@ -10,7 +10,8 @@
   - level: (optional) heading level
   - attrs: attributes as passed by markdownit tokens (e.g {:attrs {:style \"some style info\"}})
   "
-  #?(:cljs (:require [applied-science.js-interop :as j])))
+  (:require [clojure.string :as str]
+            #?(:cljs [applied-science.js-interop :as j])))
 
 ;; clj common accessors
 (def get-in* #?(:clj get-in :cljs j/get-in))
@@ -21,7 +22,57 @@
 (defn inc-last [path] (update path (dec (count path)) inc))
 (defn hlevel [{:as _token hn :tag}] (when (string? hn) (some-> (re-matches #"h([\d])" hn) second #?(:clj read-string :cljs cljs.reader/read-string))))
 (defn ->text [{:as _node :keys [text content]}] (or text (apply str (map ->text content))))
+(defn parse-fence-info
+  "Ingests nextjournal, GFM, Pandoc and RMarkdown fenced code block info, returns a map
 
+   Nextjournal
+   ```python id=2e3541da-0735-4b7f-a12f-4fb1bfcb6138
+     ...
+   ```
+
+   Pandoc
+   ```{#pandoc-id .languge .extra-class key=Val}
+     ...
+   ```
+
+   Rmd
+   ```{r cars, echo=FALSE}
+     ...
+   ```
+
+   See also:
+   - https://github.github.com/gfm/#info-string
+   - https://pandoc.org/MANUAL.html#fenced-code-blocks
+   - https://rstudio.com/wp-content/uploads/2016/03/rmarkdown-cheatsheet-2.0.pdf"
+  [info-str]
+  (try
+    (when (string? info-str)
+      (let [tokens (-> info-str
+                       str/trim
+                       (str/replace #"[\{\}\,]" "")         ;; remove Pandoc/Rmarkdown brackets and commas
+                       (str/replace "." "")                 ;; remove dots
+                       (str/split #" "))]                   ;; split by spaces
+        (reduce
+         (fn [{:as info-map :keys [language]} token]
+           (let [[_ k v] (re-matches #"^([^=]+)=([^=]+)$" token)]
+             (cond
+               (str/starts-with? token "#") (assoc info-map :id (str/replace token #"^#" "")) ;; pandoc #id
+               (and k v) (assoc info-map (keyword k) v)
+               (not language) (assoc info-map :language token) ;; language is the first simple token which is not a pandoc's id
+               :else (assoc info-map (keyword token) true))))
+         {}
+         tokens)))
+    (catch #?(:clj Throwable :cljs :default) _ {})))
+
+(comment
+  (parse-fence-info "python runtime-id=5f77e475-6178-47a3-8437-45c9c34d57ff")
+  (parse-fence-info "{#some-id .lang foo=nex}")
+  (parse-fence-info "#id clojure")
+  (parse-fence-info "clojure #id")
+  (parse-fence-info "clojure")
+  (parse-fence-info "{r cars, echo=FALSE}"))
+
+;; node constructors
 (defn node
   [type content attrs top-level]
   (cond-> {:type type :content content}
@@ -104,7 +155,6 @@
      (into-toc {:level 2 :title "Section 2"})
      (into-toc {:level 3 :title "Section 2.1"})
      (into-toc {:level 2 :title "Section 3"})
-     ;;(into-toc 2 "Section 2")
      )
 
 
@@ -176,7 +226,7 @@ end"
       close-node))
 (defmethod apply-token "fence" [doc {:as _token i :info c :content}]
   (-> doc
-      (open-node :code {} {:info i})
+      (open-node :code {} (assoc (parse-fence-info i) :info i))
       (push-node (text-node c))
       close-node))
 

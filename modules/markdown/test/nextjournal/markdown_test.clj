@@ -8,6 +8,10 @@
 
 some **strong** _assertion_ and a [link]
 
+```clojure
+(+ 1 2 3)
+```
+
 * one
 * two
 
@@ -37,6 +41,10 @@ some **strong** _assertion_ and a [link]
                                              :type :text}]
                                   :type :link}]
                        :type :paragraph}
+                      {:content [{:text "(+ 1 2 3)\n" :type :text}]
+                       :info "clojure"
+                       :language "clojure"
+                       :type :code}
                       {:content [{:content [{:content [{:text "one"
                                                         :type :text}]
                                              :type :paragraph}]
@@ -73,6 +81,7 @@ some **strong** _assertion_ and a [link]
            [:a
             {:href "/path/to/something"}
             "link"]]
+          [:pre.viewer-code "(+ 1 2 3)\n"]
           [:ul
            [:li
             [:p
