@@ -78,7 +78,7 @@ $$\\int_{\\omega} \\phi d\\omega$$
 ### Formulas inside tables
 
 | Syntax |  JVM                     | JavaScript                                    |
-|--------|-------------------------:|:----------------------------------------------|
+|:-------|:------------------------:|----------------------------------------------:|
 | foo    |  Local_Date_             | goog.date.Date                                |
 | bar    |  java.time.LocalDateTime | $\\bigoplus_{\\alpha < \\omega}\\phi_\\alpha$ |
 ")])

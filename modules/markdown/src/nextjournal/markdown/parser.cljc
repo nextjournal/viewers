@@ -257,14 +257,15 @@ end"
   (->
 "
 | Syntax |  JVM                     | JavaScript                      |
-|--------|-------------------------:|:--------------------------------|
+|--------|:------------------------:|--------------------------------:|
 |   foo  |  Loca _lDate_ ahoiii     | goog.date.Date                  |
 |   bar  |  java.time.LocalTime     | some [kinky](link/to/something) |
 |   bag  |  java.time.LocalDateTime | $\\phi$                         |
 "
     nextjournal.markdown/parse
-    nextjournal.markdown.parser/->hiccup
+    nextjournal.markdown.transform/->hiccup
     ))
+
 ;; inlines
 (defmethod apply-token "inline" [doc {:as _token ts :children}] (apply-tokens doc ts))
 (defmethod apply-token "text" [doc {text :content}] (push-node doc (text-node text)))

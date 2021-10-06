@@ -10,10 +10,10 @@
   [{:as doc :keys [toc]}]
   (update doc :content (partial into [] (map (fn [{:as node t :type}] (if (= :toc t) toc node))))))
 
-(defn dataset [attrs]
-  (into {}
-    (map (juxt (comp (partial str "data-") name first) second))
-    attrs))
+(defn table-alignment [{:keys [style]}]
+  (when (string? style)
+    (let [[_ alignment] (re-matches #"^text-align:(.+)$" style)]
+      (when alignment {:text-align alignment}))))
 
 ;; into-markup
 (declare ->hiccup)
@@ -74,15 +74,15 @@
    :table-head (partial into-markup [:thead])
    :table-body (partial into-markup [:tbody])
    :table-row (partial into-markup [:tr])
-   :table-header (partial into-markup [:th])
-   :table-data (partial into-markup [:td])
+   :table-header (fn [ctx {:as node :keys [attrs]}] (into-markup [:th {:style (table-alignment attrs)}] ctx node))
+   :table-data (fn [ctx {:as node :keys [attrs]}] (into-markup [:td {:style (table-alignment attrs)}] ctx node))
 
    ;; sidenodes
    :sidenote-ref (partial into-markup [:sup.sidenote-ref])
    :sidenote (fn [ctx {:as node :keys [attrs]}]
                (into-markup [:span.sidenote [:sup {:style {:margin-right "3px"}} (-> attrs :ref inc)]]
-                 ctx
-                 node))
+                            ctx
+                            node))
    ;; TOC
    :toc toc->hiccup
 
@@ -101,7 +101,7 @@
   ([node] (->hiccup default-hiccup-renderers node))
   ([ctx {:as node t :type}]
    (let [{:as node :keys [type]} (cond-> node (= :doc t) hydrate-toc)]
-     (if-some [f (get ctx type)]
+     (if-some [f (guard fn? (get ctx type))]
        (f ctx node)
        [:div.error.red
         (str "We don't know how to turn a node of type: '" type "' into hiccup.")]

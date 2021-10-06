@@ -737,7 +737,7 @@ $$\\int_{\\omega} \\phi d\\omega$$
 as building hiccup is recursive, we're using the specific viewers for values occurring at any level in the structure
 
 | Syntax |  JVM                     | JavaScript                                    |
-|--------|-------------------------:|:----------------------------------------------|
+|--------|:------------------------:|----------------------------------------------:|
 |   foo  |  Loca _lDate_ ahoiii     | goog.date.Date                                |
 |   bar  |  java.time.LocalTime     | somethng else entirey                         |
 |   bag  |  java.time.LocalDateTime | $\\bigoplus_{\\alpha < \\omega}\\phi_\\alpha$ |
