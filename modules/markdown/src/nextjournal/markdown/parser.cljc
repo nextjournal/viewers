@@ -81,6 +81,7 @@
     (seq attrs) (assoc :attrs attrs)
     (seq top-level) (merge top-level)))
 (defn text-node [text] {:type :text :text text})
+(defn tag-node [text] {:type :tag :text text})
 (defn formula [text] {:type :formula :text text})
 (defn sidenote-ref [ref] {:type :sidenote-ref :content [(text-node (str (inc ref)))]})
 
@@ -272,9 +273,42 @@ end"
     nextjournal.markdown.transform/->hiccup
     ))
 
+;; text
+(comment
+  (split-by-tags "some #nicetag and what #not for")
+  (split-by-tags "some nicetag and what not for")
+  (split-by-tags "#some nicetag and what not #for")
+  (-> "# Hello
+some par with #tag and #another one"
+      nextjournal.markdown/tokenize
+      parse))
+
+(defn split-by-tags [text]
+  (when (and (string? text) (seq text))
+    (let [m (re-matcher (re-pattern (str  "#[\\S]+")) text)
+          idx-seq (take-while some? (repeatedly #(when (.find m) [(.start m) (.end m)])))]
+      (when (seq idx-seq)
+        (let [{:keys [nodes remaining-text]}
+              (reduce (fn [{:as acc :keys [remaining-text]} [start end]]
+                        (-> acc
+                            (update :remaining-text subs 0 start)
+                            (cond->
+                              (< end (dec (count remaining-text)))
+                              (update :nodes conj (text-node (subs remaining-text end))))
+                            (update :nodes conj (tag-node (subs remaining-text (inc start) end)))))
+                      {:remaining-text text :nodes []}
+                      (reverse idx-seq))]
+          (cond->> (reverse nodes)
+            (seq remaining-text)
+            (cons (text-node remaining-text))))))))
+
+(defmethod apply-token "text" [doc {text :content}]
+  (if-some [nodes (split-by-tags text)]
+    (reduce push-node doc nodes)
+    (push-node doc (text-node text))))
+
 ;; inlines
 (defmethod apply-token "inline" [doc {:as _token ts :children}] (apply-tokens doc ts))
-(defmethod apply-token "text" [doc {text :content}] (push-node doc (text-node text)))
 (defmethod apply-token "math_inline" [doc {text :content}] (push-node doc (formula text)))
 (defmethod apply-token "math_inline_double" [doc {text :content}] (push-node doc (formula text)))
 (defmethod apply-token "softbreak" [doc _token] (push-node doc {:type :softbreak}))

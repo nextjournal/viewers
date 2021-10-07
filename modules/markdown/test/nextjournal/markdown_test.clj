@@ -231,6 +231,36 @@ some **strong** _assertion_ and a [link]
   - [ ] nested
 ")))))
 
+(deftest tags-text
+  (testing "tags"
+    (is (= {:content [{:content [{:text "Hello Tags"
+                                  :type :text}]
+                       :heading-level 1
+                       :type :heading}
+                      {:content [{:text "par with "
+                                  :type :text}
+                                 {:text "nice"
+                                  :type :tag}
+                                 {:text "useful"
+                                  :type :tag}
+                                 {:text " tags"
+                                  :type :text}]
+                       :type :paragraph}]
+            :toc {:content [{:level 1
+                             :node {:content [{:text "Hello Tags"
+                                               :type :text}]
+                                    :heading-level 1
+                                    :type :heading}
+                             :path [:content
+                                    0]
+                             :title "Hello Tags"
+                             :type :toc}]
+                  :type :toc}
+            :type :doc}
+           (md/parse "# Hello Tags
+par with #nice #useful tags
+")))))
+
 (comment
   (run-tests 'nextjournal.markdown-test)
   )
