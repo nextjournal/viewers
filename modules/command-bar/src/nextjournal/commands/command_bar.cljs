@@ -386,79 +386,79 @@
                              (some-> (nth candidates selected nil)
                                      (commands/eval-command))))}})
 
-(def formatting-commands {:format/bold          {:action identity :keys "Mod-B"}
-                          :format/italic        {:action identity :keys "Mod-I"}
-                          :format/link          {:action identity :keys "Mod-K"}
-                          :format/monospace     {:action identity :keys "Control-`"}
-                          :format/strikethrough {:action identity :keys "Shift-Mod-X"}})
-
-(def insert-block-commands {:editor/insert-block {:subcommands/layout :list
-                                                  :subcommands        [{:title "Paragraph"
-                                                                        :action identity
-                                                                        :category "Text"}
-                                                                       {:title "Heading 1"
-                                                                        :action identity
-                                                                        :category "Text"}
-                                                                       {:title "Blockquote"
-                                                                        :action identity
-                                                                        :category "Text"}
-                                                                       {:title "Bullet List"
-                                                                        :action identity
-                                                                        :category "Text"}
-                                                                       {:title "Code cell: Python"
-                                                                        :action identity
-                                                                        :category "Code"}
-                                                                       {:title "Code cell: Bash"
-                                                                        :action identity
-                                                                        :category "Code"}
-                                                                       {:title "Code cell: Julia"
-                                                                        :action identity
-                                                                        :category "Code"}
-                                                                       {:title "Code cell: Clojure"
-                                                                        :action identity
-                                                                        :category "Code"}
-                                                                       {:title "Formula"
-                                                                        :action identity
-                                                                        :category "Math"}]}})
-
-(def editor-commands {:editor/insert-inline {:action   identity
-                                             :category :editor}
-                      :editor/focus-block {:action   identity
-                                           :category :editor}
-                      :editor/delete-block {:action   identity
-                                            :category :editor}})
-
-(def run-commands {:run/all {:action identity}
-                   :run/run-cells-below {:action identity}
-                   :run/reset-all {:action identity}
-                   :run/run-on-a-schedule {:action identity}})
-
+(dc/when-enabled
+  (def formatting-commands
+    {:format/bold {:action identity :keys "Mod-B"}
+     :format/italic {:action identity :keys "Mod-I"}
+     :format/link {:action identity :keys "Mod-K"}
+     :format/monospace {:action identity :keys "Control-`"}
+     :format/strikethrough {:action identity :keys "Shift-Mod-X"}})
+  (def insert-block-commands
+    {:editor/insert-block
+     {:subcommands/layout :list
+      :subcommands [{:title "Paragraph"
+                     :action identity
+                     :category "Text"}
+                    {:title "Heading 1"
+                     :action identity
+                     :category "Text"}
+                    {:title "Blockquote"
+                     :action identity
+                     :category "Text"}
+                    {:title "Bullet List"
+                     :action identity
+                     :category "Text"}
+                    {:title "Code cell: Python"
+                     :action identity
+                     :category "Code"}
+                    {:title "Code cell: Bash"
+                     :action identity
+                     :category "Code"}
+                    {:title "Code cell: Julia"
+                     :action identity
+                     :category "Code"}
+                    {:title "Code cell: Clojure"
+                     :action identity
+                     :category "Code"}
+                    {:title "Formula"
+                     :action identity
+                     :category "Math"}]}})
+  (def editor-commands
+    {:editor/insert-inline {:action identity
+                            :category :editor}
+     :editor/focus-block {:action identity
+                          :category :editor}
+     :editor/delete-block {:action identity
+                           :category :editor}})
+  (def run-commands {:run/all {:action identity}
+                     :run/run-cells-below {:action identity}
+                     :run/reset-all {:action identity}
+                     :run/run-on-a-schedule {:action identity}}))
 
 (let [make-devcard-state! (comp #(bar-state/activate-bar! % {:!view-state %})
                                 bar-state/initial-state)]
-  (dc/defcard command-bar "This is the default view of the command bar."
-    [view {::v/initial-state #(-> (make-devcard-state!
-                                    {:categories [:format]
-                                     :shortcuts {:format {:commands (vec (keys formatting-commands))}}}))}]
+  (dc/defcard command-bar
+    [view {::v/initial-state {:categories [:format]
+                              :shortcuts {:format {:commands (vec (keys formatting-commands))}}}}]
     (-> (state/empty-db!)
         (commands/register formatting-commands)))
 
-  (dc/defcard command-bar-stack "This is the view of a command that contains its own subcommands."
-     [view {::v/initial-state #(-> (make-devcard-state!
-                                     {:categories [:editor]})
-                                   (doto (swap! bar-state/update-stack {:category :editor
-                                                                        :normalized? true
-                                                                        :stack-key (str (random-uuid))
-                                                                        :title "Insert Block"
-                                                                        :subcommands/layout :list
-                                                                        :subcommands (-> insert-block-commands :editor/insert-block :subcommands)})))}]
+  (dc/defcard command-bar-grid
+    [view {::v/initial-state #(-> (make-devcard-state!
+                                    {:categories [:format :editor :run]}))}]
+    (-> (state/empty-db!)
+        (commands/register (merge formatting-commands insert-block-commands editor-commands run-commands))))
 
-              (-> (state/empty-db!)
-                  (commands/register insert-block-commands)))
-
-  (dc/defcard command-bar-table-view "Here we show multiple command categories."
-              [view {::v/initial-state #(-> (make-devcard-state!
-                                              {:categories [:format :editor :run]}))}]
-
-              (-> (state/empty-db!)
-                  (commands/register (merge formatting-commands insert-block-commands editor-commands run-commands)))))
+  (dc/defcard command-bar-list
+    [:div.relative {:style {:min-height 360}}
+     [:div.absolute.bottom-0.left-0.right-0
+      [view {::v/initial-state #(-> (make-devcard-state!
+                                      {:categories [:editor]})
+                                    (doto (swap! bar-state/update-stack {:category :editor
+                                                                         :normalized? true
+                                                                         :stack-key (str (random-uuid))
+                                                                         :title "Insert Block"
+                                                                         :subcommands/layout :list
+                                                                         :subcommands (-> insert-block-commands :editor/insert-block :subcommands)})))}]]]
+    (-> (state/empty-db!)
+        (commands/register insert-block-commands))))
