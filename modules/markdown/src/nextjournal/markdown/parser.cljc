@@ -19,6 +19,13 @@
 ;; clj common accessors
 (def get-in* #?(:clj get-in :cljs j/get-in))
 (def update* #?(:clj update :cljs j/update!))
+(defn re-idx-seq
+  "Takes a regex and a string, returns a seq of pairs of indices delimiting each match."
+  [re text]
+  #?(:clj (let [m (re-matcher re text)]
+            (take-while some? (repeatedly #(when (.find m) [(.start m) (.end m)]))))
+     :cljs (let [rex (js/RegExp. (.-source re) "g")]
+             (take-while some? (repeatedly #(when-some [m (.exec rex text)] [(.-index m) (.-lastIndex rex)]))))))
 
 ;; region node operations
 ;; helpers
@@ -285,8 +292,7 @@ some par with #tag and #another one"
 
 (defn split-by-tags [text]
   (when (and (string? text) (seq text))
-    (let [m (re-matcher #"(^|\B)#[\w-]+" text)
-          idx-seq (take-while some? (repeatedly #(when (.find m) [(.start m) (.end m)])))]
+    (let [idx-seq (re-idx-seq #"(^|\B)#[\w-]+" text)]
       (when (seq idx-seq)
         (let [{:keys [nodes remaining-text]}
               (reduce (fn [{:as acc :keys [remaining-text]} [start end]]
