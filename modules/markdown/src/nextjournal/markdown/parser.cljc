@@ -275,7 +275,7 @@ end"
 
 ;; text
 (comment
-  (split-by-tags "some #nicetag and what #not for")
+  (split-by-tags "some #Nice_tag123 and what #not for")
   (split-by-tags "some nicetag and what not for")
   (split-by-tags "#some nicetag and what not #for")
   (-> "# Hello
@@ -285,7 +285,7 @@ some par with #tag and #another one"
 
 (defn split-by-tags [text]
   (when (and (string? text) (seq text))
-    (let [m (re-matcher (re-pattern (str  "#[\\S]+")) text)
+    (let [m (re-matcher #"(^|\B)#[\w-]+" text)
           idx-seq (take-while some? (repeatedly #(when (.find m) [(.start m) (.end m)])))]
       (when (seq idx-seq)
         (let [{:keys [nodes remaining-text]}
@@ -295,7 +295,7 @@ some par with #tag and #another one"
                             (cond->
                               (< end (dec (count remaining-text)))
                               (update :nodes conj (text-node (subs remaining-text end))))
-                            (update :nodes conj (tag-node (subs remaining-text (inc start) end)))))
+                            (update :nodes conj (tag-node (subs remaining-text (inc start) end))))) ;; ⬅ remove "#"
                       {:remaining-text text :nodes []}
                       (reverse idx-seq))]
           (cond->> (reverse nodes)

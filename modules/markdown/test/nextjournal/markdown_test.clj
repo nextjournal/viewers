@@ -239,9 +239,9 @@ some **strong** _assertion_ and a [link]
                        :type :heading}
                       {:content [{:text "par with "
                                   :type :text}
-                                 {:text "nice"
+                                 {:text "really_nice"
                                   :type :tag}
-                                 {:text "useful"
+                                 {:text "useful-123"
                                   :type :tag}
                                  {:text " tags"
                                   :type :text}]
@@ -258,7 +258,7 @@ some **strong** _assertion_ and a [link]
                   :type :toc}
             :type :doc}
            (md/parse "# Hello Tags
-par with #nice #useful tags
+par with #really_nice #useful-123 tags
 ")))))
 
 (comment
