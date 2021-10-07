@@ -228,9 +228,10 @@
 
 ;; Main external API
 
-(re-frame/reg-event-db ::register
-                       (fn [db [_ commands]]
-                         (register db commands)))
+(re-frame/reg-event-db
+  ::register
+  (fn [db [_ commands]]
+    (register db commands)))
 
 (defn register!
   "Binds a sequence of button presses, specified by `keys`, to `action` when
