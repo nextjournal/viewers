@@ -631,7 +631,7 @@
                      :encoding
                      {:color {:field "rate" :type "quantitative"}}})])
 
-(dc/defcard viewer-plotly
+(dc/defcard viewer-plolty
   [inspect (view-as :plotly
                     {:data [{:y (shuffle (range 10)) :name "The Federation" }
                             {:y (shuffle (range 10)) :name "The Empire"}]})])
@@ -664,7 +664,7 @@
                          [:button.rounded.bg-blue-500.text-white.py-2.px-4.font-bold {:on-click #(swap! c dec)} "decrement"]])))])
 
 (dc/defcard progress-bar
-  "Show how to use a function as a viewer, supports both one and two arity versions."
+  "Show how to use a function as a viewer, supports both one and two artity versions."
   [:div
    [inspect (with-viewer 0.33
               #(view-as :hiccup
