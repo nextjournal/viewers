@@ -122,20 +122,26 @@
 ;; region TOC builder: (`add-to-toc` acts on toc after closing a header node)
 (defn into-toc [toc {:as toc-item :keys [level]}]
   (loop [toc toc l level toc-path [:content]]
-    (cond
-      (= 1 l)
-      (update-in toc toc-path (fnil conj []) toc-item)
+    ;; toc-path is always of the form `[:content i1 :content i2 ... in :content]`
+    (let [type-path (assoc toc-path (dec (count toc-path)) :type)]
+      (cond
+        ;; insert intermediate default empty :content collections for the final update-in (which defaults to maps otherwise)
+        (not (get-in toc toc-path))
+        (recur (assoc-in toc toc-path []) l toc-path)
 
-      ;; fnil above is not enough to insert intermediate default empty :content collections for the final update-in (defaults to maps)
-      (not (get-in toc toc-path))
-      (recur (assoc-in toc toc-path []) l toc-path)
+        ;; fill in toc types for non-contiguous jumps like h1 -> h3
+        (not (get-in toc type-path))
+        (recur (assoc-in toc type-path :toc) l toc-path)
 
-      :else
-      (recur toc
-             (dec l)
-             (conj toc-path
-                   (max 0 (dec (count (get-in toc toc-path)))) ;; select last child at level if it exists
-                   :content)))))
+        (= 1 l)
+        (update-in toc toc-path (fnil conj []) toc-item)
+
+        :else
+        (recur toc
+               (dec l)
+               (conj toc-path
+                     (max 0 (dec (count (get-in toc toc-path)))) ;; select last child at level if it exists
+                     :content))))))
 
 (defn add-to-toc [{:as doc :keys [toc] path ::path}]
   (let [{:as h :keys [heading-level]} (get-in doc path)]
@@ -148,13 +154,13 @@
                              :path path}))))
 
 (comment
- (-> {}
-     (into-toc {:level 3 :title "Foo"})
-     (into-toc {:level 2 :title "Section 1"})
-     (into-toc {:level 1 :title "Title"})
-     (into-toc {:level 2 :title "Section 2"})
-     (into-toc {:level 3 :title "Section 2.1"})
-     (into-toc {:level 2 :title "Section 3"})
+ (-> {:type :toc}
+     ;;(into-toc {:level 3 :title "Foo"})
+     ;;(into-toc {:level 2 :title "Section 1"})
+     (into-toc {:level 1 :title "Title" :type :toc})
+     (into-toc {:level 4 :title "Section 2" :type :toc})
+     ;;(into-toc {:level 4 :title "Section 2.1"})
+     ;;(into-toc {:level 2 :title "Section 3"})
      )
 
 
