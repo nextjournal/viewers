@@ -299,7 +299,7 @@ some par with #tag and #another one"
                         (-> acc
                             (update :remaining-text subs 0 start)
                             (cond->
-                              (< end (dec (count remaining-text)))
+                              (<= end (dec (count remaining-text)))
                               (update :nodes conj (text-node (subs remaining-text end))))
                             (update :nodes conj (tag-node (subs remaining-text (inc start) end))))) ;; ⬅ remove "#"
                       {:remaining-text text :nodes []}

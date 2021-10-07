@@ -60,7 +60,7 @@ main text.
 
 ## Tags
 
-You might want to #hashtag this document.
+You might want to #hashtag this document for #good #fun123.
 
 ## Todos
 

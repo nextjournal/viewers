@@ -241,6 +241,8 @@ some **strong** _assertion_ and a [link]
                                   :type :text}
                                  {:text "really_nice"
                                   :type :hashtag}
+                                 {:text " "
+                                  :type :text}
                                  {:text "useful-123"
                                   :type :hashtag}
                                  {:text " tags"
@@ -270,6 +272,7 @@ par with #really_nice #useful-123 tags
              [:a.tag
               {:href "/tags/really_nice"}
               "#really_nice"]
+             " "
              [:a.tag
               {:href "/tags/useful-123"}
               "#useful-123"]
