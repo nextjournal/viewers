@@ -81,9 +81,9 @@
     (log/trace :path path :ids ids)
     (when (seq ids)
       (let [context (state/current-context
-                     {:event e
-                      :event/trigger :keys
-                      :event/sequence sequence})]
+                      {:event e
+                       :event/trigger :keys
+                       :event/sequence sequence})]
         (doseq [id ids
                 :let [result (eval-command id context)]
                 :while (not= :stop result)])))))
@@ -185,14 +185,14 @@
         command
         (-> command
             (merge
-             (some-> keys (keys/parse-keys))
-             {:normalized? true
-              :title (or title (some-> id id->title))
-              :category (or category (some-> id namespace keyword))
-              :when (fn [ctx]
-                      (and
-                       (requirements-satisfied? ctx requires)
-                       (if when (when ctx) true)))})
+              (some-> keys (keys/parse-keys))
+              {:normalized? true
+               :title (or title (some-> id id->title))
+               :category (or category (some-> id namespace keyword))
+               :when (fn [ctx]
+                       (and
+                         (requirements-satisfied? ctx requires)
+                         (if when (when ctx) true)))})
             resolve-action)))))
 
 (defn add-to-category [registry category-id id]
@@ -201,7 +201,7 @@
 (defn register
   "pure function for adding command to context"
   ([db commands]
-   (reduce-kv (fn [db id data] (register db id data)) db commands))
+   (reduce-kv (fn [db id command] (register db id command)) db commands))
   ([db id command]
    (update db ::state/registry
            (fn [registry]
@@ -211,24 +211,25 @@
                                 (add-to-category (:category command) id))]
                (if (false? (:bind-keys? command))
                  registry
-                 (reduce (fn [context sequence]
-                           (update-in context (conj sequence :ids) (fnil (comp distinct conj) []) id))
+                 (reduce (fn [registry sequence]
+                           (update-in registry (conj sequence :ids) (fnil (comp distinct conj) []) id))
                          registry
                          (:keys/paths command))))))))
 
 (defn normalize-categories [categories]
   (->> categories
        (mapv
-        (fn [cat]
-          {:pre [(or (keyword? cat) (map? cat))]}
-          (let [[id category] (if (keyword? cat) [cat] (first cat))]
-            (-> category
-                (assoc :id id)
-                (update :title (fn [x] (or x (-> id name str/capitalize))))))))))
+         (fn [cat]
+           {:pre [(or (keyword? cat) (map? cat))]}
+           (let [[id category] (if (keyword? cat) [cat] (first cat))]
+             (-> category
+                 (assoc :id id)
+                 (update :title (fn [x] (or x (-> id name str/capitalize))))))))))
 
 ;; Main external API
 
-(re-frame/reg-event-db ::register
+(re-frame/reg-event-db
+  ::register
   (fn [db [_ commands]]
     (register db commands)))
 
@@ -252,10 +253,20 @@
   [id command]
   (register! id (assoc command :dispatch [id])))
 
-(defn listen! [{:keys [get-registry element]
-                :or {element js/window}}]
+(defn listen!
+  "Begin responding to `keydown` events on `element` (default: window)
+
+  Accepts options which are mainly used only in dev / devcards situations.
+  :element - only take action when a provided dom element is focused
+  :get-registry - function to return the current registry, called for every event"
+  [{:keys [element
+           get-registry]
+    :or {element js/window
+         global? true}}]
   (when (exists? js/addEventListener)
-    (let [f #(dispatch % (get-registry))]
+    (let [f (re-frame/bind-fn #(when (or (= js/window element)
+                                         (.contains ^js element (.-target ^js %)))
+                                   (dispatch % (get-registry))))]
       (j/call element :addEventListener "keydown" f false)
       #(j/call element :removeEventListener "keydown" f))))
 

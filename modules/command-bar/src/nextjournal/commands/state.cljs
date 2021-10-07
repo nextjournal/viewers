@@ -1,6 +1,19 @@
 (ns nextjournal.commands.state
   (:require [re-frame.context :as re-frame]
+            [re-frame.core :as rf.core]
             [reagent.core :as reagent]))
+
+(re-frame/reg-sub
+  :db/get-in
+  (fn [db [_ path not-found]]
+    (get-in db path not-found)))
+
+(re-frame/reg-sub
+  :db/get
+  (fn [db [_ key]]
+    (get db key)))
+
+(re-frame/reg-sub :desktop? (fn [_db] (not (<= (.-innerWidth js/window) 768))))
 
 (re-frame/reg-event-db
  :commands/set-context
@@ -30,7 +43,11 @@
 (defn empty-db!
   "Returns the required entries for re-frame's app-db, used by the commands system"
   []
-  {::registry (get-registry)                                ;; include commands registered before init
+  ;; we call reagent/flush here to clear out the reagent/re-frame task queue,
+  ;; ensuring that calls to commands/register! and register-context-fn! are taken
+  ;; care of before we read from the db.
+  (reagent/flush)
+  {::registry (or (get-registry) (::registry @(:app-db rf.core/default-frame)))                           ;; include commands registered before init
    ::!context (reagent/atom {})})
 
 ;; Context provides the inputs to commands, and is the basis for

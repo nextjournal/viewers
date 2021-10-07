@@ -36,6 +36,8 @@ body {
 /* --------------------------------------------------------------- */
 
 :root {
+  --teal-color: #31afd0;
+  --dark-teal-color: #095960;
   --near-black-color: #2e2e2c;
   --red-color: #d64242;
   --dark-blue-color: #1f2937;
@@ -46,6 +48,8 @@ body {
   --tw-border-opacity: 1;
 }
 
+.border-color-teal { border-color: var(--dark-teal-color); }
+.teal { color: var(--teal-color); }
 .bg-dark-blue { background: var(--dark-blue-color); }
 .bg-dark-blue-60 { background: rgba(28, 42, 56, 0.6); }
 .bg-gray-panel { background: var(--gray-panel-color); }
@@ -444,4 +448,11 @@ h5, h6 {
     max-width: 100%;
     margin: 0;
   }
+}
+
+/* Command Palette */
+
+.nj-commands-input {
+  background: transparent;
+  color: white;
 }

@@ -9,8 +9,6 @@
             [nextjournal.devcards :as dc]
             [nextjournal.ui.components.positioning :as positioning]
             [nextjournal.ui.dom :as ui.dom]
-                                        ;[com.nextjournal.editor.doc.plugins.gutter :as gutter]
-                                        ;[com.nextjournal.editor.global-menu :as global-menu]
             [nextjournal.view :as v]
             [nextjournal.view.context :as view.context]
             [reagent.core :as r]

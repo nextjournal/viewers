@@ -2,6 +2,7 @@
   (:require [clojure.string :as str]
             [kitchen-async.promise :as p]
             [nextjournal.commands.core :as commands]
+            [nextjournal.commands.command-bar :as command-bar]
             [nextjournal.devcards :as dc]
             [nextjournal.log :as log]
             [nextjournal.ui.components.icon :as icon]
@@ -132,10 +133,10 @@
 (v/defview show-main [{::v/keys [state props]
                        :keys [main initial-db initial-state ::dc/class]}]
   (when main
-    (reagent/with-let [app-db (let [{:keys [app-db]} (rf/current-frame)]
-                                (when (seq initial-db)
-                                  (reset! app-db initial-db))
-                                app-db)]
+    ;; reset app-db once (using with-let) when the component mounts
+    ;; (further actions should not reset the db again)
+    (reagent/with-let [_ (when (seq initial-db)
+                           (reset! (:app-db (rf/current-frame)) initial-db))]
       (let [main (main)
             main (if (fn? main)
                    [main state]
@@ -146,7 +147,7 @@
          (when initial-state
            [inspector {:ratom state :label "state" :initial-value initial-state :label-aligned? initial-state}])
          (when (seq initial-db)
-           [inspector {:ratom app-db :label "db" :initial-value initial-db :label-aligned? initial-state}])]))))
+           [inspector {:ratom (:app-db (rf/current-frame)) :label "db" :initial-value initial-db :label-aligned? initial-state}])]))))
 
 (v/defview show-card* [{card ::v/props :keys [initial-state name ns doc loading-data?]}]
   (when card
@@ -185,6 +186,9 @@
         (log/trace :devcards/show-card {:card card :frame-id (:frame-id (rf/current-frame))})
         [:div
          (if (fn? data)
+           ;; `compile-key` is used to force a re-mount of show-card*
+           ;; when the _literal code_ for the card's data has changed.
+           ;; (a macro sets compile-key's value to the hash of the code)
            ^{:key compile-key}
            [promises/view
             {:promise (data)

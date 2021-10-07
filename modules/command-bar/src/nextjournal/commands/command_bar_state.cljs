@@ -70,11 +70,20 @@
                             (apply f cmd args)
                             cmd)))))
 
+(defn update-stack [view-state stack-entry]
+  (update view-state
+          :stack
+          conj stack-entry))
+
+
+
 (defn update-current-subcommand-state [view-state f & args]
   (cond-> view-state
           (seq (:stack view-state))
           (update-in [:stack (dec (count (:stack view-state)))]
                      (fn [cmd] (apply f cmd args)))))
+
+
 
 (def get-selected (comp :selected subcommand-state))
 
