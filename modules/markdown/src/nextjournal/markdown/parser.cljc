@@ -13,6 +13,7 @@
   - attrs: attributes as passed by markdownit tokens (e.g {:attrs {:style \"some style info\"}})
   "
   (:require [clojure.string :as str]
+            [nextjournal.markdown.transform :as md.transform]
             #?(:cljs [applied-science.js-interop :as j])))
 
 ;; clj common accessors
@@ -23,7 +24,6 @@
 ;; helpers
 (defn inc-last [path] (update path (dec (count path)) inc))
 (defn hlevel [{:as _token hn :tag}] (when (string? hn) (some-> (re-matches #"h([\d])" hn) second #?(:clj read-string :cljs cljs.reader/read-string))))
-(defn ->text [{:as _node :keys [text content]}] (or text (apply str (map ->text content))))
 (defn parse-fence-info
   "Ingests nextjournal, GFM, Pandoc and RMarkdown fenced code block info, returns a map
 
@@ -149,7 +149,7 @@
       (pos-int? heading-level)
       (update :toc into-toc {:level heading-level
                              :type :toc
-                             :title (->text h)
+                             :title (md.transform/->text h)
                              :node h
                              :path path}))))
 

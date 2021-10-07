@@ -1,6 +1,5 @@
 (ns nextjournal.viewer.markdown
   (:require [nextjournal.markdown :as md]
-            [nextjournal.markdown.parser :as md.parser]
             [nextjournal.markdown.transform :as md.transform]
             [nextjournal.devcards :as dc]))
 
@@ -20,7 +19,7 @@
 (defn code-viewer [node]
   [:div.viewer-code
    [inspect* {:nextjournal/viewer :code
-              :nextjournal/value (md.parser/->text node)}]])
+              :nextjournal/value (md.transform/->text node)}]])
 
 (def default-renderers
   (assoc md.transform/default-hiccup-renderers
@@ -30,7 +29,7 @@
                       (md.transform/into-markup [:li [:input {:type "checkbox" :default-checked (:checked attrs)}]] ctx node))
                                                                                ;; ⬆ defaultChecked only makes senst in react/reagent
          :formula (fn [_ctx node] [inspect* {:nextjournal/viewer :latex
-                                             :nextjournal/value (md.parser/->text node)}])))
+                                             :nextjournal/value (md.transform/->text node)}])))
 
 (defn viewer [value]
   ;; TODO: allow to pass "modes" with different sets of overrides
@@ -106,7 +105,7 @@ and background if dark mode is enabled in your system."})
                                                       (code-viewer node)
                                                       (when (= "cljs" language)
                                                         [:div.viewer-result.mt-3
-                                                         [inspect* (eval-form* (cljs.reader/read-string (md.parser/->text node)))]])]))))}]
+                                                         [inspect* (eval-form* (cljs.reader/read-string (md.transform/->text node)))]])]))))}]
   {::dc/state "# Custom `.cljs` Code Eval
 
 Overrides the default `:code` renderer to add an extra sci pass for fenced code blocks with a `cljs` language info
@@ -164,6 +163,10 @@ Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium dolor
 Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
 
 ### Section 2.1
+
+Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+
+#### Section 2.1.1
 
 Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
 
