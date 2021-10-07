@@ -42,6 +42,7 @@
    :heading (fn [ctx {:as node :keys [heading-level]}] (into-markup [(keyword (str "h" heading-level))] ctx node))
    :paragraph (partial into-markup [:p])
    :text (fn [_ {:keys [text]}] text)
+   :tag (fn [_ {:keys [text]}] [:a.tag {:href (str "/tags/" text)} text]) ;; TODO: make it configurable
    :blockquote (partial into-markup [:blockquote])
    :ruler (partial into-markup [:hr])
 
@@ -166,7 +167,3 @@ par two"
                      ;; wrap something around the default
                      :paragraph (fn [{:as ctx d :default} node] [:div.p-container (d ctx node)]))))
   )
-
-
-
-

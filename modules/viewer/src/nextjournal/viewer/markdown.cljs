@@ -58,6 +58,10 @@ close as possible to the text that references them. At the same time, this secon
 should stay out of the way of the eye, not interfering with the progression of ideas in the
 main text.
 
+## Tags
+
+You might want to #hashtag this document.
+
 ## Todos
 
 - [x] Checked
