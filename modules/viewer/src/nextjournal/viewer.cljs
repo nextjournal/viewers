@@ -631,7 +631,7 @@
                      :encoding
                      {:color {:field "rate" :type "quantitative"}}})])
 
-(dc/defcard viewer-plolty
+(dc/defcard viewer-plotly
   [inspect (view-as :plotly
                     {:data [{:y (shuffle (range 10)) :name "The Federation" }
                             {:y (shuffle (range 10)) :name "The Empire"}]})])
