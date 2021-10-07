@@ -232,7 +232,7 @@ some **strong** _assertion_ and a [link]
 ")))))
 
 (deftest tags-text
-  (testing "tags"
+  (testing "parsing tags"
     (is (= {:content [{:content [{:text "Hello Tags"
                                   :type :text}]
                        :heading-level 1
@@ -240,9 +240,9 @@ some **strong** _assertion_ and a [link]
                       {:content [{:text "par with "
                                   :type :text}
                                  {:text "really_nice"
-                                  :type :tag}
+                                  :type :hashtag}
                                  {:text "useful-123"
-                                  :type :tag}
+                                  :type :hashtag}
                                  {:text " tags"
                                   :type :text}]
                        :type :paragraph}]
@@ -258,6 +258,23 @@ some **strong** _assertion_ and a [link]
                   :type :toc}
             :type :doc}
            (md/parse "# Hello Tags
+par with #really_nice #useful-123 tags
+"))))
+
+  (testing "rendering tags"
+    (is (= [:div
+            [:h1
+             "Hello Tags"]
+            [:p
+             "par with "
+             [:a.tag
+              {:href "/tags/really_nice"}
+              "#really_nice"]
+             [:a.tag
+              {:href "/tags/useful-123"}
+              "#useful-123"]
+             " tags"]]
+           (md/->hiccup "# Hello Tags
 par with #really_nice #useful-123 tags
 ")))))
 

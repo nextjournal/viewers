@@ -88,7 +88,7 @@
     (seq attrs) (assoc :attrs attrs)
     (seq top-level) (merge top-level)))
 (defn text-node [text] {:type :text :text text})
-(defn tag-node [text] {:type :tag :text text})
+(defn tag-node [text] {:type :hashtag :text text})
 (defn formula [text] {:type :formula :text text})
 (defn sidenote-ref [ref] {:type :sidenote-ref :content [(text-node (str (inc ref)))]})
 

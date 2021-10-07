@@ -42,7 +42,7 @@
    :heading (fn [ctx {:as node :keys [heading-level]}] (into-markup [(keyword (str "h" heading-level))] ctx node))
    :paragraph (partial into-markup [:p])
    :text (fn [_ {:keys [text]}] text)
-   :tag (fn [_ {:keys [text]}] [:a.tag {:href (str "/tags/" text)} text]) ;; TODO: make it configurable
+   :hashtag (fn [_ {:keys [text]}] [:a.tag {:href (str "/tags/" text)} (str "#" text)]) ;; TODO: make it configurable
    :blockquote (partial into-markup [:blockquote])
    :ruler (partial into-markup [:hr])
 
