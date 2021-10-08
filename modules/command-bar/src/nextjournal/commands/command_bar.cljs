@@ -528,42 +528,50 @@
                                              :article/last-edited-at #inst"2021-10-08T12:51:30.865-00:00"
                                              :article/published-at   #inst"2021-10-09T12:51:30.865-00:00"}]}}))
 
-(let [make-devcard-state! (comp #(bar-state/activate-bar! % {:!view-state %})
+(let [activate! (fn [!view-state] (doto !view-state (bar-state/activate-bar! {:!view-state !view-state})))
+      make-devcard-db! (fn [{:keys [commands props]}]
+                         (let [db (-> (state/empty-db!)
+                                         (commands/register commands))]
+                              (assoc db ::dc/state (bar-state/initial-state
+                                                     (assoc props :registry (::state/registry db))))))
+      make-devcard-state! (comp #(bar-state/activate-bar! % {:!view-state %})
                                 bar-state/initial-state)]
-  (dc/defcard command-bar
-    [view {::v/initial-state {:categories [:format]
-                              :shortcuts {:format {:commands (vec (keys formatting-commands))}}}}]
-    (-> (state/empty-db!)
-        (commands/register formatting-commands)))
 
-  (dc/defcard command-bar-grid
-    [view {::v/initial-state #(-> (make-devcard-state!
-                                    {:categories [:format :editor :run]}))}]
-    (-> (state/empty-db!)
-        (commands/register (merge formatting-commands insert-block-commands editor-commands run-commands))))
+  (dc/defcard command-bar [state]
+    [view {::v/initial-state state}]
+    (make-devcard-db! {:commands formatting-commands
+                       :props {:categories [:format]
+                               :shortcuts {:format {:commands (vec (keys formatting-commands))}}}}))
 
-  (dc/defcard command-bar-list
-    [:div.relative {:style {:min-height 350}}
+  (dc/defcard command-bar-grid [state]
+    (do
+      (reagent/with-let [_ (prn :mounting-command-bar-grid)]
+        [view {::v/initial-state #(do (prn :initial-grid-state) (activate! state))}]))
+    (make-devcard-db!
+      {:commands (merge formatting-commands insert-block-commands editor-commands run-commands)
+       :props {:categories [:format :editor :run]}}))
+
+  (dc/defcard command-bar-list [state]
+    [:div.relative {:style {:min-height 360}}
      [:div.absolute.bottom-0.left-0.right-0
-      [view {::v/initial-state #(-> (make-devcard-state!
-                                      {:categories [:editor]})
-                                    (doto (swap! bar-state/update-stack {:category :editor
-                                                                         :normalized? true
-                                                                         :stack-key (str (random-uuid))
-                                                                         :title "Insert Block"
-                                                                         :subcommands/layout :list
-                                                                         :subcommands (-> insert-block-commands :editor/insert-block :subcommands)})))}]]]
-              (-> (state/empty-db!)
-                  (commands/register insert-block-commands)))
+      [view {::v/initial-state #(do (activate! state)
+                                    (bar-state/add-to-stack! {:!view-state state}
+                                                             {:category :editor
+                                                              :title "Insert Block"
+                                                              :subcommands/layout :list
+                                                              :subcommands (-> insert-block-commands :editor/insert-block :subcommands)})
+                                    state)}]]]
+    (make-devcard-db! {:commands insert-block-commands
+                       :props {:categories [:editor]}}))
 
   (dc/defcard command-bar-table
-    [view {::v/initial-state #(-> (make-devcard-state!
-                                    {:categories [:notebook]})
-                                  (doto (swap! bar-state/update-stack {:category :notebook
-                                                                       :normalized? true
-                                                                       :stack-key (str (random-uuid))
-                                                                       :title "Notebooks"
-                                                                       :subcommands/layout :notebooks
-                                                                       :subcommands (-> notebook-cmds :notebook/open :subcommands)})))}]
+              [view {::v/initial-state #(-> (make-devcard-state!
+                                              {:categories [:notebook]})
+                                            (doto (swap! bar-state/update-stack {:category :notebook
+                                                                                 :normalized? true
+                                                                                 :stack-key (str (random-uuid))
+                                                                                 :title "Notebooks"
+                                                                                 :subcommands/layout :notebooks
+                                                                                 :subcommands (-> notebook-cmds :notebook/open :subcommands)})))}]
               (-> (state/empty-db!)
                   (commands/register notebook-cmds))))
