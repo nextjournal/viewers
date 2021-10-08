@@ -6,7 +6,15 @@
 ;; helpers
 (defn guard [pred val] (when (pred val) val))
 (defn ->text [{:as _node :keys [text content]}] (or text (apply str (map ->text content))))
-(defn %encode [text] (uri.normalize/percent-encode text :unreserved))
+(defn ->id [text]
+  (let [char-class (uri.normalize/character-classes :fragment)]
+    (some->> text
+      (guard string?)
+      uri.normalize/char-seq
+      (map #(if (re-find char-class %) "_" %))
+      (apply str))))
+(comment
+  (->id "UTS #51 and modern emoji (2015–present)"))
 
 (defn hydrate-toc
   "Scans doc contents and replaces toc node placeholder with the toc node accumulated during parse."
@@ -32,7 +40,7 @@
 (defn toc->hiccup [{:as ctx ::keys [parent]} {:as node heading :node :keys [content]}]
   (cond->> [:div
             (when heading
-              [:a {:href (str "#" (%encode (->text heading)))}
+              [:a {:href (str "#" (-> heading ->text ->id))}
                (-> heading heading-markup (into-markup ctx heading))])
             (when (seq content)
               (into [:ul]
@@ -45,7 +53,7 @@
 
 (def default-hiccup-renderers
   {:doc (partial into-markup [:div])
-   :heading (fn [ctx node] (-> (heading-markup node) (conj {:id (%encode (->text node))}) (into-markup ctx node)))
+   :heading (fn [ctx node] (-> (heading-markup node) (conj {:id (-> node ->text ->id)}) (into-markup ctx node)))
    :paragraph (partial into-markup [:p])
    :text (fn [_ {:keys [text]}] text)
    :hashtag (fn [_ {:keys [text]}] [:a.tag {:href (str "/tags/" text)} (str "#" text)]) ;; TODO: make it configurable

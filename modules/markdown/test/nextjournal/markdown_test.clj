@@ -68,8 +68,7 @@ some **strong** _assertion_ and a [link]
 (deftest ->hiccup-test
   "ingests markdown returns hiccup"
   (is (= [:div
-          [:h1
-           "Hello"]
+          [:h1 {:id "Hello"} "Hello"]
           [:p
            "some "
            [:strong
@@ -167,8 +166,10 @@ some **strong** _assertion_ and a [link]
 
     (is (= [:div
             [:h1
+             {:id "Title"}
              "Title"]
             [:h2
+             {:id "Section_1"}
              "Section 1"]
             [:div.toc
              [:div
@@ -176,35 +177,44 @@ some **strong** _assertion_ and a [link]
               [:ul
                [:li.toc-item
                 [:div
-                 [:h1
-                  "Title"]
+                 [:a
+                  {:href "#Title"}
+                  [:h1
+                   "Title"]]
                  [:ul
                   [:li.toc-item
                    [:div
-                    [:h2
-                     "Section 1"]
+                    [:a
+                     {:href "#Section_1"}
+                     [:h2
+                      "Section 1"]]
                     nil]]
                   [:li.toc-item
                    [:div
-                    [:h2
-                     "Section 2"]
+                    [:a
+                     {:href "#Section_2"}
+                     [:h2
+                      "Section 2"]]
                     [:ul
                      [:li.toc-item
                       [:div
-                       [:h3
-                        "Section 2.1"]
+                       [:a
+                        {:href "#Section_2.1"}
+                        [:h3
+                         "Section 2.1"]]
                        nil]]]]]]]]]]]
             [:h2
+             {:id "Section_2"}
              "Section 2"]
             [:h3
+             {:id "Section_2.1"}
              "Section 2.1"]]
           hiccup))))
 
 (deftest todo-lists
   (testing "todo lists"
     (is (= [:div
-            [:h1
-             "Todos"]
+            [:h1 {:id "Todos"} "Todos"]
             [:ul.contains-task-list
              [:li
               [:input
@@ -265,8 +275,7 @@ par with #really_nice #useful-123 tags
 
   (testing "rendering tags"
     (is (= [:div
-            [:h1
-             "Hello Tags"]
+            [:h1 {:id "Hello_Tags"} "Hello Tags"]
             [:p
              "par with "
              [:a.tag
