@@ -1,10 +1,12 @@
 (ns nextjournal.markdown.transform
   "transform markdown data as returned by `nextjournal.markdown/parse` into other formats, currently:
-     * hiccup")
+     * hiccup"
+  (:require [lambdaisland.uri.normalize :as uri.normalize]))
 
 ;; helpers
 (defn guard [pred val] (when (pred val) val))
 (defn ->text [{:as _node :keys [text content]}] (or text (apply str (map ->text content))))
+(defn %encode [text] (uri.normalize/percent-encode text :unreserved))
 
 (defn hydrate-toc
   "Scans doc contents and replaces toc node placeholder with the toc node accumulated during parse."
@@ -15,6 +17,8 @@
   (when (string? style)
     (let [[_ alignment] (re-matches #"^text-align:(.+)$" style)]
       (when alignment {:text-align alignment}))))
+
+(defn heading-markup [{l :heading-level}] [(keyword (str "h" (or l 1)))])
 
 ;; into-markup
 (declare ->hiccup)
@@ -27,7 +31,9 @@
 
 (defn toc->hiccup [{:as ctx ::keys [parent]} {:as node heading :node :keys [content]}]
   (cond->> [:div
-            (when heading (->hiccup ctx heading))
+            (when heading
+              [:a {:href (str "#" (%encode (->text heading)))}
+               (-> heading heading-markup (into-markup ctx heading))])
             (when (seq content)
               (into [:ul]
                 (map (partial ->hiccup (assoc ctx ::parent node)))
@@ -39,7 +45,7 @@
 
 (def default-hiccup-renderers
   {:doc (partial into-markup [:div])
-   :heading (fn [ctx {:as node :keys [heading-level]}] (into-markup [(keyword (str "h" heading-level))] ctx node))
+   :heading (fn [ctx node] (-> (heading-markup node) (conj {:id (%encode (->text node))}) (into-markup ctx node)))
    :paragraph (partial into-markup [:p])
    :text (fn [_ {:keys [text]}] text)
    :hashtag (fn [_ {:keys [text]}] [:a.tag {:href (str "/tags/" text)} (str "#" text)]) ;; TODO: make it configurable

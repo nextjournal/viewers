@@ -4,10 +4,7 @@
             [clojure.data.json :as json]
             [nextjournal.markdown.parser :as markdown.parser]
             [nextjournal.markdown.transform :as markdown.transform])
-  (:import [org.graalvm.polyglot Context Context$Builder Engine Source Value]
-           [clojure.lang MapEntry]
-           [java.util Iterator Map]
-           [java.lang Iterable]))
+  (:import [org.graalvm.polyglot Context Context$Builder Engine Source Value]))
 
 (set! *warn-on-reflection* true)
 
