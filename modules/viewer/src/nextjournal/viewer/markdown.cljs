@@ -361,3 +361,15 @@ wird zu
 
 [[toc]]
 "})
+
+(dc/defcard tables
+  "Pipes in tables need to be escaped"
+  [md]
+  [inspect* (viewer @md)]
+  {::dc/state "# Tables
+
+ | Heading 1  | Heading 2
+ | ---------- | ---------
+ | Cell 1     | **Cell 2**
+ | `Cell\\|3` | _Cell 4_
+"})
