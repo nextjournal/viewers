@@ -555,11 +555,12 @@
     [:div.relative {:style {:min-height 360}}
      [:div.absolute.bottom-0.left-0.right-0
       [view {::v/initial-state #(do (activate! state)
-                                    (bar-state/add-to-stack! {:!view-state state}
-                                                             {:category :editor
-                                                              :title "Insert Block"
-                                                              :subcommands/layout :list
-                                                              :subcommands (-> insert-block-commands :editor/insert-block :subcommands)})
+                                    (bar-state/add-to-stack!
+                                      {:!view-state state}
+                                      {:category :editor
+                                       :title "Insert Block"
+                                       :subcommands/layout :list
+                                       :subcommands (-> insert-block-commands :editor/insert-block :subcommands)})
                                     state)}]]]
     (make-devcard-db! {:commands insert-block-commands
                        :props {:categories [:editor]}}))

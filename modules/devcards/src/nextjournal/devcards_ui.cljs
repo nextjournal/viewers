@@ -132,12 +132,10 @@
 
 (v/defview show-main [{::v/keys [state props]
                        :keys [main initial-db initial-state ::dc/class]}]
-  (reagent/with-let [_ (js/console.log :mounting (:name props))])
   (when main
     ;; reset app-db once (using with-let) when the component mounts
     ;; (further actions should not reset the db again)
-    (reagent/with-let [
-                       _ (when (seq initial-db)
+    (reagent/with-let [_ (when (seq initial-db)
                            (reset! (:app-db (rf/current-frame)) initial-db))]
       (let [main (main)
             main (if (fn? main)
