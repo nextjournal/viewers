@@ -554,7 +554,8 @@
   (dc/defcard command-bar-list [state]
     [:div.relative {:style {:min-height 360}}
      [:div.absolute.bottom-0.left-0.right-0
-      [view {::v/initial-state #(do (activate! state)
+      [view {::v/initial-state #(do (swap! state update :stack empty)
+                                    (activate! state)
                                     (bar-state/add-to-stack!
                                       {:!view-state state}
                                       {:category :editor
