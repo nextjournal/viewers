@@ -576,4 +576,17 @@
                                                                                  :subcommands/layout :notebooks
                                                                                  :subcommands (-> notebook-cmds :notebook/open :subcommands)})))}]
               (-> (state/empty-db!)
-                  (commands/register notebook-cmds))))
+                  (commands/register notebook-cmds)))
+
+  (dc/defcard command-bar-mount [db]
+              [:div
+               (when (:commands-available? @db)
+                 [commands/mount {:mount/command-1 {:action #(js/console.log "Command 1 was dispatched!")}
+                                  :mount/command-2 {:action #(js/console.log "Command 2 was dispatched!")}}])
+               [:button.rounded.bg-indigo-600.hover:bg-indigo-700.text-white.px-3.py-2
+                {:on-click #(swap! db update :commands-available? not)}
+                (if (:commands-available? @db)
+                  "Remove commands"
+                  "Add commands")]]
+              {::dc/state (:app-db re-frame.core/default-frame)}))
+
