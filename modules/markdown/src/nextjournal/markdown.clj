@@ -52,15 +52,31 @@
   ([ctx markdown-text] (->> markdown-text parse (markdown.transform/->hiccup ctx))))
 
 (comment
-  (parse "# Hello Markdown 👋
-what _a_ parser with $$\\phi$$ formulas
-- [x] one
-- [ ] two
-[[TOC]]
+  ;; asks markdown-it parser for a sequence of tokens
+  (tokenize "# Title
+- [ ] one
+- [x] two
 ")
 
-  (->hiccup "# Hello Markdown 🔥
-- [x] done
-- [ ] pending
+  ;; parse markdonw into an "AST" of nodes
+  (parse "# Hello Markdown
+- [ ] what
+- [ ] [nice](very/nice/thing)
+- [x] ~~thing~~
+")
 
-![alt](/some/img/)"))
+  ;; default render
+  (->hiccup "# Hello Markdown
+
+What's _going_ on?
+[[TOC]]")
+
+  ;; custom overrides by type
+  (->hiccup
+   (assoc markdown.transform/default-hiccup-renderers
+          :heading (fn [ctx node]
+                     [:h1.some-extra.class
+                      (markdown.transform/into-markup [:span.some-other-class] ctx node)]))
+   "# Hello Markdown
+What's _going_ on?
+"))

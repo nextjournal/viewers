@@ -119,14 +119,12 @@
    (let [{:as node :keys [type]} (cond-> node (= :doc t) hydrate-toc)]
      (if-some [f (guard fn? (get ctx type))]
        (f ctx node)
-       [:div.error.red
-        (str "We don't know how to turn a node of type: '" type "' into hiccup.")]
+       [:span.message.red
+        [:strong (str "Unknown type: '" type "'.")]
+        [:code (pr-str node)]]
        ))))
 
 (comment
-  (clojure.core/some-> fo
-                       abr)
-
   (-> "# Hello
 
 a nice paragraph with sidenotes[^my-note]

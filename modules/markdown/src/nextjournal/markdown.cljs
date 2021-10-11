@@ -22,12 +22,14 @@
   ([ctx markdown-text] (->> markdown-text parse (markdown.transform/->hiccup ctx))))
 
 (comment
+  ;; asks markdown-it parser for a sequence of tokens
   (js/console.log
    (tokenize "# Title
 - [ ] one
 - [x] two
 "))
 
+  ;; parse markdonw into an "AST" of nodes
   (parse "# Hello Markdown
 
 - [ ] what
@@ -35,4 +37,18 @@
 - [x] ~~thing~~
 ")
 
-  (->hiccup "# Hello Markdown\nWhat's _going_ on?"))
+  ;; default render
+  (->hiccup "# Hello Markdown
+
+What's _going_ on?
+[[TOC]]")
+
+  ;; custom overrides by type
+  (->hiccup
+   (assoc markdown.transform/default-hiccup-renderers
+          :heading (fn [ctx node]
+                     [:h1.some-extra.class
+                      (markdown.transform/into-markup [:span.some-other-class] ctx node)]))
+   "# Hello Markdown
+What's _going_ on?
+"))

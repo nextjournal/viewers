@@ -14,6 +14,7 @@
   "
   (:require [clojure.string :as str]
             [nextjournal.markdown.transform :as md.transform]
+            [nextjournal.log :as log]
             #?(:cljs [applied-science.js-interop :as j])))
 
 ;; clj common accessors
@@ -203,6 +204,9 @@ end"
 ;; region token handlers
 (declare apply-tokens)
 (defmulti apply-token (fn [_doc token] (:type token)))
+(defmethod apply-token :default [doc token]
+  (log/warn :apply-token/unknown-type {:token token})
+  doc)
 
 ;; blocks
 (defmethod apply-token "heading_open" [doc token] (open-node doc :heading {} {:heading-level (hlevel token)}))
