@@ -318,7 +318,7 @@ h5, h6 {
 .viewer-markdown a:hover {
   text-decoration: underline;
 }
-.viewer-markdown pre {
+.viewer-code {
   font-size: 0.9rem;
   background: var(--gray-panel-color);
   border-radius: 2px;
@@ -439,6 +439,12 @@ h5, h6 {
   text-align: center;
   margin-top: 0.5rem;
 }
+.viewer-markdown .toc {
+  margin-top: 1rem;
+}
+.viewer-markdown h1 + .toc {
+  margin-top: 2rem;
+}
 .viewer-markdown .toc h1,
 .viewer-markdown .toc h2,
 .viewer-markdown .toc h3,
@@ -467,7 +473,7 @@ h5, h6 {
 .viewer-markdown a:hover {
   text-decoration: underline;
 }
-.viewer-markdown *:first-child {
+.viewer-markdown *:first-child:not(.viewer-code) {
   margin-top: 0;
 }
 .viewer + .viewer {
