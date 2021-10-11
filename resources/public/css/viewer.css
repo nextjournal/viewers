@@ -528,7 +528,7 @@ h5, h6 {
   .sidenote sup {
     display: inline;
   }
-  .viewer-markdown.contains-sidenotes p {
+  .viewer-markdown .contains-sidenotes p {
     max-width: 65%;
   }
   .viewer-markdown p .sidenote {

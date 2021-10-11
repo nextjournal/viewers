@@ -25,7 +25,7 @@
   (assoc md.transform/default-hiccup-renderers
          :doc (fn [ctx {:as doc :keys [sidenotes?]}]
                 (md.transform/into-markup
-                 [:div.viewer.viewer-markdown.w-full.max-w-prose.px-8.overflow-x-auto
+                 [:div
                   {:class (when sidenotes? "contains-sidenotes")
                    :on-click sidenote-click-handler}]
                  ctx
@@ -44,7 +44,8 @@
      :nextjournal/viewer :hiccup}))
 
 (dc/defcard default-markdown
-  [inspect* (viewer "# Markdown Default Rendering
+  [:div.viewer-markdown
+   [inspect* (viewer "# Markdown Default Rendering
 ## Sidenotes
 
 One of the most distinctive features of Tufte’s style is his extensive use of sidenotes.
@@ -90,7 +91,7 @@ $$\\int_{\\omega} \\phi d\\omega$$
 |:-------|:------------------------:|----------------------------------------------:|
 | foo    |  Local_Date_             | goog.date.Date                                |
 | bar    |  java.time.LocalDateTime | $\\bigoplus_{\\alpha < \\omega}\\phi_\\alpha$ |
-")])
+")]])
 
 (dc/defcard dark-mode
   "Provide custom styles to e.g. support dark mode."
@@ -106,16 +107,17 @@ and background if dark mode is enabled in your system."})
 
 (dc/defcard custom-code-eval
   [markdown]
-  [inspect* {:nextjournal/viewer :hiccup
-             :nextjournal/value (->> @markdown
-                                     (md/->hiccup
-                                      (assoc default-renderers
-                                             :code (fn [_ {:as node :keys [language]}]
-                                                     [:div
-                                                      (code-viewer node)
-                                                      (when (= "cljs" language)
-                                                        [:div.viewer-result.mt-3
-                                                         [inspect* (eval-form* (cljs.reader/read-string (md.transform/->text node)))]])]))))}]
+  [:div.viewer-markdown
+   [inspect* {:nextjournal/viewer :hiccup
+              :nextjournal/value (->> @markdown
+                                      (md/->hiccup
+                                       (assoc default-renderers
+                                              :code (fn [_ {:as node :keys [language]}]
+                                                      [:div
+                                                       (code-viewer node)
+                                                       (when (= "cljs" language)
+                                                         [:div.viewer-result.mt-3
+                                                          [inspect* (eval-form* (cljs.reader/read-string (md.transform/->text node)))]])]))))}]]
   {::dc/state "# Custom `.cljs` Code Eval
 
 Overrides the default `:code` renderer to add an extra sci pass for fenced code blocks with a `cljs` language info
@@ -155,7 +157,8 @@ sys.version
 
 (dc/defcard table-of-contents
   [markdown]
-  [inspect* (viewer @markdown) ]
+  [:div.viewer-markdown
+   [inspect* (viewer @markdown)]]
   {::dc/state "# Built-in Table of Contents
 
 [[TOC]]
@@ -191,7 +194,8 @@ Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium dolor
 
 (dc/defcard reference
   [markdown]
-  [inspect* (viewer @markdown) ]
+  [:div.viewer-markdown
+   [inspect* (viewer @markdown)]]
   {::dc/state "# Referenz
 
 ## Absätze
@@ -371,7 +375,8 @@ wird zu
 (dc/defcard tables
   "Pipes in tables need to be escaped"
   [md]
-  [inspect* (viewer @md)]
+  [:div.viewer-markdown
+   [inspect* (viewer @md)]]
   {::dc/state "# Tables
 
  | Heading 1  | Heading 2
