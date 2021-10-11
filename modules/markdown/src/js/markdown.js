@@ -10,18 +10,6 @@ MD.use(blockImage)
 let mdToc = require("markdown-it-toc-done-right")
 MD.use(mdToc)
 
-document.addEventListener("click", function(event) {
-  let a = event.target.closest(".toc a")
-  if (a) {
-    event.preventDefault()
-    let id = a.getAttribute("href").substr(1)
-    let target = document.getElementById(id)
-    if (target) {
-      target.scrollIntoViewIfNeeded()
-    }
-  }
-})
-
 let sidenotes = require("markdown-it-sidenote")
 MD.use(sidenotes)
 

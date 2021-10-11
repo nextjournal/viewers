@@ -40,7 +40,13 @@
 (defn toc->hiccup [{:as ctx ::keys [parent]} {:as node heading :node :keys [content]}]
   (cond->> [:div
             (when heading
-              [:a {:href (str "#" (-> heading ->text ->id))}
+              [:a {:href (str "#" (-> heading ->text ->id))
+                   #?@(:cljs [:on-click (fn [event]
+                                          (when-let [a (.. event -target (closest ".toc a"))]
+                                            (let [id (.. a (getAttribute "href") (substr 1))]
+                                              (when-let [el (.getElementById js/document id)]
+                                                (.preventDefault event)
+                                                (.scrollIntoViewIfNeeded el)))))])}
                (-> heading heading-markup (into-markup ctx heading))])
             (when (seq content)
               (into [:ul]
