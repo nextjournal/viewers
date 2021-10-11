@@ -437,7 +437,7 @@ h5, h6 {
 }
 .viewer-markdown figcaption {
   font-size: 0.8rem;
-  text-align: center;
+  text-align: left;
   margin-top: 0.5rem;
 }
 .viewer-markdown .toc {
