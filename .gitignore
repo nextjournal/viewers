@@ -18,8 +18,8 @@
 .cache
 
 # intellij/cursive
-/*.iml
-/.idea/
+*.iml
+.idea/
 
 # VSCode/Calva
 .calva/

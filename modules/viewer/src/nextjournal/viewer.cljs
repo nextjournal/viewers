@@ -18,7 +18,6 @@
             [clojure.string :as str]
             [sci.impl.vars]))
 
-
 (defn edn-type [tag value]
   (case tag
     var :edn-var
@@ -645,7 +644,106 @@
                     "G_{\\mu\\nu}\\equiv R_{\\mu\\nu} - {\\textstyle 1 \\over 2}R\\,g_{\\mu\\nu} = {8 \\pi G \\over c^4} T_{\\mu\\nu}")])
 
 (dc/defcard viewer-markdown
-  [inspect (view-as :markdown "### Hello Markdown\n\n- a bullet point")])
+  [:div.viewer-markdown
+   [inspect (view-as :markdown "# Supported Markdown
+
+## Paragraphs
+
+To create paragraphs, use a blank line to separate one or more lines of text.
+
+I really like using Markdown.
+
+I think I'll use it to format all of my documents from now on.
+
+## Headings
+
+```
+  # Heading level 1
+  ## Heading level 2
+  ### Heading level 3
+  #### Heading level 4
+  ##### Heading level 5
+  ###### Heading level 6
+```
+
+## Inlines
+
+- I just love **bold text**.
+- Italicized text is the *cat's meow*.
+- This text is ***really important***.
+- My favorite search engine is [Duck Duck Go](https://duckduckgo.com).
+- At the command prompt, type `acme`.
+- This was ~~entirely uninteresting.~~
+- The Dow Jones Industrial Average for February 7, 2006 ![Dow Jones Industrial Average for February 7, 2006](https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Sparkline_dowjones_new.svg/200px-Sparkline_dowjones_new.svg.png).
+
+## Lists
+
+### Ordered
+
+1. First item
+2. Second item
+3. Third item
+  1. Indented item
+  2. Indented item
+4. Fourth item
+
+### Unordered
+
+- First item
+- Second item
+- Third item
+  - Indented item
+  - Indented item
+- Fourth item
+
+### Todo
+
+- [x] First item
+- [x] Second item
+- [ ] Third item
+  - [x] Indented item
+  - [ ] Indented item
+- [ ] Fourth item
+
+## Code Blocks
+
+```json
+{
+  \"firstName\": \"Mecca\",
+  \"lastName\": \"Smith\",
+  \"age\": 25
+}
+```
+
+## Horizontal Rules
+
+---
+
+## Blockquotes
+
+> Dorothy followed her through many of the beautiful rooms in her castle.
+>
+>> The Witch bade her clean the pots and kettles and sweep the floor and keep the fire fed with wood.
+
+## Images
+
+![_An old rock in the desert_, Shiprock, New Mexico, by Beau Rogers](https://live.staticflickr.com/389/31833779864_38b5c9d52e_c_d.jpg)
+
+## Formulas
+
+$$\\int_{\\omega} \\phi d\\omega$$
+
+## Tables
+
+as building hiccup is recursive, we're using the specific viewers for values occurring at any level in the structure
+
+| Syntax |  JVM                     | JavaScript                                    |
+|--------|:------------------------:|----------------------------------------------:|
+|   foo  |  Loca _lDate_ ahoiii     | goog.date.Date                                |
+|   bar  |  java.time.LocalTime     | somethng else entirey                         |
+|   bag  |  java.time.LocalDateTime | $\\bigoplus_{\\alpha < \\omega}\\phi_\\alpha$ |
+
+")]])
 
 (dc/defcard viewer-code
   [inspect (view-as :code "(str (+ 1 2) \"some string\")")])

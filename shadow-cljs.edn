@@ -6,5 +6,4 @@
                     :modules {:viewer {:entries [nextjournal.viewer
                                                  nextjournal.viewer.notebook
                                                  nextjournal.devcards.main]}}
-
                     :js-options {:output-feature-set :es8}}}}
