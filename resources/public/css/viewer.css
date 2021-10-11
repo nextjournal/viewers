@@ -300,8 +300,7 @@ h5, h6 {
 /* Viewers */
 
 .max-w-prose {
-  /*max-width: 46rem !important;*/
-  max-width: 56rem !important;
+  max-width: 46rem !important;
 }
 .max-w-wide {
   max-width: 48rem !important;
@@ -529,7 +528,7 @@ h5, h6 {
   .sidenote sup {
     display: inline;
   }
-  .viewer-markdown p {
+  .viewer-markdown.contains-sidenotes p {
     max-width: 65%;
   }
   .viewer-markdown p .sidenote {

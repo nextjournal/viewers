@@ -23,7 +23,13 @@
 
 (def default-renderers
   (assoc md.transform/default-hiccup-renderers
-         :doc (partial md.transform/into-markup [:div.viewer-markdown {:on-click sidenote-click-handler}])
+         :doc (fn [ctx {:as doc :keys [sidenotes?]}]
+                (md.transform/into-markup
+                 [:div.viewer.viewer-markdown.w-full.max-w-prose.px-8.overflow-x-auto
+                  {:class (when sidenotes? "contains-sidenotes")
+                   :on-click sidenote-click-handler}]
+                 ctx
+                 doc))
          :code (fn [_ctx node] (code-viewer node))
          :todo-item (fn [ctx {:as node :keys [attrs]}]
                       (md.transform/into-markup [:li [:input {:type "checkbox" :default-checked (:checked attrs)}]] ctx node))

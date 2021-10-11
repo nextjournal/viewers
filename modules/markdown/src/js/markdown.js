@@ -15,7 +15,6 @@ MD.use(sidenotes)
 
 // TODO: move to its own requirable (local) package or file
 function todoListPlugin(md, opts) {
-  console.log("using todo list plugin", md)
   const startsWithTodoSequence = (text) => {
     return text.startsWith("[ ] ") || text.startsWith("[x] ")
   }

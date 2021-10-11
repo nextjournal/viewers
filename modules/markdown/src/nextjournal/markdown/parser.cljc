@@ -251,9 +251,9 @@ end"
 ;; footnotes
 (defmethod apply-token "sidenote_ref" [doc token] (push-node doc (sidenote-ref (get-in* token [:meta :id]))))
 (defmethod apply-token "sidenote_anchor" [doc token] doc)
-(defmethod apply-token "sidenote_open" [doc token] (open-node doc :sidenote {:ref (get-in* token [:meta :id])}))
+(defmethod apply-token "sidenote_open" [doc token] (-> doc (assoc :sidenotes? true) (open-node :sidenote {:ref (get-in* token [:meta :id])})))
 (defmethod apply-token "sidenote_close" [doc token] (close-node doc))
-(defmethod apply-token "sidenote_block_open" [doc token] (open-node doc :sidenote {:ref (get-in* token [:meta :id])}))
+(defmethod apply-token "sidenote_block_open" [doc token] (-> doc (assoc :sidenotes? true) (open-node :sidenote {:ref (get-in* token [:meta :id])})))
 (defmethod apply-token "sidenote_block_close" [doc token] (close-node doc))
 
 ;; tables
@@ -382,6 +382,10 @@ $$\\Pi^2$$
 - [x]  some $\\Phi_{\\alpha}$ latext
 - [ ]  bullets
 
+## Sidenotes
+
+here [^mynote] to somewhere
+
 ## Fences
 
 ```py id=\"aaa-bbb-ccc\"
@@ -401,7 +405,9 @@ Hline Section
     import os
     os.listdir('/')
 
-or monospace mark [`real`](/foo/bar) fun
+or monospace mark [`real`](/foo/bar) fun.
+
+[^mynote]: Here you _can_ `explain` at lenght
 "
      nextjournal.markdown/tokenize
      parse
