@@ -557,13 +557,13 @@
                   (commands/register insert-block-commands)))
 
   (dc/defcard command-bar-table
-              [view {::v/initial-state #(-> (make-devcard-state!
-                                              {:categories [:notebook]})
-                                            (doto (swap! bar-state/update-stack {:category           :notebook
-                                                                                 :normalized?        true
-                                                                                 :stack-key          (str (random-uuid))
-                                                                                 :title              "Notebooks"
-                                                                                 :subcommands/layout :notebooks
-                                                                                 :subcommands        (-> notebook-cmds :notebook/open :subcommands)})))}]
+    [view {::v/initial-state #(-> (make-devcard-state!
+                                    {:categories [:notebook]})
+                                  (doto (swap! bar-state/update-stack {:category :notebook
+                                                                       :normalized? true
+                                                                       :stack-key (str (random-uuid))
+                                                                       :title "Notebooks"
+                                                                       :subcommands/layout :notebooks
+                                                                       :subcommands (-> notebook-cmds :notebook/open :subcommands)})))}]
               (-> (state/empty-db!)
                   (commands/register notebook-cmds))))
