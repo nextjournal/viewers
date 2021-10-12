@@ -7,5 +7,4 @@
         nextjournal/viewer {:local/root "../viewer"}
         nextjournal/ui {:local/root "../ui"}
 
-        org.flatland/ordered {:git/url "https://github.com/clj-commons/ordered"
-                              :git/sha "e7afc3da49205727f28e0863aead79b021045b22"}}}
+        org.flatland/ordered {:mvn/version "1.15.10"}}}

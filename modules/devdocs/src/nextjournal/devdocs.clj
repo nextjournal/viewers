@@ -151,27 +151,28 @@
                                               (when (not= "" ts)
                                                 (* (Long/parseLong ts) 1000)))
                             :view [nextjournal.viewer/inspect
-                                   ~(into (v/view-as :clerk/notebook [])
-                                          (mapcat
-                                           (fn [[type & rest]]
-                                             (case type
-                                               :markdown
-                                               [(v/view-as :markdown (str/join "\n" rest))]
-                                               :code
-                                               (cond-> []
-                                                 view-source?
-                                                 (conj (v/view-as :code (str/join "\n" rest)))
-                                                 cljs-eval?
-                                                 (conj (read-string (str/join "\n" rest))))
-                                               :data
-                                               (let [result (first rest)]
-                                                 [`(try
-                                                     (cljs.reader/read-string
-                                                      {:default identity}
-                                                      ~(clerk-view/->edn result))
-                                                     (catch :default e#
-                                                       "Parse error..."))]))))
-                                          blocks)]})))})))))
+                                   ~(v/with-viewer* :clerk/notebook
+                                      (into []
+                                            (mapcat
+                                             (fn [[type & rest]]
+                                               (case type
+                                                 :markdown
+                                                 [(v/with-viewer* :markdown (str/join "\n" rest))]
+                                                 :code
+                                                 (cond-> []
+                                                   view-source?
+                                                   (conj (v/with-viewer* :code (str/join "\n" rest)))
+                                                   cljs-eval?
+                                                   (conj (read-string (str/join "\n" rest))))
+                                                 :data
+                                                 (let [result (first rest)]
+                                                   [`(try
+                                                       (cljs.reader/read-string
+                                                        {:default identity}
+                                                        ~(clerk-view/->edn result))
+                                                       (catch :default e#
+                                                         "Parse error..."))]))))
+                                            blocks))]})))})))))
 
 (defmacro show-card
   "Show an existing devcard, simply pass its fully qualified name, unquoted.

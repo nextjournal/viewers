@@ -4,15 +4,15 @@
         com.nextjournal/devcards {:local/root "../devcards"}
         com.nextjournal/viewer {:local/root "../viewer"}
         com.nextjournal/cljs-extensions {:local/root "../cljs-extensions"}
+        com.nextjournal/markdown {:local/root "../markdown"}
 
         ;; we use shadow-resource directly
-        thheller/shadow-cljs {:mvn/version "2.15.3"}
+        thheller/shadow-cljs {:mvn/version "2.15.12"}
 
         com.nextjournal/clerk {:git/url "git@github.com:nextjournal/clerk"
-                               :git/sha "e65dad1ab9cb5cdcdaf15e6a5ff86796d8708041"}
+                               :git/sha "1f154546380383774e948d1b951e7265e41fa538"}
 
-        metosin/reitit-frontend   {:mvn/version "0.4.2"}
-        com.lambdaisland/deja-fu {:mvn/version "0.0.26"}
+        metosin/reitit-frontend   {:mvn/version "0.5.15"}
+        com.lambdaisland/deja-fu {:mvn/version "0.3.33"}
         com.lambdaisland/shellutils {:mvn/version "0.0.10"}
-        org.flatland/ordered {:git/url "https://github.com/clj-commons/ordered"
-                              :git/sha "e7afc3da49205727f28e0863aead79b021045b22"}}}
+        org.flatland/ordered {:mvn/version "1.15.10"}}}

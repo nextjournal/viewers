@@ -1,2 +1,2 @@
 {:paths ["src" "resources" "docs"]
- :deps {com.nextjournal/devdocs {:local/root "../devdocs"}}}
+ :deps {com.nextjournal/devdocs {:local/root "../../modules/devdocs"}}}
