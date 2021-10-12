@@ -6,7 +6,10 @@
             [clojure.java.io :as io]
             [clojure.java.shell :as sh]
             [clojure.string :as str]
+            [clojure.walk :as walk]
             [lambdaisland.shellutils :as shellutils]
+            [nextjournal.markdown :as markdown]
+            [nextjournal.markdown.transform :as mark-trans]
             [nextjournal.clerk :as clerk]
             [nextjournal.clerk.view :as clerk-view]
             [nextjournal.clerk.viewer :as v]
@@ -20,58 +23,34 @@
       (str/trim)
       (str/replace " " "-")))
 
-(defn- split-markdown
-  "Split markdown into code blocks and regular markdown blocks, returns a
-  collection of `[:code strings...]` and `[:markdown string...]`."
-  [lines]
-  (loop [[line & lines] lines
-         in-code? false
-         result []
-         current-block [:markdown]]
-    (if line
-      (if (re-find #"^ *```" line)
-        (recur lines
-               (not in-code?)
-               (conj result current-block)
-               [(if in-code? :markdown :code)])
-        (recur lines
-               in-code?
-               result
-               (conj current-block line)))
-      (conj result current-block))))
+(defn render-clerk [file]
+  (let [evaled (clerk/eval-file file)]
+    {:toc (->> evaled
+               (filter (comp #{:markdown} :type))
+               (map :text)
+               str/join
+               markdown/parse
+               :toc)
+     :view `[nextjournal.clerk.sci-viewer/inspect
+             '~(->> evaled
+                    (clerk-view/doc->viewer {:inline-results? true})
+                    (walk/prewalk clerk-view/make-printable))]}))
 
-(defn md->toc
-  "Naively find header lines in the markdown, and return a nested ToC structure
-  accordingly. Returns nested map of `:level`/`:title`/`:children`"
-  [blocks]
-  (let [headers (mapcat
-                 (fn [[type & lines]]
-                   (when (= :markdown type)
-                     (filter #(.startsWith % "#") lines)))
-                 blocks)
-        update-last-child (fn [m f & args]
-                            (let [m (if (empty? (:children m))
-                                      (update m :children conj {:children []})
-                                      m)]
-                              (apply update-in m
-                                     [:children (dec (count (:children m)))]
-                                     f args)))
-        update-level (fn update-level [m lvl f & args]
-                       (if (= lvl 1)
-                         (apply f m args)
-                         (apply update-last-child m
-                                update-level (dec lvl) f args)))]
-    (reduce
-     (fn [res [level title]]
-       (update-level res level
-                     update :children
-                     conj {:level level
-                           :title title
-                           :children []}))
-     {:children []}
-     (for [header headers
-           :let [level (count (re-find #"^#+" header))]]
-       [level (str/trim (subs header level))]))))
+(defn render-markdown [markdown {:keys [cljs-eval? view-source?]}]
+  (let [default-code (:code mark-trans/default-hiccup-renderers)
+        parsed (markdown/parse markdown)]
+    {:toc (:toc parsed)
+     :view [:div.flex.flex-col.items-center.viewer-notebook
+            (mark-trans/->hiccup
+             (assoc mark-trans/default-hiccup-renderers :code
+                    (fn [ctx node]
+                      [:<>
+                       (when view-source?
+                         (default-code ctx node))
+                       `[nextjournal.viewer/inspect
+                         ~(when cljs-eval?
+                            (read-string (get-in node [:content 0 :text])))]]))
+             parsed)]}))
 
 (defmacro devdoc-collection
   "Create a Devdoc Collection out of a set of Markdown documents
@@ -92,7 +71,8 @@
      :or {cljs-eval? false
           view-source? true
           clerk? false
-          resource? true}}
+          resource? true}
+     :as opts}
     paths]
    ;; Not pretty but it means we can run and inline notebooks as part of a
    ;; `shadow-cljs release`. It might be cleaner to move to a separate build
@@ -120,21 +100,12 @@
                                                               path))
                               file (shellutils/relativize (shellutils/canonicalize "")
                                                           file)
-                              blocks (if clerk?
-                                       (mapcat (fn [{:keys [type text result]}]
-                                                 (case type
-                                                   :markdown
-                                                   [[:markdown text]]
-                                                   :code
-                                                   [[:code text]
-                                                    [:data result]]))
-                                               (clerk/eval-file path))
-                                       (-> path
-                                           (->> (shadow-resource/slurp-resource &env))
-                                           (str/split #"\R")
-                                           split-markdown))
-                              toc (md->toc blocks)
-                              title (or (get-in toc [:children 0 :title])
+                              {:keys [toc view]} (if clerk?
+                                                   (render-clerk path)
+                                                   (render-markdown
+                                                    (shadow-resource/slurp-resource &env path)
+                                                    opts))
+                              title (or (get-in toc [:content 0 :title])
                                         (-> path
                                             shellutils/basename
                                             shellutils/strip-ext
@@ -150,29 +121,7 @@
                             :last-modified ~(let [ts (str/trim (:out (sh/sh "git" "log" "-1" "--format=%ct" (str file))))]
                                               (when (not= "" ts)
                                                 (* (Long/parseLong ts) 1000)))
-                            :view [nextjournal.viewer/inspect
-                                   ~(v/with-viewer* :clerk/notebook
-                                      (into []
-                                            (mapcat
-                                             (fn [[type & rest]]
-                                               (case type
-                                                 :markdown
-                                                 [(v/with-viewer* :markdown (str/join "\n" rest))]
-                                                 :code
-                                                 (cond-> []
-                                                   view-source?
-                                                   (conj (v/with-viewer* :code (str/join "\n" rest)))
-                                                   cljs-eval?
-                                                   (conj (read-string (str/join "\n" rest))))
-                                                 :data
-                                                 (let [result (first rest)]
-                                                   [`(try
-                                                       (cljs.reader/read-string
-                                                        {:default identity}
-                                                        ~(clerk-view/->edn result))
-                                                       (catch :default e#
-                                                         "Parse error..."))]))))
-                                            blocks))]})))})))))
+                            :view ~view})))})))))
 
 (defmacro show-card
   "Show an existing devcard, simply pass its fully qualified name, unquoted.
