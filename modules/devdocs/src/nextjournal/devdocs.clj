@@ -51,7 +51,7 @@
         parsed (markdown/parse markdown)]
     {:toc (:toc parsed)
      :view [:div.flex.flex-col.items-center.viewer-notebook
-            [:div.viewer-markdown
+            [:div.viewer.viewer-markdown.w-full.max-w-prose.px-8.overflow-x-auto
              (mark-trans/->hiccup
               (assoc mark-trans/default-hiccup-renderers :code
                      (fn [ctx node]
