@@ -51,16 +51,17 @@
         parsed (markdown/parse markdown)]
     {:toc (:toc parsed)
      :view [:div.flex.flex-col.items-center.viewer-notebook
-            (mark-trans/->hiccup
-             (assoc mark-trans/default-hiccup-renderers :code
-                    (fn [ctx node]
-                      [:<>
-                       (when view-source?
-                         (default-code ctx node))
-                       `[nextjournal.viewer/inspect
-                         ~(when cljs-eval?
-                            (read-string (mark-trans/->text node)))]]))
-             parsed)]}))
+            [:div.viewer-markdown
+             (mark-trans/->hiccup
+              (assoc mark-trans/default-hiccup-renderers :code
+                     (fn [ctx node]
+                       [:<>
+                        (when view-source?
+                          (default-code ctx node))
+                        `[nextjournal.viewer/inspect
+                          ~(when cljs-eval?
+                             (read-string (mark-trans/->text node)))]]))
+              parsed)]]}))
 
 (defmacro devdoc-collection
   "Create a Devdoc Collection out of a set of Markdown documents

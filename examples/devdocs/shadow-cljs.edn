@@ -1,5 +1,5 @@
 {:deps true
- :dev-http {7799 ["classpath:public" "public"]}
+ :dev-http {7799 ["classpath:public" "public" "../../resources/public"]}
  :builds
  {:main
   {:target :browser
