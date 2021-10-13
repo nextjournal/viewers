@@ -1,5 +1,6 @@
 (ns nextjournal.devdocs-demo
   (:require [nextjournal.devdocs :as devdocs :refer [devdoc-collection show-card]]
+            [nextjournal.devdocs.routes :as routes]
             [reitit.frontend :as rf]
             [reitit.frontend.history :as rfh]
             [reitit.frontend.easy :as rfe]
@@ -23,7 +24,7 @@
  [{:path "docs/clerk.clj"}])
 
 (defonce router
-  (rf/router devdocs/default-routes))
+  (rf/router routes/routes))
 
 (defonce match (reagent/atom nil))
 
@@ -31,8 +32,8 @@
   (let [{:keys [data path-params] :as match} @match]
     [:div.flex.h-screen.bg-white
      [:div.h-screen.overflow-y-auto.flex-auto.devcards-content.bg-gray-50
-      (if-let [view (:view data)]
-        [view (merge data path-params)]
+      (if-let [view (get routes/views (:view data))]
+        [view (devdocs/view-data match)]
         [:pre (pr-str match)])]]))
 
 (defn ^:export ^:dev/after-load init []

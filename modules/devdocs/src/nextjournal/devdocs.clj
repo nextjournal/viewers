@@ -6,6 +6,8 @@
             [clojure.java.io :as io]
             [clojure.java.shell :as sh]
             [clojure.string :as str]
+            [clojure.tools.reader :as reader]
+            [clojure.tools.reader.reader-types :as readers]
             [clojure.walk :as walk]
             [lambdaisland.shellutils :as shellutils]
             [nextjournal.markdown :as markdown]
@@ -35,9 +37,22 @@
                markdown/parse
                :toc)
      :view `[nextjournal.clerk.sci-viewer/inspect
-             '~(->> evaled
-                    (clerk-view/doc->viewer {:inline-results? true})
-                    (walk/prewalk clerk-view/make-printable))]}))
+             (try
+               (cljs.reader/read-string
+                {:default identity}
+                ~(->> evaled
+                      (clerk-view/doc->viewer {:inline-results? true})
+                      (walk/prewalk clerk-view/make-printable)
+                      clerk-view/->edn))
+               (catch :default e#
+                 "Parse error..."))]}))
+
+(defn read-cljs-form [&env s]
+  (binding [*ns* (create-ns (:name (:ns &env)))
+            reader/*alias-map* (apply merge
+                                      ((juxt :requires :require-macros)
+                                       (:ns &env)))]
+    (reader/read-string s)))
 
 (defn render-markdown
   "Takes a markdown string, returns a `:toc` based on the headers in the markdown,
@@ -46,7 +61,7 @@
   blocks themselves are rendered, if `:cljs-eval?` is true then their code is
   inlined into the ClojureScript build. The result is rendered inline
   via [[nextjournal.viewer/inspect]]. Both can be true."
-  [markdown {:keys [cljs-eval? view-source?]}]
+  [&env markdown {:keys [cljs-eval? view-source?]}]
   (let [default-code (:code mark-trans/default-hiccup-renderers)
         parsed (markdown/parse markdown)]
     {:toc (:toc parsed)
@@ -60,7 +75,7 @@
                           (default-code ctx node))
                         `[nextjournal.viewer/inspect
                           ~(when cljs-eval?
-                             (read-string (mark-trans/->text node)))]]))
+                             (read-cljs-form &env (mark-trans/->text node)))]]))
               parsed)]]}))
 
 (defmacro devdoc-collection
@@ -89,50 +104,49 @@
    ;; `shadow-cljs release`. It might be cleaner to move to a separate build
    ;; step which just handles Clerk and writes EDN to disk, and pick that up
    ;; here.
-   (let [coll-id (or slug (slugify name))]
-     (if (and clerk? (System/getenv "NJ_DEVDOCS_EXCLUDE_CLERK"))
-       `(do)
-       `(swap! registry
-               assoc
-               ~coll-id
-               {:id ~coll-id
-                :title ~name
-                :clerk? ~clerk?
-                :cljs-eval? ~cljs-eval?
-                :devdocs
-                ~(vec (for [{:keys [path slug]} paths
-                            :let [exists? (or (and resource? (io/resource path))
-                                              (.exists (io/file path)))
-                                  _ (when (not exists?)
-                                      (println "WARN: Devdoc devdoc not found: " path))]
-                            :when exists?]
-                        (let [file (shellutils/canonicalize (if resource?
-                                                              (io/resource path)
-                                                              path))
-                              file (shellutils/relativize (shellutils/canonicalize "")
-                                                          file)
-                              {:keys [toc view]} (if clerk?
-                                                   (render-clerk path)
-                                                   (render-markdown
-                                                    (shadow-resource/slurp-resource &env path)
-                                                    opts))
-                              title (or (get-in toc [:content 0 :title])
-                                        (-> path
-                                            shellutils/basename
-                                            shellutils/strip-ext
-                                            (str/replace #"[-_]" " ")
-                                            str/capitalize))
-                              devdoc-id (or slug (slugify title))]
-                          `{:id ~devdoc-id
-                            :toc ~toc
-                            :title ~title
-                            :path ~(str file)
-                            :collection-id ~coll-id
-                            :file-size ~(.length file)
-                            :last-modified ~(let [ts (str/trim (:out (sh/sh "git" "log" "-1" "--format=%ct" (str file))))]
-                                              (when (not= "" ts)
-                                                (* (Long/parseLong ts) 1000)))
-                            :view ~view})))})))))
+   (let [collection-id (or slug (slugify name))]
+     `(swap! registry
+             assoc
+             ~collection-id
+             {:id ~collection-id
+              :title ~name
+              :clerk? ~clerk?
+              :cljs-eval? ~cljs-eval?
+              :devdocs
+              ~(vec (for [{:keys [path slug] :as path-opts} paths
+                          :let [exists? (or (and resource? (io/resource path))
+                                            (.exists (io/file path)))
+                                _ (when (not exists?)
+                                    (println "WARN: Devdoc devdoc not found: " path))]
+                          :when exists?]
+                      (let [file (shellutils/canonicalize (if resource?
+                                                            (io/resource path)
+                                                            path))
+                            file (shellutils/relativize (shellutils/canonicalize "")
+                                                        file)
+                            {:keys [toc view]} (if clerk?
+                                                 (render-clerk path)
+                                                 (render-markdown
+                                                  &env
+                                                  (shadow-resource/slurp-resource &env path)
+                                                  (merge opts path-opts)))
+                            title (or (get-in toc [:content 0 :title])
+                                      (-> path
+                                          shellutils/basename
+                                          shellutils/strip-ext
+                                          (str/replace #"[-_]" " ")
+                                          str/capitalize))
+                            devdoc-id (or slug (slugify title))]
+                        `{:id ~devdoc-id
+                          :toc ~toc
+                          :title ~title
+                          :path ~(str file)
+                          :collection-id ~collection-id
+                          :file-size ~(.length file)
+                          :last-modified ~(let [ts (str/trim (:out (sh/sh "git" "log" "-1" "--format=%ct" (str file))))]
+                                            (when (not= "" ts)
+                                              (* (Long/parseLong ts) 1000)))
+                          :view ~view})))}))))
 
 (defmacro show-card
   "Show an existing devcard, simply pass its fully qualified name, unquoted.
