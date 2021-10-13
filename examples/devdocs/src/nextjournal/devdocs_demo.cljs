@@ -9,7 +9,8 @@
 (devdoc-collection
  "Simple"
  {:slug "simple" :cljs-eval? false :view-source? true}
- [{:path "simple.md"}])
+ [{:path "simple.md"}
+  {:path "reference.md"}])
 
 (devdoc-collection
  "Frontend"
