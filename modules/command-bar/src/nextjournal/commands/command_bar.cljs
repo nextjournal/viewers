@@ -21,6 +21,12 @@
             [goog.dom :as gdom]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; icons
+(def chevron-right
+  [:svg {:width 15 :height 15 :xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 20 20" :fill "currentColor"}
+   [:path {:fill-rule "evenodd" :d "M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" :clip-rule "evenodd"}]])
+
 ;; ui helpers
 (def fmt-date-time "MMM dd yyyy, HH:mm")
 
@@ -101,9 +107,7 @@
                (string? title) (fuzzy/highlight-chars (:fuzzy/chars command))
                (fn? view) (->> (view context)))
       (when (:subcommands command)
-        [icon/view "ChevronRight" {:size 14
-                                   :class "fill-current ml-3 "
-                                   :style {:margin "-1px 0 0 0"}}])]
+        chevron-right)]
      [:div.text-right.whitespace-nowrap.inter
       {:style {:color "rgba(255,255,255,.6)"
                :font-size 11}}
@@ -188,10 +192,6 @@
               :color "rgba(255,255,255,.7)"}
       :class (if disabled? "opacity-50 pointer-events-none " "cursor-pointer ")
       :on-click #(commands/eval-command command)}
-     [:td.pl-4.py-1
-      {:style {:width 30}}
-      (when (= visibility :article.visibility/private)
-        [icon/view "Lock" {:class "fill-current"}])]
      [:td.py-1.text-right
       {:style {:width 120}}
       (format-util-date published-at "MMM dd yyyy")]
@@ -216,9 +216,9 @@
       [:div.flex.items-center.border-b.w-full.uppercase
        {:style {:font-size 10
                 :color "rgba(255,255,255,.7)"
-                :border-color "rgba(255,255,255,.05)"}}
-       [:div.pl-4.py-1 {:style {:width 30}}
-        [icon/view "Lock" {:class "fill-current"}]]
+                :border-color "rgba(255,255,255,.05)"
+                :height 28}}
+
        [:div.py-1.text-right {:style {:width 120}}
         "Last published"]
        [:div.py-1.text-right {:style {:width 120}}
@@ -329,7 +329,7 @@
                               (when on-expose (on-expose (:context item) item))
                               (when on-dispose (on-dispose (:context item) item))))}
                     label
-                    [icon/view "ChevronRight" {:size 12 :class "fill-current"}]]))
+                    chevron-right]))
            [:input.outline-none.nj-commands-input
             {:value (bar-state/get-query @!view-state)
              :auto-complete "off"
@@ -543,7 +543,7 @@
         (commands/register (merge formatting-commands insert-block-commands editor-commands run-commands))))
 
   (dc/defcard command-bar-list
-    [:div.relative {:style {:min-height 360}}
+    [:div.relative {:style {:min-height 350}}
      [:div.absolute.bottom-0.left-0.right-0
       [view {::v/initial-state #(-> (make-devcard-state!
                                       {:categories [:editor]})
