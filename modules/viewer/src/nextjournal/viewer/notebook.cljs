@@ -27,7 +27,8 @@
                                      :wide "w-full max-w-wide px-8"
                                      :full "w-full"
                                      "w-full max-w-prose px-8 overflow-x-auto")]}
-                     (cond-> [v/inspect %] (:blob/id %) (vary-meta assoc :key (:blob/id %)))]))) xs)))
+                     (cond-> [v/inspect %] (:blob/id %) (vary-meta assoc :key (:blob/id %)))])))
+          xs)))
 
 (defn var [x]
   (v/html [:span.inspected-value
@@ -153,7 +154,9 @@
                        :allow :all}
              :bindings {'atom ratom/atom}
              :namespaces {'nextjournal.viewer sci-viewer-namespace
-                          'v sci-viewer-namespace}}))
+                          'v sci-viewer-namespace
+                          'nextjournal.markdown {'parse nextjournal.markdown/parse
+                                                 '->hiccup nextjournal.markdown/->hiccup}}}))
 
 
 (defn eval-form [f]
@@ -177,10 +180,22 @@
 ## Paragraphs
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum velit nulla,
 sodales eu lorem ut, [tincidunt consectetur](https://nextjournal.com/) diam. Donec in scelerisque risus.
-Suspendisse potenti. Nunc non hendrerit odio, at malesuada erat. Aenean rutrum quam
+Suspendisse potenti. Nunc non hendrerit[^1] odio, at malesuada erat. Aenean rutrum quam
 **sed velit mollis** imperdiet. Sed lacinia quam eget tempor tempus. Mauris et leo ac
-odio condimentum facilisis eu sed nibh. _Morbi sed est sit amet_ risus blandit
+odio[^longnote] condimentum facilisis eu sed nibh. _Morbi sed est sit amet_ risus blandit
 ullam corper. Pellentesque nisi metus, ~~feugiat sed velit ut~~, dignissim finibus urna.
+
+[^1]: Here is a sidenote.
+
+[^1]: Here’s a sidenote.
+[^longnote]: And here's one with multiple blocks.
+
+    Subsequent paragraphs are indented to show that they belong to the previous footnote.
+
+    ```
+      {:x [1 6 3 1]
+       :y [4 1 2 5]}
+    ```
 
 ## Lists
 

@@ -33,6 +33,10 @@ body {
 .monospace {
   font-family: var(--code-font);
 }
+.inter {
+  font-family: var(--inter-font);
+}
+
 /* Colors */
 /* --------------------------------------------------------------- */
 
@@ -45,8 +49,7 @@ body {
   --dark-blue-60-color: rgba(28, 42, 56, 0.6);
   --gray-panel-color: rgba(239, 241, 245, 1.000);
   --brand-color: var(--dark-blue-color);
-  --tw-text-opacity: 1;
-  --tw-border-opacity: 1;
+  --link-color: #5046e4;
 }
 
 .border-color-teal { border-color: var(--dark-teal-color); }
@@ -59,7 +62,6 @@ body {
 .border-dark-blue-30 { border-color: rgba(28, 42, 56, 0.6); }
 .text-brand { color: var(--dark-blue-color); }
 .bg-brand { background: var(--dark-blue-color); }
-.bg-selected { background: var(--teal-color); }
 .text-selected { color: white; }
 .red { color: var(--red-color); }
 
@@ -321,7 +323,8 @@ h5, h6 {
 .viewer-markdown a:hover {
   text-decoration: underline;
 }
-.viewer-markdown pre {
+.viewer-code {
+  font-size: 0.9rem;
   background: var(--gray-panel-color);
   border-radius: 2px;
   padding: 1rem;
@@ -348,12 +351,11 @@ h5, h6 {
   border-top: 2px solid rgba(0,0,0,.2);
 }
 .viewer-markdown ol {
-  counter-reset: ol-counter;
-  list-style: none;
+  list-style-type: decimal;
+
 }
-.viewer-markdown ol li::before {
-  content: counters(ol-counter, ".") ". ";
-  counter-increment: ol-counter;
+.viewer-markdown ol li > p {
+  display: inline;
 }
 .viewer-markdown li {
   position: relative;
@@ -361,7 +363,12 @@ h5, h6 {
   display: block;
 }
 .viewer-markdown ol li {
+  display: list-item;
   margin-left: 0;
+  margin-top: 0.25rem;
+}
+.viewer-markdown > div > ol > li {
+  margin-left: 1.2rem;
 }
 .viewer-markdown .contains-task-list li {
   margin-left: 0;
@@ -381,6 +388,10 @@ h5, h6 {
   border: 1px solid #d1d5db;
   position: relative;
   top: 0.16rem;
+}
+.contains-task-list li p {
+  display: inline;
+  margin: 0;
 }
 .viewer-markdown .contains-task-list input[type="checkbox"]:checked {
   border-color: #4f46e5;
@@ -426,7 +437,49 @@ h5, h6 {
   text-align: left;
   background-color: #f3f4f6;
 }
-.viewer-markdown *:first-child {
+.viewer-markdown figure {
+  margin-top: 1rem;
+}
+.viewer-markdown figcaption {
+  font-size: 0.8rem;
+  text-align: left;
+  margin-top: 0.5rem;
+}
+.viewer-markdown .toc {
+  margin-top: 1rem;
+}
+.viewer-markdown h1 + .toc {
+  margin-top: 2rem;
+}
+.viewer-markdown .toc h1,
+.viewer-markdown .toc h2,
+.viewer-markdown .toc h3,
+.viewer-markdown .toc h4,
+.viewer-markdown .toc h5,
+.viewer-markdown .toc h6 {
+  font-size: inherit;
+  font-weight: normal;
+  font-family: var(--sans-serif-font);
+}
+.viewer-markdown .toc ul {
+  list-style: none;
+}
+.viewer-markdown .toc ul ul {
+  margin-left: 1rem;
+}
+.viewer-markdown .toc li {
+  margin-left: 0;
+}
+.viewer-markdown .toc li::before {
+  display: none;
+}
+.viewer-markdown a {
+  color: var(--link-color);
+}
+.viewer-markdown a:hover {
+  text-decoration: underline;
+}
+.viewer-markdown *:first-child:not(.viewer-code) {
   margin-top: 0;
 }
 .viewer + .viewer {
@@ -439,6 +492,65 @@ h5, h6 {
 @media (min-width: 960px){
   .viewer-notebook .viewer-code {
     padding: 1rem 0 1rem 3rem;
+  }
+}
+
+/* Sidenotes */
+
+.sidenote-ref {
+  top: -3px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 1em;
+  background: rgba(0,0,0,.1);
+  border: 1px solid rgba(0,0,0,.3);
+  margin: 0 0 0 4px;
+  cursor: pointer;
+}
+.sidenote-ref:hover {
+  border-color: rgba(0,0,0,.4);
+  background-color: rgba(0,0,0,.15);
+}
+.sidenote {
+  display: none;
+  float: left;
+  clear: both;
+  margin: 1rem 2.5%;
+  font-size: 0.8rem;
+  position: relative;
+  width: 95%;
+}
+.sidenote-ref.expanded + .sidenote {
+  display: block;
+}
+@media (min-width: 860px) {
+  .sidenote-ref {
+    top: -0.5em;
+    width: auto;
+    height: auto;
+    display: inline;
+    border: 0;
+    background: transparent;
+    margin: 0;
+    pointer-events: none;
+  }
+  .sidenote sup {
+    display: inline;
+  }
+  .viewer-markdown .contains-sidenotes p {
+    max-width: 65%;
+  }
+  .viewer-markdown p .sidenote {
+    margin-right: -54%;
+    margin-top: 0.2rem;
+    width: 50%;
+    float: right;
+    clear: right;
+    position: relative;
+    display: block;
   }
 }
 .viewer-code + .viewer:not(.viewer-markdown):not(.viewer-code) {
@@ -461,8 +573,4 @@ h5, h6 {
 .nj-context-menu-item:hover:not([disabled]) {
   background-color: rgba(255,255,255,.14);
   cursor: pointer;
-}
-
-.inter {
-  font-family: var(--inter-font);
 }
