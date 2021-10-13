@@ -59,7 +59,7 @@
                          (default-code ctx node))
                        `[nextjournal.viewer/inspect
                          ~(when cljs-eval?
-                            (read-string (get-in node [:content 0 :text])))]]))
+                            (read-string (mark-trans/->text node)))]]))
              parsed)]}))
 
 (defmacro devdoc-collection
