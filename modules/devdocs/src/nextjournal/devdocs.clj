@@ -73,9 +73,9 @@
                        [:<>
                         (when view-source?
                           (default-code ctx node))
-                        `[nextjournal.viewer/inspect
-                          ~(when cljs-eval?
-                             (read-cljs-form &env (mark-trans/->text node)))]]))
+                        (when cljs-eval?
+                          `[nextjournal.viewer/inspect
+                            ~(read-cljs-form &env (mark-trans/->text node))])]))
               parsed)]]}))
 
 (defmacro devdoc-collection
