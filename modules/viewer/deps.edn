@@ -1,9 +1,9 @@
 {:paths ["src"]
  :deps  {io.github.nextjournal/clojure-mode {:git/sha "a83c87cd2bd2049b70613f360336a096d15c5518"}
-         nextjournal/cljs-extensions {:local/root "../cljs-extensions"}
-         nextjournal/markdown        {:local/root "../markdown"}
-         nextjournal/log             {:local/root "../log"}
-         nextjournal/devcards        {:local/root "../devcards"}
+         io.github.nextjournal/cljs-extensions {:local/root "../cljs-extensions"}
+         io.github.nextjournal/markdown        {:local/root "../markdown"}
+         io.github.nextjournal/log             {:local/root "../log"}
+         io.github.nextjournal/devcards        {:local/root "../devcards"}
 
          borkdude/sci                {:mvn/version "0.2.4"}
          applied-science/js-interop  {:mvn/version "0.2.6"}

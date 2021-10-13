@@ -2,7 +2,8 @@
  :deps {io.github.nextjournal/viewer {:local/root "modules/viewer"}
         io.github.nextjournal/inspector {:local/root "modules/inspector"}
         io.github.nextjournal/devcards {:local/root "modules/devcards"}
-        io.github.nextournal/markdown {:local/root "modules/markdown"}}
+        io.github.nextjournal/markdown {:local/root "modules/markdown"}
+        io.github.nextjournal/devdocs {:local/root "modules/devdocs"}}
 
  :aliases
  {:shadow {:extra-deps {thheller/shadow-cljs {:mvn/version "2.15.3"}
