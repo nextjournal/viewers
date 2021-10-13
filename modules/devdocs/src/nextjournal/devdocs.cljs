@@ -144,7 +144,7 @@
          (into [sidebar-content options] content))])))
 
 ;; :devdocs/index
-(defn devdocs-index-view [match]
+(defn index-view [match]
   [:div.flex.h-screen
    (for! [{:keys [id title devdocs]} (vals @registry)
           :into [sidebar {:title "Inhalte"}]]
@@ -174,7 +174,8 @@
               :into [:div]]
          [:div.mt-4.ml-4
           [:a.hover:underline.text-indigo-900.font-bold
-           {:href (rfe/href :devdocs/devdoc {:collection id :devdoc devdoc-id}) :title (:path devdoc)} title]
+           {:data-ids (pr-str {:collection id :devdoc devdoc-id})
+            :href (rfe/href :devdocs/devdoc {:collection id :devdoc devdoc-id}) :title (:path devdoc)} title]
           (when-let [ts (:last-modified devdoc)]
             [:p.text-xs.text-gray-500.mt-1
              (-> ts
@@ -189,7 +190,7 @@
              (interpose [:span.text-gray-500 " / "]))))
 
 ;; :devdocs/collection
-(defn devdocs-collection-view [{:keys [collection]}]
+(defn collection-view [{:keys [collection]}]
   (let [{:keys [id title devdocs clerk? cljs-eval?] :as collection} (get @registry collection)]
     [:div.flex.h-screen
      [sidebar {:title title
@@ -225,9 +226,8 @@
 (defn- return [pred]
   (fn [val] (when (pred val) val)))
 
-
 ;; :devdocs/devdoc
-(defn devdocs-devdoc-view [{:keys [collection devdoc fragment]}]
+(defn devdoc-view [{:keys [collection devdoc fragment] :as data}]
   (let [{:keys [id title devdocs]} (get @registry collection)
         devdoc (some (return (comp #{devdoc} :id)) devdocs)]
     [:div.flex.h-screen
@@ -267,20 +267,12 @@
                          devdocs)}))
            (vals @registry)))})
 
-(def default-routes
-  ["/docs"
-   ["/"
-    {:name :devdocs/index
-     :view devdocs-index-view}]
-   ["/:collection"
-    {:name :devdocs/collection
-     :view devdocs-collection-view}]
-   ["/:collection/:devdoc"
-    {:name :devdocs/devdoc
-     :view devdocs-devdoc-view}]
-   ["/:collection/:devdoc/:fragment"
-    {:name :devdocs/fragment
-     :view devdocs-devdoc-view}]])
+(defn view-data
+  "Get the view and and path-params data from a reitit match. Pass this to the
+  view functions above."
+  [match]
+  (let [{:keys [data path-params]} match]
+    (merge data path-params)))
 
 (comment
   (first (vals @registry))
