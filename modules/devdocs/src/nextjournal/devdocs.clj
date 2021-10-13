@@ -1,5 +1,5 @@
 (ns nextjournal.devdocs
-  "Embedded Markdown documentation
+  "Embedded Markdown documentation and pre-built Clerk notebooks.
 
   See [[devdoc-collection]]."
   (:require [cljs.env :as env]
@@ -23,7 +23,10 @@
       (str/trim)
       (str/replace " " "-")))
 
-(defn render-clerk [file]
+(defn render-clerk
+  "Takes the path to a Clerk notebook, returns a `:toc` based on the headers in
+  the markdown comments, and a `:view` (Hiccup)."
+  [file]
   (let [evaled (clerk/eval-file file)]
     {:toc (->> evaled
                (filter (comp #{:markdown} :type))
@@ -36,7 +39,14 @@
                     (clerk-view/doc->viewer {:inline-results? true})
                     (walk/prewalk clerk-view/make-printable))]}))
 
-(defn render-markdown [markdown {:keys [cljs-eval? view-source?]}]
+(defn render-markdown
+  "Takes a markdown string, returns a `:toc` based on the headers in the markdown,
+  and a `:view` (Hiccup). The options `:cljs-eval?` and `:view-source?`
+  determine how code blocks are rendered. If `:view-source?` is true the code
+  blocks themselves are rendered, if `:cljs-eval?` is true then their code is
+  inlined into the ClojureScript build. The result is rendered inline
+  via [[nextjournal.viewer/inspect]]. Both can be true."
+  [markdown {:keys [cljs-eval? view-source?]}]
   (let [default-code (:code mark-trans/default-hiccup-renderers)
         parsed (markdown/parse markdown)]
     {:toc (:toc parsed)
@@ -128,7 +138,7 @@
 
   For use inside devdoc markdown files with `:cljs-eval? true`
 
-  Make sure the care is loaded before it's referenced, by requiring the
+  Make sure the card is loaded before it's referenced, by requiring the
   namespace where it's defined, if necessary.
 
   A second `opts` argument will be merged with the cards map. It can be used
@@ -144,6 +154,8 @@
      `[nextjournal.devcards-ui/show-card (merge (get-in @dc/registry [~(namespace card-name) ~(name card-name)]) ~opts)]
      (merge {:nextjournal/viewer :reagent} (meta &form)))))
 
-(defmacro only-on-ci [& body]
+(defmacro only-on-ci
+  "Only include the wrapped form in the build output if CI=true."
+  [& body]
   (when (System/getenv "CI")
     `(do ~body)))
