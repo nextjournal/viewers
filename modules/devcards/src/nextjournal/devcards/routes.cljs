@@ -35,7 +35,9 @@
 
 (defonce match (r/atom nil))
 
-(defn devcards []
-  (if-let [{:keys [data path-params]} @match]
+(defn view [match]
+  (if-let [{:keys [data path-params]} match]
     [devcards-ui/layout (merge data path-params)]
     [:pre "no match!"]))
+
+(defn devcards [] (view @match))
