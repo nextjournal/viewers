@@ -5,5 +5,7 @@
                     :output-dir "public/js"
                     :modules {:viewer {:entries [nextjournal.viewer
                                                  nextjournal.viewer.notebook
-                                                 nextjournal.devcards.main]}}
+                                                 nextjournal.devcards.main
+                                                 nextjournal.devdocs.demo
+                                                 examples.main]}}
                     :js-options {:output-feature-set :es8}}}}
