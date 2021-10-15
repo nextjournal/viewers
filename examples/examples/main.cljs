@@ -1,7 +1,6 @@
 (ns examples.main
   (:require [clojure.string :as str]
             [nextjournal.devcards.routes :as devcards.routes]
-            [nextjournal.devdocs.routes :as devdocs.routes]
             [nextjournal.devdocs.demo :as devdocs.demo]
             [reagent.dom :as rdom]
             [reitit.core :as r]
@@ -13,25 +12,14 @@
 (defonce match (reagent/atom nil))
 
 (def routes
-  {::devdocs {:view devdocs.demo/view
-              :router devdocs.demo/router}
-   ::devcards {:view devcards.routes/view
-               :router devcards.routes/router}})
+  [["/"           {:name ::home}]
+   ["/devdocs/*"  {:name ::devdocs  :router devdocs.demo/router    :view devdocs.demo/view}]
+   ["/devcards/*" {:name ::devcards :router devcards.routes/router :view devcards.routes/view}]
+   ])
 
 (defn main []
-  (let [{:keys [path data] :as m} @match
-        {:keys [name router]} data
-
-        _ (js/console.log :name name
-                          :router router
-                          :path path
-                          :sub-path (when path (str/replace path #"^/[^/]+" ""))
-                          :sub-match (when (and path name router)
-                                       (r/match-by-path router (str/replace path #"^/[^/]+" ""))))
-
-        submatch (when (and path name router)
-                   (r/match-by-path router (str/replace path #"^/[^/]+" "")))
-        view (when name (-> routes name :view))]
+  (let [{:keys [data]} @match
+        {:keys [submatch view]} data]
     (if (and submatch view)
       [view submatch]
       [:<>
@@ -41,70 +29,22 @@
         [:a {:href "#/devcards/"} "Devcards"]]])))
 
 (def router
-  (rf/router
-
-   ;; nested devcards and devdocs routes
-   [["/" {:name ::home}]
-    ["/devdocs/*" {:name ::devdocs :router (-> routes ::devdocs :router)}]
-    ["/devcards/*" {:name ::devcards :router (-> routes ::devcards :router)}]]
-
-
-   #_ ;; route linear merge
-   [
-    (into ["/cards"] (r/routes devcards.routes/router))     ;; fix card hrefs
-    devdocs.routes/routes]
-   ))
-
+  "nested router composing examples"
+  (let [router (rf/router routes)]
+    (reify r/Router
+      (match-by-path [_ path] (let [{:as m :keys [path data]} (r/match-by-path router path)
+                                    submatch (when (and path (:router data))
+                                               (r/match-by-path (:router data) (str/replace path #"^/[^/]+" "")))]
+                                 (js/console.log :MBP path :M m :SM submatch)
+                                 (cond-> m submatch (assoc-in [:data :submatch] submatch))))
+      (match-by-name [this name] (r/match-by-name this name {}))
+      (match-by-name [_ name params] (let [m (->> routes
+                                                  (some (fn [[prefix {r :router}]]
+                                                          (when-let [m (and r (r/match-by-name r name params))]
+                                                            (update m :path #(str (str/replace prefix #"/\*$" "") %))))))]
+                                       (js/console.log :MBN name :Params params :MP (:path m))
+                                       m)))))
 
 (defn ^:export ^:dev/after-load init []
-  (rfe/start! router
-              #(do
-                 (reset! match %1)
-                 (js/console.log :M %1)
-
-                 #_
-                 (js/console.log :name (-> %1 :data :name)
-                                 :R (:router @rfe/history)
-                                 :SR (get-in routes [(-> %1 :data :name) :router]))
-                 ;; this makes rfe/href work, but routing is broken
-
-
-                 (when-some [r (get-in routes [(-> %1 :data :name) :router])]
-                   (swap! rfe/history assoc :router r)
-                   #_
-                   (rfe/start! r
-                               (constantly true)
-                               {:use-fragment true})))
-              {:use-fragment true})
-  ;;(rfe/push-state "/")
-  (rdom/render [main] (js/document.getElementById "app"))
-  ;;(rfe/push-state "/devcards/index")
-  ;;(rdom/render [devdocs.demo/main] (js/document.getElementById "app"))
-
-  )
-
-
-(comment
-  (concat
-   (into ["/cards"] (r/routes devcards.routes/router))
-   devdocs.routes/routes)
-
-
-  @rfe/history
-  (js/console.log :r devdocs.demo/router)
-  (str/replace "/foo/bar/dang/" #"^/[^/]+" "")
-
-  (str/join (interpose "/" ["a" "b" ""]))
-  (r/routes router)
-
-  (js/console.log :ahoi)
-  (r/match-by-path devcards.routes/router "/nextjournal.viewer")
-  (r/match-by-path devdocs.demo/router "/docs/")
-
-  (r/routes devdocs.demo/router)
-  (r/routes devdocs.demo/router)
-  (r/routes devcards.routes/router)
-  (r/router
-   (concat (r/routes devdocs.demo/router)
-           (r/routes devcards.routes/router)))
-  )
+  (rfe/start! router #(reset! match %1) {:use-fragment true})
+  (rdom/render [main] (js/document.getElementById "app")))
