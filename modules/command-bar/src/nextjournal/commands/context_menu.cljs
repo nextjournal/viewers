@@ -3,7 +3,6 @@
             [applied-science.js-interop :as j]
             [clojure.string :as str]
             [clojure.set :as set]
-            [com.nextjournal.editor.config :as config]
             [goog.events :as events]
             [nextjournal.commands.state :as commands.state]
             [nextjournal.devcards :as dc]
@@ -13,7 +12,15 @@
             [nextjournal.view.context :as view.context]
             [reagent.core :as r]
             [nextjournal.commands.core :as commands]
-            [re-frame.context :as re-frame]))
+            [re-frame.context :as re-frame]
+            [nextjournal.commands.state :as state]))
+
+;; config
+(goog-define GRAALJS false)
+
+(def ssr? (or GRAALJS
+              (and (exists? js/process)
+                   (= "node" (some-> js/process .-release .-name)))))
 
 (defonce menu-stack (react/createContext (list)))
 (def z-base 1005)
@@ -217,6 +224,41 @@
   ;; provides context for context-menu*
   {:context-type menu-stack}
   [{:as this ::v/keys [props]} child]
-  (if (or config/ssr? (-> props :enabled? false?))
+  (if (or ssr? (-> props :enabled? false?))
     [:<> child]
     [context-menu* (assoc props :ancestor-commands (j/get this :context)) child]))
+
+(dc/when-enabled
+  (def formatting-commands
+    {:format/bold {:action identity :keys "Mod-B"}
+     :format/italic {:action identity :keys "Mod-I"}
+     :format/link {:action identity :keys "Mod-K"}
+     :format/monospace {:action identity :keys "Control-`"}
+     :format/strikethrough {:action identity :keys "Shift-Mod-X"}})
+  (def insert-block-commands
+    {:editor/insert-block
+     {:subcommands/layout :list
+      :subcommands [{:title "Paragraph"
+                     :action identity
+                     :category "Text"}
+                    {:title "Heading 1"
+                     :action identity
+                     :category "Text"}
+                    {:title "Blockquote"
+                     :action identity
+                     :category "Text"}
+                    {:title "Bullet List"
+                     :action identity
+                     :category "Text"}]}}))
+
+(dc/defcard context-menu "Basic view of the context menu."
+  [:div.relative {:style {:min-height 200}}
+   [:div.absolute.top-0.left-0.right-0.h-full
+    [context-menu {::v/initial-state {:visible-at {:left 380, :top 210}}
+                   :on-click?        true
+                   :enabled?         true
+                   :title            "Format"
+                   :subcommands      (into (keys formatting-commands) (keys insert-block-commands))}
+     [:div.h-full.text-xs {:class ""} "Left-click anywhere in this devcard to open (or close) the menu."]]]]
+       (-> (state/empty-db!)
+           (commands/register (merge formatting-commands insert-block-commands))))

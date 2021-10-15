@@ -3,4 +3,5 @@
         nextjournal/cljs-extensions {:local/root "../cljs-extensions"}
         nextjournal/devcards {:local/root "../devcards"}
         nextjournal/view {:local/root "../view"}
-        nextjournal/ui {:local/root "../ui"}}}
+        nextjournal/ui {:local/root "../ui"}
+        com.andrewmcveigh/cljs-time {:mvn/version "0.5.2"}}}

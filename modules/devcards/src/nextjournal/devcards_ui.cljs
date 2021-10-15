@@ -3,6 +3,7 @@
             [kitchen-async.promise :as p]
             [nextjournal.commands.core :as commands]
             [nextjournal.commands.command-bar :as command-bar]
+            [nextjournal.commands.context-menu :as context-menu]
             [nextjournal.devcards :as dc]
             [nextjournal.log :as log]
             [nextjournal.ui.components.icon :as icon]

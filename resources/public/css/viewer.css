@@ -3,6 +3,7 @@
   --sans-serif-font: "Fira Sans", -apple-system, BlinkMacSystemFont, Helvetica, "Helvetica Neue", Ubuntu, Roboto, Noto, "Segoe UI", Arial, sans-serif;
   --sans-serif-condensed-font: "Fira Sans Condensed", -apple-system, BlinkMacSystemFont, Helvetica, "Helvetica Neue", Ubuntu, Roboto, Noto, "Segoe UI", Arial, sans-serif;
   --serif-font: "PTSerif", Georgia, serif;
+  --inter-font: "Inter", -apple-system, BlinkMacSystemFont, Helevetica, Arial, sans-serif;
 }
 html {
   font-size: 18px;
@@ -32,6 +33,10 @@ body {
 .monospace {
   font-family: var(--code-font);
 }
+.inter {
+  font-family: var(--inter-font);
+}
+
 /* Colors */
 /* --------------------------------------------------------------- */
 
@@ -563,4 +568,9 @@ h5, h6 {
 .nj-commands-input {
   background: transparent;
   color: white;
+}
+
+.nj-context-menu-item:hover:not([disabled]) {
+  background-color: rgba(255,255,255,.14);
+  cursor: pointer;
 }

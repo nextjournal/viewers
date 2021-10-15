@@ -1,6 +1,9 @@
 (ns nextjournal.commands.command-bar
   (:require [applied-science.js-interop :as j]
             [clojure.string :as str]
+            [cljs-time.core :as time.core]
+            [cljs-time.coerce :as time.coerce]
+            [cljs-time.format :as time.format]
             [nextjournal.devcards :as dc]
             [nextjournal.commands.fuzzy :as fuzzy]
             [nextjournal.commands.command-bar-state :as bar-state]
@@ -18,7 +21,19 @@
             [goog.dom :as gdom]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; icons
+(def chevron-right
+  [:svg {:width 15 :height 15 :xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 20 20" :fill "currentColor"}
+   [:path {:fill-rule "evenodd" :d "M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" :clip-rule "evenodd"}]])
+
 ;; ui helpers
+(def fmt-date-time "MMM dd yyyy, HH:mm")
+
+(defn format-util-date [d & [fmt-str zone-name]]
+  (let [fmt (or fmt-str fmt-date-time)]
+    (and d (time.format/unparse (time.format/formatter fmt)
+                                      (time.core/to-default-time-zone (time.coerce/from-date d))))))
 
 (re-frame/reg-sub
   :db/get-in
@@ -92,9 +107,7 @@
                (string? title) (fuzzy/highlight-chars (:fuzzy/chars command))
                (fn? view) (->> (view context)))
       (when (:subcommands command)
-        [icon/view "ChevronRight" {:size 14
-                                   :class "fill-current ml-3 "
-                                   :style {:margin "-1px 0 0 0"}}])]
+        chevron-right)]
      [:div.text-right.whitespace-nowrap.inter
       {:style {:color "rgba(255,255,255,.6)"
                :font-size 11}}
@@ -164,6 +177,63 @@
                        [command-item state cmd]]))
                    doall)]))
           doall)]))
+
+(defn notebook-row [!view-state {:as command :keys [id result-index title disabled? key]
+                                 :article/keys [created-at last-edited-at published-at visibility]}]
+  (let [selected (bar-state/get-selected @!view-state)]
+    ^{:key (or key title id)}
+    [:tr.border-b
+     {:tab-index 0
+      :data-result-index result-index
+      :data-test-label title
+      :data-test-state (when (= result-index selected) "selected")
+      :style {:background (when (= result-index selected) "var(--teal-color)")
+              :border-color "rgba(255,255,255,.05)"
+              :color "rgba(255,255,255,.7)"}
+      :class (if disabled? "opacity-50 pointer-events-none " "cursor-pointer ")
+      :on-click #(commands/eval-command command)}
+     [:td.py-1.text-right
+      {:style {:width 120}}
+      (format-util-date published-at "MMM dd yyyy")]
+     [:td.py-1.text-right
+      {:style {:width 120}}
+      (format-util-date created-at "MMM dd yyyy")]
+     [:td.py-1.text-right
+      {:style {:width 120}}
+      (format-util-date last-edited-at "MMM dd yyyy")]
+     [:td.py-1.text-white.pl-8
+      (some-> title (fuzzy/highlight-chars (:fuzzy/chars command)))]]))
+
+(defmethod listing :notebooks [_ {:keys [!view-state candidates]}]
+  (let [{:keys [stack]} @!view-state
+        {:as parent-command :keys [panel-title] parent-title :title} (some-> stack last)]
+    [:div.text-white
+     {:style {:font-size 12
+              :z-index 992
+              :background (get-in ui/theme [:bar :background])
+              :width "100%"}}
+     [:div
+      [:div.flex.items-center.border-b.w-full.uppercase
+       {:style {:font-size 10
+                :color "rgba(255,255,255,.7)"
+                :border-color "rgba(255,255,255,.05)"
+                :height 28}}
+
+       [:div.py-1.text-right {:style {:width 120}}
+        "Last published"]
+       [:div.py-1.text-right {:style {:width 120}}
+        "Created"]
+       [:div.py-1.text-right {:style {:width 120}}
+        "Last edited"]
+       [:div.py-1.flex-auto.pl-8
+        "Title"]]
+      [:div.overflow-y-auto.nj-commands-list
+       {:style {:max-height 400}}
+       [:table.w-full
+        [:tbody
+         (for [cmd candidates]
+           ^{:key (str (:title cmd) " " (:result-index cmd))}
+           [notebook-row !view-state cmd])]]]]]))
 
 (defn component-frame [this]
   (binding [comp/*current-component* this]
@@ -259,7 +329,7 @@
                               (when on-expose (on-expose (:context item) item))
                               (when on-dispose (on-dispose (:context item) item))))}
                     label
-                    [icon/view "ChevronRight" {:size 12 :class "fill-current"}]]))
+                    chevron-right]))
            [:input.outline-none.nj-commands-input
             {:value (bar-state/get-query @!view-state)
              :auto-complete "off"
@@ -386,6 +456,8 @@
                              (some-> (nth candidates selected nil)
                                      (commands/eval-command))))}})
 
+
+
 (dc/when-enabled
   (def formatting-commands
     {:format/bold {:action identity :keys "Mod-B"}
@@ -433,7 +505,28 @@
   (def run-commands {:run/all {:action identity}
                      :run/run-cells-below {:action identity}
                      :run/reset-all {:action identity}
-                     :run/run-on-a-schedule {:action identity}}))
+                     :run/run-on-a-schedule {:action identity}})
+  (def notebook-cmds {:notebook/open
+                      {:title              "Open Notebook"
+                       :subcommands/layout :notebooks
+                       :subcommands        [{:title                  "Notebook 1"
+                                             :action identity
+                                             :disabled?              false
+                                             :article/created-at     #inst"2021-10-05T12:51:30.865-00:00"
+                                             :article/last-edited-at #inst"2021-10-05T12:51:30.865-00:00"
+                                             :article/published-at   #inst"2021-10-05T12:51:30.865-00:00"}
+                                            {:title                  "Notebook 2"
+                                             :action identity
+                                             :disabled?              false
+                                             :article/created-at     #inst"2021-10-01T12:51:30.865-00:00"
+                                             :article/last-edited-at #inst"2021-10-02T12:51:30.865-00:00"
+                                             :article/published-at   #inst"2021-10-03T12:51:30.865-00:00"}
+                                            {:title                  "Notebook 3"
+                                             :action identity
+                                             :disabled?              false
+                                             :article/created-at     #inst"2021-10-07T12:51:30.865-00:00"
+                                             :article/last-edited-at #inst"2021-10-08T12:51:30.865-00:00"
+                                             :article/published-at   #inst"2021-10-09T12:51:30.865-00:00"}]}}))
 
 (let [make-devcard-state! (comp #(bar-state/activate-bar! % {:!view-state %})
                                 bar-state/initial-state)]
@@ -450,7 +543,7 @@
         (commands/register (merge formatting-commands insert-block-commands editor-commands run-commands))))
 
   (dc/defcard command-bar-list
-    [:div.relative {:style {:min-height 360}}
+    [:div.relative {:style {:min-height 350}}
      [:div.absolute.bottom-0.left-0.right-0
       [view {::v/initial-state #(-> (make-devcard-state!
                                       {:categories [:editor]})
@@ -460,5 +553,17 @@
                                                                          :title "Insert Block"
                                                                          :subcommands/layout :list
                                                                          :subcommands (-> insert-block-commands :editor/insert-block :subcommands)})))}]]]
-    (-> (state/empty-db!)
-        (commands/register insert-block-commands))))
+              (-> (state/empty-db!)
+                  (commands/register insert-block-commands)))
+
+  (dc/defcard command-bar-table
+    [view {::v/initial-state #(-> (make-devcard-state!
+                                    {:categories [:notebook]})
+                                  (doto (swap! bar-state/update-stack {:category :notebook
+                                                                       :normalized? true
+                                                                       :stack-key (str (random-uuid))
+                                                                       :title "Notebooks"
+                                                                       :subcommands/layout :notebooks
+                                                                       :subcommands (-> notebook-cmds :notebook/open :subcommands)})))}]
+              (-> (state/empty-db!)
+                  (commands/register notebook-cmds))))
