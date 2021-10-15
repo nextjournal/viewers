@@ -1,2 +1,0 @@
-{:paths ["src" "resources" "docs"]
- :deps {io.github.nextjournal/devdocs {:local/root "../../modules/devdocs"}}}

@@ -40,14 +40,7 @@
         [:a {:href "#/devdocs/docs/"} "Devdocs"]
         [:a {:href "#/devcards/"} "Devcards"]]])))
 
-
-
-
-;; # markdon
-;; - llakjdf
-
 (def router
-
   (rf/router
 
    ;; nested devcards and devdocs routes

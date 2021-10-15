@@ -1,8 +1,0 @@
-{:deps true
- :dev-http {7799 ["classpath:public" "public" "../../resources/public"]}
- :builds
- {:main
-  {:target :browser
-   :output-dir "resources/public/js"
-   :asset-path "/js"
-   :modules {:main {:entries [nextjournal.devdocs-demo]}}}}}
