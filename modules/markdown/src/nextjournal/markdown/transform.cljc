@@ -183,5 +183,40 @@ par two"
     (->hiccup (assoc default-hiccup-renderers
                      :heading (partial into-markup [:h1.at-all-levels])
                      ;; wrap something around the default
-                     :paragraph (fn [{:as ctx d :default} node] [:div.p-container (d ctx node)]))))
-  )
+                     :paragraph (fn [{:as ctx d :default} node] [:div.p-container (d ctx node)])))))
+
+;; renderer extension macro helpers
+(defn splice-intov [vmkup idx coll]
+  (-> []
+      (into (take idx vmkup))
+      (into coll)
+      (into (subvec vmkup idx))))
+
+(comment
+  (splice-intov [:h1 {:a "1"}] 2 [:a :b :c]))
+
+(defmacro into-markup*
+  "Convenience macro to create a (fn [ctx node] ...) suitable to be used as type renderer in ->hiccup context.
+
+  Takes a hiccup markup vector containing a placeholder `_` at any depth, expands to a function of `ctx` and `node`
+  returning the markup `form` with child markup of `node` injected into the placeholder. `ctx` and `node` symbols can
+  also be used in the passed form."
+  [hiccup-vector-with-placeholder]
+  (let [vdrop-at (fn [v idx] (-> [] (into (take idx v)) (into (subvec v (inc idx)))))
+        node-children-hiccup (list 'map (list 'partial `->hiccup 'ctx) '(:content node))]
+    `(fn [~'ctx ~'node]
+       ~(clojure.walk/prewalk
+         (fn [f]
+           (if-let [idx (and (vector? f)
+                             (some #(= '_ %) f)
+                             (get (zipmap f (range)) '_))]
+             (list `splice-intov (vdrop-at f idx) idx node-children-hiccup)
+             f))
+         hiccup-vector-with-placeholder))))
+
+(comment
+  (->> "## Hello _there_
+par"
+       nextjournal.markdown/parse
+       (->hiccup (assoc default-hiccup-renderers
+                        :heading (into-markup* [:div.custom-h [:h1 {:data-level (:heading-level node)} _]])))))
