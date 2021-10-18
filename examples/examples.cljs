@@ -33,6 +33,7 @@
          [:ul.text-2xl
           (for [[route title] [[:devcards/root "Devcards"]
                                [:devdocs/index "Devdocs"]]]
+            ^{:key title}
             [:li
              [:a.text-gray-800.hover:text-indigo-600.block.px-8.justify-between.py-4.text-xl.border-b.border-gray-300.flex.items-center.bg-white-50.hover:bg-indigo-100.transition-all.ease-in-out.duration-150
               {:href (rfe/href route)}
