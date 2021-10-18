@@ -6,15 +6,7 @@
 ;; helpers
 (defn guard [pred val] (when (pred val) val))
 (defn ->text [{:as _node :keys [text content]}] (or text (apply str (map ->text content))))
-(defn ->id [text]
-  (let [char-class (uri.normalize/character-classes :fragment)]
-    (some->> text
-      (guard string?)
-      uri.normalize/char-seq
-      (map #(if (re-find char-class %) "_" %))
-      (apply str))))
-(comment
-  (->id "UTS #51 and modern emoji (2015–present)"))
+(def ->id uri.normalize/normalize-fragment)
 
 (defn hydrate-toc
   "Scans doc contents and replaces toc node placeholder with the toc node accumulated during parse."
