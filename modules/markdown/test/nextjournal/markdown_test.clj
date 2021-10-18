@@ -169,7 +169,7 @@ some **strong** _assertion_ and a [link]
              {:id "Title"}
              "Title"]
             [:h2
-             {:id "Section_1"}
+             {:id "Section%201"}
              "Section 1"]
             [:div.toc
              [:div
@@ -185,29 +185,29 @@ some **strong** _assertion_ and a [link]
                   [:li.toc-item
                    [:div
                     [:a
-                     {:href "#Section_1"}
+                     {:href "#Section%201"}
                      [:h2
                       "Section 1"]]
                     nil]]
                   [:li.toc-item
                    [:div
                     [:a
-                     {:href "#Section_2"}
+                     {:href "#Section%202"}
                      [:h2
                       "Section 2"]]
                     [:ul
                      [:li.toc-item
                       [:div
                        [:a
-                        {:href "#Section_2.1"}
+                        {:href "#Section%202.1"}
                         [:h3
                          "Section 2.1"]]
                        nil]]]]]]]]]]]
             [:h2
-             {:id "Section_2"}
+             {:id "Section%202"}
              "Section 2"]
             [:h3
-             {:id "Section_2.1"}
+             {:id "Section%202.1"}
              "Section 2.1"]]
           hiccup))))
 
@@ -275,7 +275,7 @@ par with #really_nice #useful-123 tags
 
   (testing "rendering tags"
     (is (= [:div
-            [:h1 {:id "Hello_Tags"} "Hello Tags"]
+            [:h1 {:id "Hello%20Tags"} "Hello Tags"]
             [:p
              "par with "
              [:a.tag
