@@ -37,7 +37,7 @@
              [:a.text-gray-800.hover:text-indigo-600.block.px-8.justify-between.py-4.text-xl.border-b.border-gray-300.flex.items-center.bg-white-50.hover:bg-indigo-100.transition-all.ease-in-out.duration-150
               {:href (rfe/href route)}
               title
-              [:span.ml-2.opacity-50 "▶"]]])]]]])))
+              [:span.ml-2.opacity-50 "▶"]]])]]]])))         ;; FIXME: using ui.components.icon not working
 
 (def router
   (let [router (rf/router routes)]

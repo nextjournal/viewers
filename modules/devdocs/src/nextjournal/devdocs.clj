@@ -11,7 +11,7 @@
             [clojure.walk :as walk]
             [lambdaisland.shellutils :as shellutils]
             [nextjournal.markdown :as markdown]
-            [nextjournal.markdown.transform :as mark-trans]
+            [nextjournal.markdown.transform :as markdown.transform]
             [nextjournal.clerk :as clerk]
             [nextjournal.clerk.view :as clerk-view]
             [nextjournal.clerk.viewer :as v]
@@ -62,21 +62,22 @@
   inlined into the ClojureScript build. The result is rendered inline
   via [[nextjournal.viewer/inspect]]. Both can be true."
   [&env markdown {:keys [cljs-eval? view-source?]}]
-  (let [default-code (:code mark-trans/default-hiccup-renderers)
-        parsed (markdown/parse markdown)]
-    {:toc (:toc parsed)
+  (let [{:as doc :keys [toc]} (markdown/parse markdown)]
+    {:toc toc
      :view [:div.flex.flex-col.items-center.viewer-notebook
             [:div.viewer.viewer-markdown.w-full.max-w-prose.px-8.overflow-x-auto
-             (mark-trans/->hiccup
-              (assoc mark-trans/default-hiccup-renderers :code
+             (markdown.transform/->hiccup
+              (assoc markdown.transform/default-hiccup-renderers :code
                      (fn [ctx node]
                        [:<>
                         (when view-source?
-                          (default-code ctx node))
+                          [:div.viewer-code
+                           `[nextjournal.viewer/inspect
+                             (nextjournal.viewer/view-as :code ~(markdown.transform/->text node))]])
                         (when cljs-eval?
                           `[nextjournal.viewer/inspect
-                            ~(read-cljs-form &env (mark-trans/->text node))])]))
-              parsed)]]}))
+                            ~(read-cljs-form &env (markdown.transform/->text node))])]))
+              doc)]]}))
 
 (defmacro devdoc-collection
   "Create a Devdoc Collection out of a set of Markdown documents
