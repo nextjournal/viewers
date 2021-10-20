@@ -7,7 +7,7 @@
         io.github.nextjournal/markdown {:local/root "../markdown"}
 
         com.nextjournal/clerk {:git/url "git@github.com:nextjournal/clerk.git"
-                               :git/sha "2697e907fb5a2e5da474725b46ca531bf8b8d6a4"}
+                               :git/sha "b5045ed4394eb784d4c11209e969369730aa95be"}
 
         ;; we use shadow-resource directly
         thheller/shadow-cljs {:mvn/version "2.15.12"}
