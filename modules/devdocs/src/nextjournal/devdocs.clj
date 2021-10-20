@@ -38,13 +38,12 @@
                :toc)
      :view `[nextjournal.clerk.sci-viewer/inspect
              (try
-               (cljs.reader/read-string
-                {:default identity}
+               (nextjournal.clerk.sci-viewer/read-string
                 ~(->> evaled
                       (clerk-view/doc->viewer {:inline-results? true})
-                      (walk/prewalk clerk-view/make-printable)
                       clerk-view/->edn))
                (catch :default e#
+                 (js/console.error :clerk.sci-viewer/read-error e#)
                  "Parse error..."))]}))
 
 (defn read-cljs-form [&env s]
