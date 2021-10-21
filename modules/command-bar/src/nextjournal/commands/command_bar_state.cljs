@@ -6,7 +6,7 @@
             [nextjournal.commands.core :as commands]
             [nextjournal.commands.state :as commands.state]
             [nextjournal.commands.fuzzy :as fuzzy]
-            [re-frame.core :as re-frame]
+            [re-frame.context :as re-frame]
             [reagent.core :as reagent]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -153,19 +153,21 @@
                        (merge cmd (assoc result :fuzzy/chars chars :fuzzy/category-chars prefix-chars))))))))
     commands))
 
-(def search-categories
+(defn search-categories []
   {:invisible-stack? true
    :subcommands/uses-query? true
-   :subcommands (fn [{:as context :keys [!view-state]}]
-                  (let [{:as view-state :keys [categories registry]} @!view-state
-                        query (get-query view-state)]
-                    (->> categories
-                         (into []
-                               (comp (filter #(commands/requirements-satisfied? context (:requires %)))
-                                     (mapcat #(-> (resolve-category-commands registry context %)
-                                                  (update :commands (partial apply-search query))
-                                                  resolve-category-shortlist
-                                                  ((if query :commands :shortlist)))))))))})
+   :subcommands (re-frame/bind-fn
+                  (fn [{:as context :keys [!view-state]}]
+                    (let [{:as view-state :keys [categories registry]} @!view-state
+                          registry (commands.state/get-registry)
+                          query (get-query view-state)]
+                      (->> categories
+                           (into []
+                                 (comp (filter #(commands/requirements-satisfied? context (:requires %)))
+                                       (mapcat #(-> (resolve-category-commands registry context %)
+                                                    (update :commands (partial apply-search query))
+                                                    resolve-category-shortlist
+                                                    ((if query :commands :shortlist))))))))))})
 
 (defn candidates [view-state]
   (let [{:keys [commands subcommands/uses-query?]} (some-> view-state subcommand-state)]
@@ -231,7 +233,7 @@
 (defn activate-bar! [!view-state & [opts]]
   (when (or opts (not (active-stack? @!view-state)))
     (let [context (commands.state/current-context opts)]
-      (add-to-stack! context search-categories)))
+      (add-to-stack! context (search-categories))))
   !view-state)
 
 (defn refocus! [view-state]
