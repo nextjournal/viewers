@@ -240,9 +240,6 @@
     [show-card (-> props
                    (merge (get-in @dc/registry [ns name])))]]])
 
-(defn devcards? [{:keys [route-name current-person]}]
-  (contains? #{:devcards/root :devcards/by-namespace :devcards/by-name} route-name))
-
 (def commands-config
   {:categories
    [:go-to

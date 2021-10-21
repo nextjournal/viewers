@@ -5,14 +5,17 @@
             [reitit.frontend :as rf]
             [reitit.frontend.history :as rfh]
             [reitit.frontend.easy :as rfe]))
+
 ;;todo rename to router
+
 (re-frame/reg-event-fx
   :router/push
   (fn [_ctx [_ routing-data]]
     {:push-history routing-data}))
 
-(re-frame/reg-fx :push-history (fn [args] (apply rfe/push-state args)))
-
+(re-frame/reg-fx
+  :push-history
+  (fn [args] (apply rfe/push-state args)))
 
 (def use-fragment? (atom true))
 
