@@ -250,11 +250,9 @@
     :command-bar
     :mount
     :nextjournal.commands.views]
-
    :shortcuts
    {:devcards/actions
-    {:commands [:dev/devcards]
-     :requires #{devcards?}}}})
+    {:commands [:dev/devcards :dev/remount-app]}}})
 
 (v/defview layout [{:keys [::v/props view ns]}]
   [:div.flex.h-screen.bg-white
