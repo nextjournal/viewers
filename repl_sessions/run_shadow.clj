@@ -10,5 +10,5 @@
 (server/start!)
 (shadow/watch :main)
 (shadow/nrepl-select :main)
-
+(shadow/repl :browser)
 (browse/browse-url "http://localhost:7799")

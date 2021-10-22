@@ -1,5 +1,6 @@
 (ns nextjournal.devdocs.demo
   (:require [nextjournal.devdocs :as devdocs :refer [devdoc-collection show-card]]
+            [nextjournal.commands.core :as commands]
             [nextjournal.devdocs.routes :as routes]
             [reitit.frontend :as rf]))
 
@@ -28,3 +29,5 @@
     (if-let [view (get routes/views (:view data))]
       [view (devdocs/view-data match)]
       [:pre (pr-str match)])]])
+
+(commands/register! :dev/docs (devdocs/devdoc-commands))
