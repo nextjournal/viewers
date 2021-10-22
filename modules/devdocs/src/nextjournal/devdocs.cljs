@@ -253,7 +253,7 @@
   []
   {:subcommands
    (fn [context]
-     (into [{:title "-OVERVIEW-"
+     (into [{:title "Index"
              :dispatch [:router/push [:devdocs/index]]}]
            (map (fn [{title :title coll-id :id devdocs :devdocs}]
                   {:title title
