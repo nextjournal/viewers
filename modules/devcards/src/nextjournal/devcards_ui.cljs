@@ -239,6 +239,17 @@
     [show-card (-> props
                    (merge (get-in @dc/registry [ns name])))]]])
 
+(def commands-config
+  {:categories
+   [:go-to
+    :dev
+    :command-bar
+    :mount
+    :nextjournal.commands.views]
+   :shortcuts
+   {:devcards/actions
+    {:commands [:dev/devcards :dev/remount-app]}}})
+
 (v/defview layout [{:keys [::v/props view ns]}]
   [:div.flex.h-screen.bg-white
    [toc {:current-ns ns}]
@@ -263,7 +274,12 @@
                           (for [{:keys [ns name]} cards]
                             {:title name
                              :dispatch [:router/push [:devcards/by-name {:ns ns :name name}]]}))}))
-            (ns-listing)))}))
+            (ns-listing)))})
+
+ (commands/register! :dev/remount-app
+                     {:title "Re-mount App"
+                      :keys  "Ctrl-R"
+                      :action #(rf/dispatch [:perform-fx {:mount-app {}}])}))
 
 (dc/defcard render-markdown-card
   "This is our `card` with **some** _formatting_.
