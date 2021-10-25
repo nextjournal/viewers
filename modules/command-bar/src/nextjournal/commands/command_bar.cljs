@@ -301,7 +301,7 @@
         {:style {:z-index 1000 :background "#1f2937"}
          :ref (j/get this :ref-fn)}
         [:div
-         (when (and context (= layout :list))
+         (when (and context (contains? #{layout (-> layout namespace keyword)} :list))
            {:class "absolute left-0 bottom-0"})
          [:div.flex.px-4.items-center
           (if context
