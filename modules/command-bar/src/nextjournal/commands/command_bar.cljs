@@ -95,7 +95,7 @@
       :data-test-label title
       :data-test-state (when (= result-index selected) "selected")
       :style (cond-> {:background (if (= result-index selected)
-                                    "var(--teal-color)"
+                                    "var(--command-bar-selected-color)"
                                     (when-not (= layout :list) "rgba(0,0,0,.45)"))
                       :height cmd-height}
                (= layout :list)
