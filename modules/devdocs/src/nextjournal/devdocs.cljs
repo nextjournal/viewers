@@ -17,7 +17,8 @@
 
 (defonce registry (reagent/atom (om/ordered-map)))
 
-(goog-define logoImage "https://cdn.nextjournal.com/images/nextjournal-logo.svg" #_"images/ductile-logo-white.svg")
+(goog-define contentsTitle "contents")
+(goog-define logoImage "https://cdn.nextjournal.com/images/nextjournal-logo.svg")
 
 (def chevron-double-right
   [:svg {:xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 20 20" :fill "currentColor" :width 14 :height 14 :class "transition-all"}
@@ -160,13 +161,13 @@
 (defn index-view [match]
   [:div.flex.h-screen.devdocs-body
    (for! [{:keys [id title devdocs]} (vals @registry)
-          :into [sidebar {:title "Inhalte"}]]
+          :into [sidebar {:title contentsTitle}]]
      [:div.mt-1
       [:a.text-indigo-300.hover:text-white.font-light.block
        {:href (rfe/href :devdocs/collection {:collection id})} title]])
    [:div.overflow-y-auto.px-12.bg-white.flex-auto
     {:style {:padding-top 80 :padding-bottom 70}}
-    [:h1.text-4xl.uppercase.tracking-wide.font-semibold.mb-10 "Inhalte"]
+    [:h1.text-4xl.uppercase.tracking-wide.font-semibold.mb-10 contentsTitle]
     (for! [{:as collection
             :keys [id title devdocs clerk? cljs-eval?]} (vals @registry)
            :into [:div]]
