@@ -158,7 +158,7 @@
 
 ;; :devdocs/index
 (defn index-view [match]
-  [:div.flex.h-screen
+  [:div.flex.h-screen.devdocs-body
    (for! [{:keys [id title devdocs]} (vals @registry)
           :into [sidebar {:title "Inhalte"}]]
      [:div.mt-1
@@ -205,7 +205,7 @@
 ;; :devdocs/collection
 (defn collection-view [{:keys [collection]}]
   (let [{:keys [id title devdocs clerk? cljs-eval?] :as collection} (get @registry collection)]
-    [:div.flex.h-screen
+    [:div.flex.h-screen.devdocs-body
      [sidebar {:title title
                :footer [:a.text-indigo-300.hover:text-white
                         {:href (rfe/href :devdocs/index)}
@@ -243,7 +243,7 @@
 (defn devdoc-view [{:keys [collection devdoc fragment] :as data}]
   (let [{:keys [id title devdocs]} (get @registry collection)
         devdoc (some (return (comp #{devdoc} :id)) devdocs)]
-    [:div.flex.h-screen
+    [:div.flex.h-screen.devdocs-body
      [sidebar {:title [:a.text-indigo-300.hover:text-white
                        {:href (rfe/href :devdocs/collection {:collection id})}
                        title]
