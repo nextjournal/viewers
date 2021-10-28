@@ -1,5 +1,6 @@
 (ns nextjournal.devdocs.demo
   (:require [nextjournal.devdocs :as devdocs :refer [devdoc-collection show-card]]
+            [nextjournal.devcards :as dc]
             [nextjournal.commands.core :as commands]
             [nextjournal.devdocs.routes :as routes]
             [reitit.frontend :as rf]))

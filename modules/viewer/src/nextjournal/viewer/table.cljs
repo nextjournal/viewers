@@ -66,5 +66,7 @@
 (v/register-viewer! :table viewer)
 
 (dc/defcard table-2
+  "A nice table"
   [v/inspect (v/view-as :table [{:a 1 :b 2 :c 3}
+                                {:a 1 :b 2 :c 3}
                                 {:a 1 :b 2 :c 3}])])
