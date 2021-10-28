@@ -5,7 +5,9 @@
             [reitit.frontend :as rf]
             [reitit.frontend.history :as rfh]
             [reitit.frontend.easy :as rfe]
-            [reagent.dom :as rdom]))
+            [reagent.dom :as rdom]
+            [nextjournal.devcards :as dc]
+            [nextjournal.commands.core :as commands]))
 
 ;;todo rename to router
 
@@ -57,3 +59,11 @@
   :mount-app
   (fn [_]
     (mount-app)))
+
+(dc/when-enabled
+  (commands/register! :dev/remount-app
+                      {:title  "Re-mount App"
+                       :keys   "Ctrl-R"
+                       :action mount-app}))
+
+

@@ -274,12 +274,7 @@
                           (for [{:keys [ns name]} cards]
                             {:title name
                              :dispatch [:router/push [:devcards/by-name {:ns ns :name name}]]}))}))
-            (ns-listing)))})
-
- (commands/register! :dev/remount-app
-                     {:title "Re-mount App"
-                      :keys  "Ctrl-R"
-                      :action #(rf/dispatch [:perform-fx {:mount-app {}}])}))
+            (ns-listing)))}))
 
 (dc/defcard render-markdown-card
   "This is our `card` with **some** _formatting_.
