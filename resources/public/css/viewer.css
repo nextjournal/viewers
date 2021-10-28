@@ -50,6 +50,7 @@ body {
   --gray-panel-color: rgba(239, 241, 245, 1.000);
   --brand-color: var(--dark-blue-color);
   --link-color: #5046e4;
+  --command-bar-selected-color: var(--teal-color);
 }
 
 .border-color-teal { border-color: var(--dark-teal-color); }
