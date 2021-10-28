@@ -467,9 +467,3 @@ some final par"
     (section-at [:content 9])                         ;; ⬅ paths are stored in TOC sections
     nextjournal.markdown.transform/->hiccup))
 ;; endregion
-
-(comment
-  ;; boot browser repl
-  (require '[shadow.cljs.devtools.api :as shadow])
-  (shadow/repl :browser)
-  )

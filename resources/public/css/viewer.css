@@ -574,3 +574,21 @@ h5, h6 {
   background-color: rgba(255,255,255,.14);
   cursor: pointer;
 }
+
+/* Devdocs sidebar */
+
+.collapsed-sidebar:not(.mobile-sidebar) .sidebar-content {
+  transition: all 0.25s ease-in-out;
+  margin-left: -360px;
+  opacity: 0;
+}
+.collapsed-sidebar:hover:not(.mobile-sidebar) .sidebar-content {
+  margin-left: 0;
+  opacity: 1;
+}
+
+/* Devdocs body */
+
+.devdocs-body {
+  font-family: Inter, sans-serif;
+}

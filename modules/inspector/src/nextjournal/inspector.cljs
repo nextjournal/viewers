@@ -76,7 +76,7 @@
   (tap> (dbr #(-> % :com.nextjournal.editor.doc/state .-doc .toJSON)))
   (tap> (dbr #(-> % :com.nextjournal.editor.doc/state .-doc .-textContent))))
 
-(defn selection [sel]
+(defn selection [^js sel]
   (let [$from (.-$from sel)]
     {:$from $from
      :$to (.-$to sel)

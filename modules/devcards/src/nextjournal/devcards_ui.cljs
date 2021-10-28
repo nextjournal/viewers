@@ -3,7 +3,6 @@
             [kitchen-async.promise :as p]
             [nextjournal.commands.core :as commands]
             [nextjournal.commands.command-bar :as command-bar]
-            [nextjournal.commands.context-menu :as context-menu]
             [nextjournal.devcards :as dc]
             [nextjournal.log :as log]
             [nextjournal.ui.components.icon :as icon]
@@ -240,24 +239,11 @@
     [show-card (-> props
                    (merge (get-in @dc/registry [ns name])))]]])
 
-(def commands-config
-  {:categories
-   [:go-to
-    :dev
-    :command-bar
-    :mount
-    :nextjournal.commands.views]
-   :shortcuts
-   {:devcards/actions
-    {:commands [:dev/devcards]}}})
-
 (v/defview layout [{:keys [::v/props view ns]}]
   [:div.flex.h-screen.bg-white
    [toc {:current-ns ns}]
    [:div.h-screen.overflow-y-auto.flex-auto.devcards-content.bg-gray-50
-    [view props]]
-   [:div.fixed.bottom-0.left-0.right-0.z-20
-    [command-bar/view commands-config]]])
+    [view props]]])
 
 (dc/when-enabled
  (commands/register! :dev/devcards

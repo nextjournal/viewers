@@ -4,16 +4,15 @@
 .sw*
 .nrepl-port
 .nrepl-history
+.cpcache
 
 /.lsp/sqlite.db
-/.shadow-cljs/
+.shadow-cljs
 /.calva/
 /public/css/app.css
 /public/js/
-/node_modules/
-/.cpcache
-/modules/*/.cpcache
-/yarn.lock
+node_modules
+yarn.lock
 /package-lock.json
 .cache
 
