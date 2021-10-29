@@ -1,5 +1,6 @@
 (ns examples
   (:require [clojure.string :as str]
+            [nextjournal.devcards :as dc]
             [nextjournal.devcards.routes :as devcards.routes]
             [nextjournal.devdocs.demo :as devdocs.demo]
             [nextjournal.ui.components.icon :as icon]
@@ -33,7 +34,7 @@
 (def commands-config
   {:categories [:go-to :dev]
    :shortcuts {:devcards/actions
-               {:commands [:dev/devcards :dev/docs]}}})
+               {:commands [:dev/devcards :dev/docs :dev/remount-app]}}})
 
 (defn view []
   (let [{:keys [name data]} @match
@@ -78,3 +79,17 @@
   (re-frame/dispatch-sync [:init-commands (commands.state/empty-db!)])
   (rfe/start! router #(reset! match %1) {:use-fragment true})
   (rdom/render [view] (js/document.getElementById "app")))
+
+(defn remount-app []
+  (when-let [app-el (js/document.getElementById "app")]
+    (rdom/unmount-component-at-node app-el)
+    (rfe/start! router #(reset! match %1) {:use-fragment true})
+    (rdom/render [view @match] app-el)))
+
+(dc/when-enabled
+  (commands/register! :dev/remount-app
+                      {:title  "Re-mount App"
+                       :keys   "Ctrl-R"
+                       :action remount-app}))
+
+

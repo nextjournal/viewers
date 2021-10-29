@@ -239,17 +239,6 @@
     [show-card (-> props
                    (merge (get-in @dc/registry [ns name])))]]])
 
-(def commands-config
-  {:categories
-   [:go-to
-    :dev
-    :command-bar
-    :mount
-    :nextjournal.commands.views]
-   :shortcuts
-   {:devcards/actions
-    {:commands [:dev/devcards :dev/remount-app]}}})
-
 (v/defview layout [{:keys [::v/props view ns]}]
   [:div.flex.h-screen.bg-white
    [toc {:current-ns ns}]

@@ -4,10 +4,7 @@
             [reagent.core :as r]
             [reitit.frontend :as rf]
             [reitit.frontend.history :as rfh]
-            [reitit.frontend.easy :as rfe]
-            [reagent.dom :as rdom]
-            [nextjournal.devcards :as dc]
-            [nextjournal.commands.core :as commands]))
+            [reitit.frontend.easy :as rfe]))
 
 ;;todo rename to router
 
@@ -44,26 +41,3 @@
     [:pre "no match!"]))
 
 (defn devcards [] (view @match))
-
-(re-frame/reg-event-fx
-  :perform-fx
-  (fn [{:keys [_db]} [_ fx]]
-    fx))
-
-(defn mount-app []
-  (when-let [app-el (js/document.getElementById "app")]
-    (rdom/unmount-component-at-node app-el)
-    (rdom/render [devcards] app-el)))
-
-(re-frame/reg-fx
-  :mount-app
-  (fn [_]
-    (mount-app)))
-
-(dc/when-enabled
-  (commands/register! :dev/remount-app
-                      {:title  "Re-mount App"
-                       :keys   "Ctrl-R"
-                       :action mount-app}))
-
-
