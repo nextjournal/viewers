@@ -577,7 +577,6 @@ h5, h6 {
 }
 
 /* Devdocs sidebar */
-
 .collapsed-sidebar:not(.mobile-sidebar) .sidebar-content {
   transition: all 0.25s ease-in-out;
   margin-left: -360px;
@@ -592,4 +591,11 @@ h5, h6 {
 
 .devdocs-body {
   font-family: Inter, sans-serif;
+}
+
+.logo,
+.logo-white {
+  background: url(/images/nextjournal-logo.svg) center center no-repeat;
+  text-indent: -999em;
+  display: block;
 }

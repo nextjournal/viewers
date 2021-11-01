@@ -18,7 +18,7 @@
 (defonce registry (reagent/atom (om/ordered-map)))
 
 (goog-define contentsTitle "contents")
-(goog-define logoImage "https://cdn.nextjournal.com/images/nextjournal-logo.svg")
+(goog-define logoImage "https://cdn.nextjournal.com/images/nextjournal-logo-white.svg")
 
 (def chevron-double-right
   [:svg {:xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 20 20" :fill "currentColor" :width 14 :height 14 :class "transition-all"}
@@ -58,7 +58,7 @@
   (for! [{:keys [id title toc collection-id]} devdocs
          :into [:<>]]
     [:div.mt-1
-     [:a.text-indigo-300.hover:text-white
+     [:a.hover:text-gray-400
       {:href (rfe/href :devdocs/devdoc {:collection collection-id :devdoc id})} title]
      (when inner?
        [inner-toc collection-id id (:children toc)])]))
@@ -101,12 +101,12 @@
       (into [:div.pl-4] children)]]))
 
 (defn sidebar-content [{:keys [title footer collapsed? mobile?]} & content]
-  [:div.px-12.py-6.bg-indigo-900.overflow-y-auto.flex-shrink-0.sidebar-content
+  [:div.px-12.py-6.overflow-y-auto.flex-shrink-0.sidebar-content.text-white
    (if @mobile?
-     {:class "fixed left-0 top-0 right-0 bottom-0 z-10"}
-     {:style {:width 330}
+     {:class "fixed left-0 top-0 right-0 bottom-0 z-10" :style {:background-color "rgba(31, 41, 55, 1.000)"}}
+     {:style {:width 330 :background-color "rgba(31, 41, 55, 1.000)"}
       :class (str "relative " (when @collapsed? "rounded"))})
-   [:div.text-indigo-300.absolute.left-0.top-0.w-full.p-4.cursor-pointer.flex.items-center.group.hover:text-white.hover:bg-black.hover:bg-opacity-25.transition-all
+   [:div.absolute.left-0.top-0.w-full.p-4.cursor-pointer.flex.items-center.group.hover:text-gray-400.hover:bg-black.hover:bg-opacity-25.transition-all
     {:on-click #(swap! collapsed? not)}
     (if @collapsed?
       chevron-double-right
@@ -117,10 +117,10 @@
             (if @mobile? "Show" "Pin")
             (if @mobile? "Hide" "Unpin"))
           " sidebar")]]
-   [:a.block.mt-12
+   [:a.block.mt-12.logo
     {:href (rfe/href :devdocs/index)}
     [:img {:src logoImage :width "100%" :style {:max-width 235}}]]
-   [:div.mt-12.pb-2.border-b.mb-2.uppercase.tracking-wide.text-base.md:text-sm.text-indigo-300
+   [:div.mt-12.pb-2.border-b.mb-2.uppercase.tracking-wide.text-base.md:text-sm
     {:style {:border-color "rgba(255,255,255,.2)"}}
     title]
    (into [:div.border-b.pb-2.text-base.md:text-sm.font-light
@@ -163,7 +163,7 @@
    (for! [{:keys [id title devdocs]} (vals @registry)
           :into [sidebar {:title contentsTitle}]]
      [:div.mt-1
-      [:a.text-indigo-300.hover:text-white.font-light.block
+      [:a.hover:text-gray-400.font-light.block
        {:href (rfe/href :devdocs/collection {:collection id})} title]])
    [:div.overflow-y-auto.px-12.bg-white.flex-auto
     {:style {:padding-top 80 :padding-bottom 70}}
@@ -174,7 +174,7 @@
       [:div.mb-10
        [:div
         [:h2.text-xl.uppercase.tracking-wide.font-bold
-         [:a.hover:underline.text-indigo-900
+         [:a.hover:underline
           {:href (rfe/href :devdocs/collection {:collection id})} title]
          (when clerk?
            [:span.text-gray-500.border.border-indigo-100.rounded-full.bg-white.px-2.py-1.ml-2.relative
@@ -187,7 +187,7 @@
        (for! [{devdoc-id :id title :title :as devdoc} devdocs
               :into [:div]]
          [:div.mt-4.ml-4
-          [:a.hover:underline.text-indigo-900.font-bold
+          [:a.hover:underline.font-bold
            {:data-ids (pr-str {:collection id :devdoc devdoc-id})
             :href (rfe/href :devdocs/devdoc {:collection id :devdoc devdoc-id}) :title (:path devdoc)} title]
           (when-let [ts (:last-modified devdoc)]
@@ -208,14 +208,14 @@
   (let [{:keys [id title devdocs clerk? cljs-eval?] :as collection} (get @registry collection)]
     [:div.flex.h-screen.devdocs-body
      [sidebar {:title title
-               :footer [:a.text-indigo-300.hover:text-white
+               :footer [:a.hover:text-gray-400
                         {:href (rfe/href :devdocs/index)}
                         "← Back"]}
       [devdocs-toc (map #(update % :toc dissoc :children) devdocs)]]
      [:div.overflow-y-auto.px-12.bg-white.flex-auto
       {:style {:padding-top 80 :padding-bottom 70}}
       [:h1.text-4xl.uppercase.tracking-wide.font-semibold.mb-8
-       [:a.hover:underline.text-indigo-900
+       [:a.hover:underline
         {:href (rfe/href :devdocs/collection {:collection id})} title]
        (when clerk?
          [:span.text-gray-500.border.border-indigo-100.rounded-full.bg-white.px-2.py-1.ml-2.relative
@@ -229,7 +229,7 @@
        (for! [{devdoc-id :id title :title :as devdoc} devdocs
               :into [:div]]
          [:div.mb-4
-          [:a.hover:underline.text-indigo-900.font-bold
+          [:a.hover:underline.font-bold
            {:href (rfe/href :devdocs/devdoc {:collection id :devdoc devdoc-id}) :title (:path devdoc)} title]
           (when-let [ts (:last-modified devdoc)]
             [:p.text-xs.text-gray-500.mt-1
@@ -245,10 +245,10 @@
   (let [{:keys [id title devdocs]} (get @registry collection)
         devdoc (some (return (comp #{devdoc} :id)) devdocs)]
     [:div.flex.h-screen.devdocs-body
-     [sidebar {:title [:a.text-indigo-300.hover:text-white
+     [sidebar {:title [:a.hover:text-white
                        {:href (rfe/href :devdocs/collection {:collection id})}
                        title]
-               :footer [:a.text-indigo-300.hover:text-white
+               :footer [:a.hover:text-white
                         {:href (rfe/href :devdocs/collection {:collection id})}
                         "← Back"]}
       [devdocs-toc (map #(update % :toc dissoc :children) devdocs)]]
