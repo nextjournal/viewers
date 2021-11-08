@@ -43,6 +43,29 @@
     {:nextjournal/value (md/->hiccup default-renderers value)
      :nextjournal/viewer :hiccup}))
 
+(dc/defcard numbered-lists
+  [:div.viewer-markdown
+   [inspect* (viewer "
+1. Lorem ipsum dolor sit amet
+2. Consectetur adipiscing elit
+3. Integer molestie lorem at massa")]])
+
+(dc/defcard numbered-lists-offset
+  "List should be able to start from an offset, e.g. 2., 3., 4. instead of 1., 2., 3., ..."
+  [:div.viewer-markdown
+   [inspect* (viewer "
+2. Lorem ipsum dolor sit amet
+3. Consectetur adipiscing elit
+4. Integer molestie lorem at massa")]])
+
+(dc/defcard numbered-lists-non-sequential
+  "Non-sequential numbered test, e.g. using the same counter over and over again, should result in sequentially numbered lists."
+  [:div.viewer-markdown
+   [inspect* (viewer "
+1. Lorem ipsum dolor sit amet
+1. Consectetur adipiscing elit
+1. Integer molestie lorem at massa")]])
+
 (dc/defcard default-markdown
   [:div.viewer-markdown
    [inspect* (viewer "# Markdown Default Rendering
