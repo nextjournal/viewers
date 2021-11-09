@@ -219,7 +219,7 @@ end"
 (defmethod apply-token "bullet_list_open" [doc {{:as attrs :keys [has-todos]} :attrs}] (open-node doc (if has-todos :todo-list :bullet-list) attrs))
 (defmethod apply-token "bullet_list_close" [doc _token] (close-node doc))
 
-(defmethod apply-token "ordered_list_open" [doc _token] (open-node doc :numbered-list))
+(defmethod apply-token "ordered_list_open" [doc {:keys [attrs]}] (open-node doc :numbered-list attrs))
 (defmethod apply-token "ordered_list_close" [doc _token] (close-node doc))
 
 (defmethod apply-token "list_item_open" [doc {{:as attrs :keys [todo]} :attrs}] (open-node doc (if todo :todo-item :list-item) attrs))
