@@ -79,7 +79,8 @@
    :bullet-list (partial into-markup [:ul])
    :list-item (partial into-markup [:li])
    :todo-list (partial into-markup [:ul.contains-task-list])
-   :numbered-list (partial into-markup [:ol])
+   :numbered-list (fn [ctx {:as node :keys [attrs]}] (into-markup [:ol attrs] ctx node))
+
    :todo-item (fn [ctx {:as node :keys [attrs]}]
                 (into-markup [:li [:input {:type "checkbox" :checked (:checked attrs)}]] ctx node))
 
