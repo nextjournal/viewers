@@ -54,10 +54,10 @@
                                 [:devdocs/index "Devdocs"]]]
              ^{:key title}
              [:li
-              [:a.text-gray-800.block.px-8.justify-between.py-4.text-xl.border-b.border-gray-300.flex.items-center.bg-white-50.hover:bg-indigo-50.transition-all.ease-in-out.duration-150
+              [:a.text-gray-800.block.px-8.justify-between.py-4.text-lg.border-b.border-gray-300.flex.items-center.bg-white-50.hover:bg-indigo-50.transition-all.ease-in-out.duration-150
                {:href (rfe/href route)}
                title
-               [:span.ml-2.opacity-50 "▶"]]])]]]])])) ;; FIXME: using ui.components.icon not working
+               [icon/chevron-right {:size 20}]]])]]]])])) ;; FIXME: using ui.components.icon not working
 
 (def router
   (let [router (rf/router routes)]

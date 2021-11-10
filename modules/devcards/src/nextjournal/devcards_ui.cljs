@@ -18,10 +18,6 @@
   [:div.devcard-desc.text-sm
    [:div.viewer-markdown [data/inspect (data/view-as :markdown md-str)]]])
 
-(def divider
-  [:svg.flex-shrink-0.h-5.w-5.text-gray-300 {:xmlns "http://www.w3.org/2000/svg" :fill "currentColor" :viewBox "0 0 20 20" :aria-hidden "true"}
-   [:path {:d "M5.555 17.776l8-16 .894.448-8 16-.894-.448z"}]])
-
 (defn cards-link []
   [:a.text-gray-400.hover:text-gray-500 {:href (rfe/href :devcards/root)}
    [:svg.flex-shrink-0.h-5.w-5 {:xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 20 20" :fill "currentColor" :aria-hidden "true"}
@@ -209,7 +205,7 @@
          (cards-link)]]
        [:li
         [:div.flex.items-center
-         divider
+         icon/divider
          [:span.ml-3 (ns-link ns)]]]]]
      [:div.py-8
       (doall
@@ -233,7 +229,7 @@
        (cards-link)]]
      [:li
       [:div.flex.items-center
-       divider
+       icon/divider
        [:span.ml-3 (ns-link ns)]]]]]
    [:div.py-8
     [show-card (-> props

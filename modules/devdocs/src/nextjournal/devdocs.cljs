@@ -20,18 +20,9 @@
 (goog-define contentsTitle "contents")
 (goog-define logoImage "https://cdn.nextjournal.com/images/nextjournal-logo-white.svg")
 
-(def chevron-double-right
-  [:svg {:xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 20 20" :fill "currentColor" :width 14 :height 14 :class "transition-all"}
-   [:path {:fill-rule "evenodd" :d "M10.293 15.707a1 1 0 010-1.414L14.586 10l-4.293-4.293a1 1 0 111.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" :clip-rule "evenodd"}]
-   [:path {:fill-rule "evenodd" :d "M4.293 15.707a1 1 0 010-1.414L8.586 10 4.293 5.707a1 1 0 011.414-1.414l5 5a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0z" :clip-rule "evenodd"}]])
 
-(def chevron-double-left
-  [:svg {:xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 20 20" :fill "currentColor" :width 14 :height 14 :class "transition-all"}
-   [:path {:fill-rule "evenodd" :d "M15.707 15.707a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 010 1.414zm-6 0a1 1 0 01-1.414 0l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 1.414L5.414 10l4.293 4.293a1 1 0 010 1.414z" :clip-rule "evenodd"}]])
 
-(def menu
-  [:svg {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor" :width 16 :height 16}
-   [:path {:stroke-linecap "round" :stroke-linejoin "round" :stroke-width "2" :d "M4 6h16M4 12h16M4 18h16"}]])
+
 
 (defn scroll-to-fragment [el-id]
   (when-let [el (js/document.getElementById el-id)]
@@ -109,8 +100,8 @@
    [:div.absolute.left-0.top-0.w-full.p-4.cursor-pointer.flex.items-center.group.hover:text-gray-400.hover:bg-black.hover:bg-opacity-25.transition-all
     {:on-click #(swap! collapsed? not)}
     (if @collapsed?
-      chevron-double-right
-      chevron-double-left)
+      [icon/chevron-double-right {:size 14}]
+      [icon/chevron-double-left {:size 14}])
     [:span.text-xs.font-light.opacity-0.group-hover:opacity-100.transition-all
      {:style {:margin-left 13}}
      (str (if @collapsed?
@@ -149,7 +140,7 @@
        (if @collapsed?
          [:div.fixed.left-0.top-0.p-4.text-indigo-900.flex.items-center.z-10.cursor-pointer.group
           {:on-click #(reset! collapsed? false)}
-          menu
+          [icon/menu]
           [:div.fixed.top-0.left-0.bottom-0.z-20.p-4.collapsed-sidebar
            {:class (if @mobile?
                      (str "mobile-sidebar " (if @collapsed? "hidden" "flex"))

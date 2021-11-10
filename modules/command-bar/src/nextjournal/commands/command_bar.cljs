@@ -22,11 +22,6 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; icons
-(def chevron-right
-  [:svg {:width 15 :height 15 :xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 20 20" :fill "currentColor"}
-   [:path {:fill-rule "evenodd" :d "M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" :clip-rule "evenodd"}]])
-
 ;; ui helpers
 (def fmt-date-time "MMM dd yyyy, HH:mm")
 
@@ -107,7 +102,7 @@
                (string? title) (fuzzy/highlight-chars (:fuzzy/chars command))
                (fn? view) (->> (view context)))
       (when (:subcommands command)
-        chevron-right)]
+        [icon/chevron-right {:size 15}])]
      [:div.text-right.whitespace-nowrap.inter
       {:style {:color "rgba(255,255,255,.6)"
                :font-size 11}}
@@ -329,7 +324,7 @@
                               (when on-expose (on-expose (:context item) item))
                               (when on-dispose (on-dispose (:context item) item))))}
                     label
-                    chevron-right]))
+                    [icon/chevron-right {:size 15}]]))
            [:input.outline-none.nj-commands-input
             {:value (bar-state/get-query @!view-state)
              :auto-complete "off"
