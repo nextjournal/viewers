@@ -18,7 +18,7 @@
 (def default-graph-options #js {:displayModeBar false
                                 :displayLogo false})
 
-(def default-min-margin {"r" 0 "l" 30 "b" 0 "t" 20})
+(def default-min-margin {"r" 10 "l" 30 "b" 30 "t" 20})
 
 (defn adjust-layout-margins [layout]
   (update layout "margin"
