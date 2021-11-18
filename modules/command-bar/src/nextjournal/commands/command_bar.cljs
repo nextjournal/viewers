@@ -8,6 +8,7 @@
             [nextjournal.commands.fuzzy :as fuzzy]
             [nextjournal.commands.command-bar-state :as bar-state]
             [nextjournal.commands.core :as commands]
+            [nextjournal.commands.keys :as keys]
             [nextjournal.commands.shortcuts :as shortcuts]
             [nextjournal.commands.state :as state]
             [nextjournal.ui.components.icon :as icon]
@@ -289,6 +290,7 @@
                                        (= 1 category-count) :list
                                        (<= rows 6) :list
                                        :else :grid)
+          mod-symbol (keys/printables (name (keys/modifier "Mod")))
           desktop? @(re-frame/subscribe [:desktop?])]
       [:div
        {:ref ref-fn}
@@ -334,7 +336,7 @@
             {:value (bar-state/get-query @!view-state)
              :auto-complete "off"
              :style {:height (if desktop? 20 40) :z-index 3 :width 200 :margin-left 6}
-             :placeholder (if context "Filter…" "⌘J Search commands…")
+             :placeholder (if context "Filter…" (str mod-symbol "J Search commands…"))
              :on-mouse-down #(re-frame/bind-frame (component-frame this)
                                (state/set-context! :!view-state !view-state)
                                (bar-state/activate-bar! !view-state))
