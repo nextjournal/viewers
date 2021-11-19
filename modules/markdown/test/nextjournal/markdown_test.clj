@@ -6,11 +6,13 @@
 (def markdown-text
   "# Hello
 
-some **strong** _assertion_ and a [link]
+some **strong** _assertion_ and a [link] and a $\\pi$ formula
 
 ```clojure
 (+ 1 2 3)
 ```
+
+$$\\int_a^bf(t)dt$$
 
 * one
 * two
@@ -39,12 +41,20 @@ some **strong** _assertion_ and a [link]
                                  {:attrs {:href "/path/to/something"}
                                   :content [{:text "link"
                                              :type :text}]
-                                  :type :link}]
+                                  :type :link}
+                                 {:text " and a "
+                                  :type :text}
+                                 {:text "\\pi"
+                                  :type :formula}
+                                 {:text " formula"
+                                  :type :text}]
                        :type :paragraph}
                       {:content [{:text "(+ 1 2 3)\n" :type :text}]
                        :info "clojure"
                        :language "clojure"
                        :type :code}
+                      {:text "\\int_a^bf(t)dt"
+                       :type :block-formula}
                       {:content [{:content [{:content [{:text "one"
                                                         :type :text}]
                                              :type :paragraph}]
@@ -79,8 +89,14 @@ some **strong** _assertion_ and a [link]
            " and a "
            [:a
             {:href "/path/to/something"}
-            "link"]]
+            "link"]
+           " and a "
+           [:span.formula
+            "\\pi"]
+           " formula"]
           [:pre.viewer-code "(+ 1 2 3)\n"]
+          [:figure.formula
+           "\\int_a^bf(t)dt"]
           [:ul
            [:li
             [:p
