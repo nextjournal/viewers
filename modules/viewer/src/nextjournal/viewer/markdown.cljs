@@ -1,6 +1,7 @@
 (ns nextjournal.viewer.markdown
   (:require [nextjournal.markdown :as md]
             [nextjournal.markdown.transform :as md.transform]
+            [nextjournal.viewer.katex :as katex]
             [nextjournal.devcards :as dc]))
 
 ;; FIXME: inspect should be passed down to viewers via ctx or something
@@ -34,14 +35,25 @@
          :todo-item (fn [ctx {:as node :keys [attrs]}]
                       (md.transform/into-markup [:li [:input {:type "checkbox" :default-checked (:checked attrs)}]] ctx node))
                                                                                ;; ⬆ defaultChecked only makes senst in react/reagent
-         :formula (fn [_ctx node] [inspect* {:nextjournal/viewer :latex
-                                             :nextjournal/value (md.transform/->text node)}])))
+         :formula (fn [_ctx node]
+                    [:span {:dangerouslySetInnerHTML {:__html (katex/to-html-string (md.transform/->text node))}}])
+         :block-formula (fn [_ctx node]
+                          [:div {:dangerouslySetInnerHTML {:__html (katex/to-html-string (md.transform/->text node) #js {:displayMode true})}}])))
 
 (defn viewer [value]
   ;; TODO: allow to pass "modes" with different sets of overrides
   (when value
     {:nextjournal/value (md/->hiccup default-renderers value)
      :nextjournal/viewer :hiccup}))
+
+(dc/defcard formulas
+  [:div.viewer-markdown
+   [inspect* (viewer "
+Inline $\\phi_\\alpha$ and block
+
+$$\\int_a^b f(t) dt$$
+
+formulas")]])
 
 (dc/defcard numbered-lists
   [:div.viewer-markdown

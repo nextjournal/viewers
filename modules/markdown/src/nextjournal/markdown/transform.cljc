@@ -24,10 +24,12 @@
 (declare ->hiccup)
 (defn into-markup
   "Takes a hiccup vector, a context and a node, puts node's `:content` into markup mapping through `->hiccup`."
-  [mkup ctx {:as node :keys [content]}]
-  (into mkup
-    (keep (partial ->hiccup (assoc ctx ::parent node)))
-    content))
+  [mkup ctx {:as node :keys [text content]}]
+  (cond ;; formula nodes are leaves: have text and no contents
+    text (conj mkup text)
+    (seq content) (into mkup
+                        (keep (partial ->hiccup (assoc ctx ::parent node)))
+                        content)))
 
 (defn toc->hiccup [{:as ctx ::keys [parent]} {:as node heading :node :keys [content]}]
   (cond->> [:div
