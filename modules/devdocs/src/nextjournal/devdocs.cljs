@@ -8,7 +8,6 @@
             [nextjournal.devcards-ui]
             [nextjournal.viewer :as v]
             [nextjournal.viewer.notebook]
-            [nextjournal.clerk.sci-viewer]
             [re-frame.context :as re-frame :refer [defc]]
             [reagent.core :as reagent]
             [reitit.frontend.easy :as rfe])

@@ -12,9 +12,6 @@
             [lambdaisland.shellutils :as shellutils]
             [nextjournal.markdown :as markdown]
             [nextjournal.markdown.transform :as markdown.transform]
-            [nextjournal.clerk :as clerk]
-            [nextjournal.clerk.view :as clerk-view]
-            [nextjournal.clerk.viewer :as v]
             [nextjournal.devcards :as dc]
             [shadow.resource :as shadow-resource]))
 
@@ -28,8 +25,11 @@
 (defn render-clerk
   "Takes the path to a Clerk notebook, returns a `:toc` based on the headers in
   the markdown comments, and a `:view` (Hiccup)."
-  [file]
-  (let [evaled (clerk/eval-file file)]
+  [file]  ;; FIXME: move devdocs out of viewers repo
+  (let [clerk-eval-file-fn   (resolve 'nextjournal.clerk/eval-file)
+        clerk-doc->viewer-fn (resolve 'nextjournal.clerk.view/doc->viewer)
+        clerk->edn-fn        (resolve 'nextjournal.clerk.view/->edn)
+        evaled (clerk-eval-file-fn file)]
     {:toc (->> evaled
                (filter (comp #{:markdown} :type))
                (map :text)
@@ -40,8 +40,8 @@
              (try
                (nextjournal.clerk.sci-viewer/read-string
                 ~(->> evaled
-                      (clerk-view/doc->viewer {:inline-results? true})
-                      clerk-view/->edn))
+                      (clerk-doc->viewer-fn {:inline-results? true})
+                      clerk->edn-fn))
                (catch :default e#
                  (js/console.error :clerk.sci-viewer/read-error e#)
                  "Parse error..."))]}))
