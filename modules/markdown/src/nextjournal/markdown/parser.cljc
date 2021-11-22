@@ -82,16 +82,19 @@
   (parse-fence-info "clojure")
   (parse-fence-info "{r cars, echo=FALSE}"))
 
+;; leaf nodes
+(defn text-node [text] {:type :text :text text})
+(defn tag-node [text] {:type :hashtag :text text})
+(defn formula [text] {:type :formula :text text})
+(defn block-formula [text] {:type :block-formula :text text})
+(defn sidenote-ref [ref] {:type :sidenote-ref :content [(text-node (str (inc ref)))]})
+
 ;; node constructors
 (defn node
   [type content attrs top-level]
   (cond-> {:type type :content content}
     (seq attrs) (assoc :attrs attrs)
     (seq top-level) (merge top-level)))
-(defn text-node [text] {:type :text :text text})
-(defn tag-node [text] {:type :hashtag :text text})
-(defn formula [text] {:type :formula :text text})
-(defn sidenote-ref [ref] {:type :sidenote-ref :content [(text-node (str (inc ref)))]})
 
 (defn empty-text-node? [{text :text t :type}] (and (= :text t) (empty? text)))
 
@@ -225,8 +228,8 @@ end"
 (defmethod apply-token "list_item_open" [doc {{:as attrs :keys [todo]} :attrs}] (open-node doc (if todo :todo-item :list-item) attrs))
 (defmethod apply-token "list_item_close" [doc _token] (close-node doc))
 
-(defmethod apply-token "math_block" [doc {text :content}] (-> doc (open-node :block-formula) (push-node (formula text))))
-(defmethod apply-token "math_block_end" [doc _token] (close-node doc))
+(defmethod apply-token "math_block" [doc {text :content}] (push-node doc (block-formula text)))
+(defmethod apply-token "math_block_end" [doc _token] doc)
 
 (defmethod apply-token "hr" [doc _token] (push-node doc {:type :ruler}))
 
