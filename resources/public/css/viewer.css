@@ -554,7 +554,8 @@ h5, h6 {
     display: block;
   }
 }
-.viewer-code + .viewer:not(.viewer-markdown):not(.viewer-code) {
+.viewer-code + .viewer:not(.viewer-markdown):not(.viewer-code),
+.viewer-result + .viewer-result {
   margin-top: 0.5rem;
 }
 @media (min-width: 768px) {
