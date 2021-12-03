@@ -6,7 +6,7 @@
         io.github.nextjournal/cljs-extensions {:local/root "../cljs-extensions"}
         io.github.nextjournal/markdown {:local/root "../markdown"}
 
-        com.nextjournal/clerk {:git/url "git@github.com:nextjournal/clerk.git"
+        com.nextjournal/clerk {:git/url "https://github.com/nextjournal/clerk.git"
                                :git/sha "d2cacf6d3d27768f34b9092c100be9083c6dd1fc"}
 
         ;; we use shadow-resource directly

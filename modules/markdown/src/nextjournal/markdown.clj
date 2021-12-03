@@ -25,7 +25,7 @@
 
 (def ^Value MD-imports
   (.eval ctx (.build (Source/newBuilder "js"
-                                        (str "import MD from '" (.getPath (io/resource "js/markdown.mjs")) "'; MD")
+                                        (str "import MD from '" (io/resource "js/markdown.mjs") "'; MD")
                                         "source.mjs"))))
 
 (defn make-js-fn [fn-name]
