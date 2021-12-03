@@ -14,8 +14,8 @@
   "
   (:require [clojure.string :as str]
             [nextjournal.markdown.transform :as md.transform]
-            [nextjournal.log :as log]
-            #?(:cljs [applied-science.js-interop :as j])))
+            #?@(:cljs [[applied-science.js-interop :as j]
+                       [cljs.reader :as reader]])))
 
 ;; clj common accessors
 (def get-in* #?(:clj get-in :cljs j/get-in))
@@ -31,7 +31,7 @@
 ;; region node operations
 ;; helpers
 (defn inc-last [path] (update path (dec (count path)) inc))
-(defn hlevel [{:as _token hn :tag}] (when (string? hn) (some-> (re-matches #"h([\d])" hn) second #?(:clj read-string :cljs cljs.reader/read-string))))
+(defn hlevel [{:as _token hn :tag}] (when (string? hn) (some-> (re-matches #"h([\d])" hn) second #?(:clj read-string :cljs reader/read-string))))
 (defn parse-fence-info
   "Ingests nextjournal, GFM, Pandoc and RMarkdown fenced code block info, returns a map
 
@@ -208,7 +208,7 @@ end"
 (declare apply-tokens)
 (defmulti apply-token (fn [_doc token] (:type token)))
 (defmethod apply-token :default [doc token]
-  (log/warn :apply-token/unknown-type {:token token})
+  (prn :apply-token/unknown-type {:token token})
   doc)
 
 ;; blocks
