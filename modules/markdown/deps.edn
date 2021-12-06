@@ -3,4 +3,8 @@
         lambdaisland/uri {:mvn/version "1.10.79"}
         org.clojure/data.json {:mvn/version "0.2.6"}
         org.graalvm.js/js {:mvn/version "21.3.0"}
-        org.graalvm.js/js-scriptengine {:mvn/version "21.3.0"}}}
+        org.graalvm.js/js-scriptengine {:mvn/version "21.3.0"}}
+
+ :aliases {:build {:deps {io.github.clojure/tools.build {:git/tag "v0.6.1" :git/sha "515b334"}
+                          io.github.slipset/deps-deploy {:git/sha "b4359c5d67ca002d9ed0c4b41b710d7e5a82e3bf"}}
+                   :ns-default build}}}
