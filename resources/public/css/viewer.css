@@ -554,7 +554,9 @@ h5, h6 {
     display: block;
   }
 }
-.viewer-code + .viewer:not(.viewer-markdown):not(.viewer-code) {
+.viewer-code + .viewer:not(.viewer-markdown):not(.viewer-code):not(.viewer-code-folded),
+.viewer-code-folded + .viewer:not(.viewer-markdown):not(.viewer-code):not(.viewer-code-folded),
+.viewer-result + .viewer-result {
   margin-top: 0.5rem;
 }
 @media (min-width: 768px) {
@@ -589,13 +591,13 @@ h5, h6 {
 
 /* Devdocs body */
 
-.devdocs-body {
-  font-family: Inter, sans-serif;
-}
-
 .logo,
 .logo-white {
   background: url(/images/nextjournal-logo.svg) center center no-repeat;
   text-indent: -999em;
   display: block;
+}
+
+.devdocs-body {
+  font-family: Inter, sans-serif;
 }
