@@ -4,29 +4,29 @@
             [clojure.data.json :as json]
             [nextjournal.markdown.parser :as markdown.parser]
             [nextjournal.markdown.transform :as markdown.transform])
-  (:import [org.graalvm.polyglot Context Context$Builder Engine Source Value]))
+  (:import [org.graalvm.polyglot Context Context$Builder Source Value]))
 
 (set! *warn-on-reflection* true)
 
-(def ^Engine engine (Engine/create))
-
 (def ^Context$Builder context-builder
   (doto (Context/newBuilder (into-array String ["js"]))
-    (.engine engine)
     (.option "js.timer-resolution" "1")
     (.option "js.java-package-globals" "false")
+    (.option "js.esm-eval-returns-exports", "true") ;; returns module exports when evaling an esm module file
     (.out System/out)
     (.err System/err)
+    (.allowIO true)
     (.allowExperimentalOptions true)
     (.allowAllAccess true)
-    (.allowNativeAccess true)))
+    (.allowNativeAccess true)
+    (.option "engine.WarnInterpreterOnly" "false")))
 
 (def ^Context ctx (.build context-builder))
 
 (def ^Value MD-imports
-  (.eval ctx (.build (Source/newBuilder "js"
-                                        (str "import MD from '" (.getPath (io/resource "js/markdown.mjs")) "'; MD")
-                                        "source.mjs"))))
+  (.. ctx
+      (eval (.build (Source/newBuilder "js" (io/resource "js/markdown.mjs"))))
+      (getMember "default")))
 
 (defn make-js-fn [fn-name]
   (let [f (.getMember MD-imports fn-name)]
