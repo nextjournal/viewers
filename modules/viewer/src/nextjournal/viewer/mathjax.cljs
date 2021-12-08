@@ -19,7 +19,7 @@
   (r/with-let [!el (r/atom nil)
                !mathjax (r/atom nil)]
     (-> (d3/require (bundle-url output-format))
-        (j/call :then #(do (js/console.log :MJP %) (reset! !mathjax (.-MathJax js/window)))))
+        (j/call :then #(reset! !mathjax (.-MathJax js/window))))
     (when (and @!el @!mathjax value)
       (let [r (case output-format
                 :svg (.tex2svg ^js @!mathjax value #js {:display (not inline?)})

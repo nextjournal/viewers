@@ -80,6 +80,14 @@ body {
   border-color: black;
 }
 
+/* MathJax */
+mjx-container[display] {
+  margin-top: 1rem;
+}
+mjx-container:not([display]) {
+  display: inline-grid;
+}
+
 /* Data Viewer */
 /* --------------------------------------------------------------- */
 
