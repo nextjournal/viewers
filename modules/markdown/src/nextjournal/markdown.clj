@@ -25,7 +25,7 @@
 
 (def ^Value MD-imports
   (.. ctx
-      (eval (.build (Source/newBuilder "js" (io/file (io/resource "js/markdown.mjs")))))
+      (eval (.build (Source/newBuilder "js" (io/resource "js/markdown.mjs"))))
       (getMember "default")))
 
 (defn make-js-fn [fn-name]
