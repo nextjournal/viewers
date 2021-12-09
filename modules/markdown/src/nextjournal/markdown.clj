@@ -24,9 +24,13 @@
 (def ^Context ctx (.build context-builder))
 
 (def ^Value MD-imports
-  (.. ctx
-      (eval (.build (Source/newBuilder "js" (io/resource "js/markdown.mjs"))))
-      (getMember "default")))
+  (let [source (-> (io/resource "js/markdown.mjs")
+                   io/input-stream
+                   java.io.InputStreamReader.
+                   (as-> r (Source/newBuilder "js" ^java.io.Reader r "markdown.mjs")))]
+    (.. ctx
+        (eval (.build source))
+        (getMember "default"))))
 
 (defn make-js-fn [fn-name]
   (let [f (.getMember MD-imports fn-name)]
