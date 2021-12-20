@@ -30,11 +30,11 @@
     "postcss": "^8.3.4",
     "punycode": "^2.1.1",
     "react": "16.9.0",
-    "react-dom": "16.9.0",
-    "tailwindcss": "^2.2.9"
+    "react-dom": "16.9.0"
   },
   "devDependencies": {
     "esbuild": "^0.12.28",
-    "shadow-cljs": "^2.15.5"
+    "shadow-cljs": "^2.15.5",
+    "tailwindcss": "^3.0.5"
   }
 }
