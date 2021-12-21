@@ -19,7 +19,7 @@
 #_(devdoc-collection
    "Clerk"
    {:slug "clerk" :clerk? true :view-source? true :resource? false}
-   [{:path "resources/docs/clerk.clj"}])
+   [{:path "docs/clerk.clj"}])
 
 (defonce router
   (rf/router routes/routes))

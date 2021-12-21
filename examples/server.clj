@@ -6,6 +6,8 @@
 
 (alter-var-root #'clerk-view/resource->static-url assoc "/js/viewer.js" "http://localhost:7779/js/viewer.js")
 
+(def docs
+  #{"docs/reference.md" "docs/simple.md" "docs/frontend.md" "docs/clerk.clj"})
 
 (defn doc->html [path]
   (let [paths [path]
@@ -17,7 +19,7 @@
 #_(doc->html "resources/docs/clerk.clj")
 
 (defn handler [{:as req :keys [uri]}]
-  (let [relative-path (subs uri 1)]
+  (when-let [path (docs (subs uri 1))]
     (binding [*ns* (find-ns 'user)]
       {:body (doc->html relative-path)
        :status 200})))
