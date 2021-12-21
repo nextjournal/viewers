@@ -4,7 +4,7 @@
             [clojure.data.json :as json]
             [nextjournal.markdown.parser :as markdown.parser]
             [nextjournal.markdown.transform :as markdown.transform])
-  (:import [org.graalvm.polyglot Context Context$Builder Source Value]))
+  (:import (org.graalvm.polyglot Context Context$Builder Source Value)))
 
 (set! *warn-on-reflection* true)
 
@@ -24,9 +24,11 @@
 (def ^Context ctx (.build context-builder))
 
 (def ^Value MD-imports
+  ;; Contructing a `java.io.Reader` first to work around a bug with graal on windows
+  ;; see https://github.com/oracle/graaljs/issues/534 and https://github.com/nextjournal/viewers/pull/33
   (let [source (-> (io/resource "js/markdown.mjs")
                    io/input-stream
-                   java.io.InputStreamReader.
+                   io/reader
                    (as-> r (Source/newBuilder "js" ^java.io.Reader r "markdown.mjs")))]
     (.. ctx
         (eval (.build source))
