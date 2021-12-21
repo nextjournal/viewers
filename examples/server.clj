@@ -11,7 +11,7 @@
   (let [paths [path]
         path->doc (into {} (map (juxt identity clerk/file->viewer)) paths)
         path->url (into {} (map (juxt identity #(clerk/strip-index %))) paths)
-        static-app-opts {:path->doc path->doc :paths (vec (keys path->doc)) :path->url path->url :path path}]
+        static-app-opts {:path->doc path->doc :paths (vec (keys path->doc)) :path->url path->url :current-path path}]
     (clerk-view/->static-app static-app-opts)))
 
 #_(doc->html "resources/docs/clerk.clj")

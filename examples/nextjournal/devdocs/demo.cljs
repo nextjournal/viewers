@@ -4,22 +4,22 @@
             [nextjournal.devdocs.routes :as routes]
             [reitit.frontend :as rf]))
 
-(devdoc-collection
- "Simple"
- {:slug "simple" :cljs-eval? false :view-source? true}
- [{:path "docs/simple.md"}
-  {:path "docs/reference.md"}])
+#_(devdoc-collection
+   "Simple"
+   {:slug "simple" :cljs-eval? false :view-source? true}
+   [{:path "docs/simple.md"}
+    {:path "docs/reference.md"}])
 
-#_
-(devdoc-collection
- "Frontend"
- {:slug "frontend" :cljs-eval? true :view-source? true}
- [{:path "docs/frontend.md"}])
 
-(devdoc-collection
- "Clerk"
- {:slug "clerk" :clerk? true :view-source? true :resource? false}
- [{:path "resources/docs/clerk.clj"}])
+#_(devdoc-collection
+   "Frontend"
+   {:slug "frontend" :cljs-eval? true :view-source? true}
+   [{:path "docs/frontend.md"}])
+
+#_(devdoc-collection
+   "Clerk"
+   {:slug "clerk" :clerk? true :view-source? true :resource? false}
+   [{:path "resources/docs/clerk.clj"}])
 
 (defonce router
   (rf/router routes/routes))
