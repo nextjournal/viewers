@@ -10,6 +10,7 @@
  [{:path "docs/simple.md"}
   {:path "docs/reference.md"}])
 
+#_
 (devdoc-collection
  "Frontend"
  {:slug "frontend" :cljs-eval? true :view-source? true}

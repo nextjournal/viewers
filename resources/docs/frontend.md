@@ -1,17 +1,36 @@
-# A Frontend Notebook
+# A Devcards Notebook
+```
+^{:nextjournal.clerk/visibility :hide}
+(ns compound
+  (:require [nextjournal.devcards :as devcards]
+            [nextjournal.clerk.viewer :as viewer]
+            [nextjournal.clerk :as clerk]))
 
-This notebook contains code snippets which are inlined as ClojureScript, and
-presented via the Nextjournal viewers.
-
-In this case we are also showing the source, but that is optional.
+(clerk/set-viewers! [{:pred #(and (map? %) (contains? % ::devcards/id))
+                      :transform-fn (fn [{:nextjournal/keys [width] :nextjournal.devcards/keys [id]}]
+                                      (-> {::devcards/registry-path [(namespace id) (name id)]}
+                                          viewer/wrap-value
+                                          (assoc :nextjournal/width (or width :wide))))
+                      :fetch-fn (fn [_ x] x)
+                      :render-fn (fn [{:nextjournal.devcards/keys [registry-path]}]
+                                   (v/html [nextjournal.devcards-ui/show-card (assoc (get-in @nextjournal.devcards/registry registry-path)
+                                                                                     :nextjournal.devcards/title? false
+                                                                                     :nextjournal.devcards/description? false)]))}])
+```
+This notebook extends Clerk default browser environment to make the
+devcards available.
 
 ```
-[1 2 3 4]
+(clerk/with-viewer (fn [_] @nextjournal.devcards/registry) :foo)
 ```
 
-You can choose which viewer will be used.
+```
+
+{:nextjournal.devcards/id 'nextjournal.clerk.sci-viewer/inspect-paginated-more}
+```
+
+You can also customize the width.
 
 ```
-^{:nextjournal/viewer :hiccup}
-[:b "A bold stroke"]
+{::devcards/id 'nextjournal.clerk.sci-viewer/inspect-paginated-more :nextjournal/width :normal}
 ```
