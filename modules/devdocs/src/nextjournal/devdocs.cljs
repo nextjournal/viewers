@@ -8,20 +8,17 @@
             [nextjournal.devcards-ui]
             [nextjournal.viewer :as v]
             [nextjournal.viewer.notebook]
-            [nextjournal.clerk.sci-viewer]
+            [nextjournal.clerk.sci-viewer :as sci-viewer]
             [re-frame.context :as re-frame :refer [defc]]
             [reagent.core :as reagent]
             [reitit.frontend.easy :as rfe])
-  (:require-macros [nextjournal.devdocs :refer [devdoc-collection show-card]]
+  (:require-macros [nextjournal.devdocs :refer [collection]]
                    [nextjournal.util.macros :refer [for!]]))
 
 (defonce registry (reagent/atom (om/ordered-map)))
 
 (goog-define contentsTitle "contents")
 (goog-define logoImage "https://cdn.nextjournal.com/images/nextjournal-logo-white.svg")
-
-
-
 
 
 (defn scroll-to-fragment [el-id]
@@ -233,6 +230,7 @@
 
 ;; :devdocs/devdoc
 (defn devdoc-view [{:keys [collection devdoc fragment] :as data}]
+  (js/console.log :devdocs/devdoc data)
   (let [{:keys [id title devdocs]} (get @registry collection)
         devdoc (some (return (comp #{devdoc} :id)) devdocs)]
     [:div.flex.h-screen.devdocs-body
@@ -251,7 +249,11 @@
                       [title (rfe/href :devdocs/collection {:collection collection})]
                       [(:title devdoc) (rfe/href :devdocs/devdoc {:collection collection :devdoc (:id devdoc)})]]]
        [:div.text-gray-400.text-xs.font-mono.float-right (:path devdoc)]]
-      (:view devdoc)]]))
+      [sci-viewer/inspect (try
+                            (sci-viewer/read-string (:edn-doc devdoc))
+                            (catch :default e
+                              (js/console.error :clerk.sci-viewer/read-error e)
+                              "Parse error..."))]]]))
 
 (defn devdoc-commands
   "For use with the commands/command-bar API"
