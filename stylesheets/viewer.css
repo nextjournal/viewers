@@ -2,44 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
+/*:root {*/
+/*  --code-font: "Fira Mono", monaco, monospace;*/
+/*  --sans-serif-font: "Fira Sans", -apple-system, BlinkMacSystemFont, Helvetica, "Helvetica Neue", Ubuntu, Roboto, Noto, "Segoe UI", Arial, sans-serif;*/
+/*  --sans-serif-condensed-font: "Fira Sans Condensed", -apple-system, BlinkMacSystemFont, Helvetica, "Helvetica Neue", Ubuntu, Roboto, Noto, "Segoe UI", Arial, sans-serif;*/
+/*  --serif-font: "PTSerif", Georgia, serif;*/
+/*  --inter-font: "Inter", -apple-system, BlinkMacSystemFont, Helevetica, Arial, sans-serif;*/
+/*}*/
 
-:root {
-  --code-font: "Fira Mono", monaco, monospace;
-  --sans-serif-font: "Fira Sans", -apple-system, BlinkMacSystemFont, Helvetica, "Helvetica Neue", Ubuntu, Roboto, Noto, "Segoe UI", Arial, sans-serif;
-  --sans-serif-condensed-font: "Fira Sans Condensed", -apple-system, BlinkMacSystemFont, Helvetica, "Helvetica Neue", Ubuntu, Roboto, Noto, "Segoe UI", Arial, sans-serif;
-  --serif-font: "PTSerif", Georgia, serif;
-  --inter-font: "Inter", -apple-system, BlinkMacSystemFont, Helevetica, Arial, sans-serif;
-}
-html {
-  font-size: 18px;
-}
-@media (max-width: 600px) {
+@layer base {
   html {
-    font-size: 16px;
+    font-size: 18px;
   }
-}
-body {
-  font-family: var(--serif-font);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  color: #1F2937;
-}
-@media (min-width: 550px) {
+  @media (max-width: 600px) {
+    html {
+      font-size: 16px;
+    }
+  }
   body {
-    overscroll-behavior-y: none;
+    @apply font-serif antialiased text-gray-900 sm:overscroll-y-none;
   }
-}
-.serif {
-  font-family: var(--serif-font);
-}
-.sans-serif {
-  font-family: var(--sans-serif-font);
-}
-.monospace {
-  font-family: var(--code-font);
-}
-.inter {
-  font-family: var(--inter-font);
+  code, .code {
+    @apply font-mono text-sm text-gray-900 bg-slate-50 px-0.5 py-px rounded;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-condensed font-bold mt-8 first:mt-0;
+  }
+  h1 { @apply text-4xl; }
+  h2 { @apply text-3xl; }
+  h3 { @apply text-2xl; }
+  h4 { @apply text-xl; }
+  h5 { @apply text-lg; }
+  h6 { @apply text-base; }
+
+  button { @apply focus:outline-none; }
+  strong { @apply font-bold; }
+  em     { @apply font-italic; }
+  pre    { @apply m-0 font-mono; }
 }
 
 /* Colors */
@@ -58,6 +57,13 @@ body {
   --command-bar-selected-color: var(--teal-color);
 }
 
+/* Compatibility */
+
+.serif      { @apply font-serif; }
+.sans-serif { @apply font-sans; }
+.monospace  { @apply font-mono; }
+.inter      { @apply font-intent; }
+
 .border-color-teal { border-color: var(--dark-teal-color); }
 .teal { color: var(--teal-color); }
 .bg-dark-blue { background: var(--dark-blue-color); }
@@ -71,36 +77,17 @@ body {
 .text-selected { color: white; }
 .red { color: var(--red-color); }
 
-/* Resets */
-/* --------------------------------------------------------------- */
-
-*:focus { outline: none; }
-
 /* Katex */
 /* --------------------------------------------------------------- */
 /* Tailwind sets a light gray as default border-color
    which makes katex fraction separators barely visible. */
 
 .katex * {
-  border-color: black;
+  @apply border-black;
 }
 
 /* Data Viewer */
 /* --------------------------------------------------------------- */
-
-:root {
-  --syntax-tag-color: rgba(0,0,0,.5);
-  --syntax-number-color: #1c4c71;
-  --syntax-keyword-color: #1c4c71;
-  --syntax-nil-color: #1c4c71;
-  --syntax-bool-color: #1c4c71;
-  --syntax-string-color: #318b8a;
-  --syntax-symbol-color: #8f2368;
-  --syntax-tag-color: #8f2368;
-  --syntax-untyped-color: #e44f67;
-  --syntax-key-color: #652365;
-  --syntax-index-color: #652365;
-}
 
 .inspected-value {
   font-size: 14px;
@@ -121,53 +108,42 @@ body {
   font-family: var(--code-font);
 }
 
-.syntax-tag { color: var(--syntax-tag-color) !important; }
-.cm-number,
-.syntax-number { color: var(--syntax-number-color) !important; }
-.cm-string,
-.syntax-string { color: var(--syntax-string-color) !important; }
-.cm-atom,
-.syntax-keyword { color: var(--syntax-keyword-color) !important; }
-.cm-builtin,
-.cm-keyword,
-.syntax-symbol { color: var(--syntax-symbol-color) !important; }
-.syntax-bool { color: var(--syntax-bool-color) !important; }
-.syntax-nil { color: var(--syntax-nil-color) !important; }
-.syntax-untyped { color: var(--syntax-untyped-color) !important; }
-.syntax-key { color: var(--syntax-key-color) !important; }
-.syntax-index { color: var(--syntax-index-color) !important; }
+.syntax-tag     { @apply text-pink-900 !important; }
+.cm-number      { @apply text-sky-900 !important; }
+.syntax-number  { @apply text-sky-900 !important; }
+.cm-string      { @apply text-teal-500 !important; }
+.syntax-string  { @apply text-teal-500 !important; }
+.cm-atom        { @apply text-sky-900 !important; }
+.syntax-keyword { @apply text-sky-900 !important; }
+.cm-builtin     { @apply text-pink-900 !important; }
+.cm-keyword     { @apply text-pink-900 !important; }
+.syntax-symbol  { @apply text-pink-900 !important; }
+.syntax-bool    { @apply text-sky-900 !important; }
+.syntax-nil     { @apply text-sky-900 !important; }
+.syntax-untyped { @apply text-rose-500 !important; }
+.syntax-key     { @apply text-fuchsia-900 !important; }
+.syntax-index   { @apply text-fuchsia-900 !important; }
 
-.syntax-untyped {
-  white-space: nowrap;
-}
+.syntax-untyped { @apply whitespace-nowrap; }
+
 .result-data {
-  font-family: var(--code-font);
-  font-size: 14px;
-  overflow-x: auto;
-  line-height: 1.5;
-  white-space: nowrap;
-
+  @apply font-mono text-sm overflow-x-auto whitespace-nowrap leading-normal;
 }
-
 .result-data::-webkit-scrollbar,
 .path-nav::-webkit-scrollbar {
-  height: 0;
+  @apply h-0;
 }
 .result-data-collapsed {
-  white-space: nowrap;
+  @apply whitespace-nowrap;
 }
 .result-data-field {
-  margin-left: 1em;
-  white-space: nowrap;
+  @apply ml-4 whitespace-nowrap;
 }
 .result-data-field-link{
-  margin-left: 1em;
-  white-space: nowrap;
-  cursor: pointer;
+  @apply ml-4 whitespace-nowrap cursor-pointer;
 }
 .result-data-field-link:hover {
-  color: black;
-  background: rgba(0,0,0,.05);
+  @apply text-black bg-black/5;
 }
 .result-text-empty {
   color: rgba(0,0,0,.3);
@@ -176,7 +152,7 @@ body {
   box-shadow: -2px 0 0 2px #edf2f7;
 }
 
-/* Disclose */
+/* Disclose Button */
 /* --------------------------------------------------------------- */
 
 .disclose {
@@ -199,6 +175,7 @@ body {
 }
 
 /* Layout */
+
 .page {
   max-width: 64rem;
   margin-left: auto;
@@ -207,11 +184,6 @@ body {
   padding-right: 3rem;
   box-sizing: border-box;
   flex-shrink: 0;
-}
-
-/* Katex */
-.katex * {
-  border-color: black;
 }
 
 /* Hopefully temporary workaround for vega viewer resizing into infinity */
@@ -250,62 +222,6 @@ body {
 .toc.pinned .toc-content {
   transform: translateX(0);
   opacity: 1;
-}
-
-/* Code */
-
-.code,
-code {
-  font-family: var(--code-font);
-  font-size: 0.85em;
-  color: var(--text-color);
-  background-color: var(--gray-panel-color);
-  padding: 1px 2px;
-  border-radius: 2px;
-}
-strong {
-  font-weight: bold;
-}
-em {
-  font-style: italic;
-}
-pre {
-  margin: 0;
-  font-family: var(--code-font);
-}
-
-/* Headings */
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--sans-serif-condensed-font);
-  font-weight: bold;
-  margin-top: 2rem;
-}
-h1:first-child,
-h2:first-child,
-h3:first-child,
-h4:first-child,
-h5:first-child,
-h6:first-child {
-  margin-top: 0;
-}
-h1 {
-  font-size: 2.2rem;
-  line-height: 1.2;
-}
-h2 {
-  font-size: 1.8rem;
-  line-height: 1.3;
-}
-h3 {
-  font-size: 1.35rem;
-  line-height: 1.3;
-}
-h4 {
-  font-size: 1.2rem;
-}
-h5, h6 {
-  font-size: 1rem;
 }
 
 /* Viewers */
