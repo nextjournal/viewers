@@ -1,3 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
 :root {
   --code-font: "Fira Mono", monaco, monospace;
   --sans-serif-font: "Fira Sans", -apple-system, BlinkMacSystemFont, Helvetica, "Helvetica Neue", Ubuntu, Roboto, Noto, "Segoe UI", Arial, sans-serif;
