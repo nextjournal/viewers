@@ -12,16 +12,14 @@
   (doto (Context/newBuilder (into-array String ["js"]))
     (.option "js.timer-resolution" "1")
     (.option "js.java-package-globals" "false")
-    (.option "js.esm-eval-returns-exports", "true") ;; 🚨 returns module exports when evaluating an esm module file
+    (.option "js.esm-eval-returns-exports", "true")
     (.out System/out)
     (.err System/err)
     (.allowIO true)
     (.allowExperimentalOptions true)
     (.allowAllAccess true)
     (.allowNativeAccess true)
-    (.option "engine.WarnInterpreterOnly" "false"))) ;; 🚨 silences warning on stock JVMs
-
-;;  🚨: doesn't work with older (< 23.1) Graal JVM or Libraries, consumers might provide an alternative context by binding *ctx* dynamically.
+    (.option "engine.WarnInterpreterOnly" "false")))
 
 (defn new-graal-context [] ^Context (.build context-builder))
 
@@ -33,20 +31,12 @@
               io/reader
               (as-> r (Source/newBuilder "js" ^java.io.Reader r "markdown.mjs")))))
 
-(defn new-context []
-  (let [^Context ctx (new-graal-context)]
-    {:graal-ctx ctx ;; reference to graal ctx for closing it
-     :parse-fn (.. ctx (eval ^Source (build-source)) (getMember "default") (getMember "parseJ"))}))
+(defn build-parse-fn []
+  (.. ^Context (new-graal-context) (eval ^Source (build-source)) (getMember "default") (getMember "parseJ")))
 
-(defn close-context [{::keys [graal-ctx]}] (.close ^Context graal-ctx))
+(def parse-fn (delay (build-parse-fn)))
 
-(def ^:dynamic *ctx* (delay (new-context)))
-(defn get-current-context [] (cond-> *ctx* (delay? *ctx*) deref))
-
-(defn parse*
-  ([text] (parse* (get-current-context) text))
-  ([{:as _ctx :keys [parse-fn]} text]
-   (.execute ^Value parse-fn (into-array String [text]))))
+(defn parse* [text] (.execute ^Value @parse-fn (into-array String [text])))
 
 (defn tokenize [markdown-text]
   (let [^Value tokens-json (parse* markdown-text)]
