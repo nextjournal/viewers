@@ -11,7 +11,7 @@
                   ".cm-line" {:padding "0"
                               :line-height "1.6"
                               :font-size "15px"
-                              :font-family "var(--code-font)"}
+                              :font-family "\"Fira Mono\", monospace"}
                   ".cm-matchingBracket" {:border-bottom "1px solid var(--teal-color)"
                                          :color "inherit"}
 
