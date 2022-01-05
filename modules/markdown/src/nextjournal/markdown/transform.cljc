@@ -67,7 +67,7 @@
               [:figure.image [:img attrs] (into-markup [:figcaption] ctx node)]))
 
    ;; code
-   :code (partial into-markup [:pre.viewer-code])
+   :code (partial into-markup [:pre.viewer-code.not-prose])
 
    ;; softbreaks
    ;; :softbreak (constantly [:br]) (treat as space)
