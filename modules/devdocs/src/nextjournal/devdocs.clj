@@ -70,7 +70,7 @@
                      (fn [ctx node]
                        [:<>
                         (when view-source?
-                          [:div.viewer-code
+                          [:div.viewer-code.not-prose
                            `[nextjournal.viewer/inspect
                              (nextjournal.viewer/view-as :code ~(markdown.transform/->text node))]])
                         (when cljs-eval?

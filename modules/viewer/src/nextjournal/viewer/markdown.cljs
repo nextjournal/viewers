@@ -18,7 +18,7 @@
     (.. e -target -classList (toggle "expanded"))))
 
 (defn code-viewer [node]
-  [:div.viewer-code
+  [:div.viewer-code.not-prose
    [inspect* {:nextjournal/viewer :code
               :nextjournal/value (md.transform/->text node)}]])
 

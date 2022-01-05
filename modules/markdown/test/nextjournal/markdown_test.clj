@@ -94,7 +94,7 @@ $$\\int_a^bf(t)dt$$
            [:span.formula
             "\\pi"]
            " formula"]
-          [:pre.viewer-code "(+ 1 2 3)\n"]
+          [:pre.viewer-code.not-prose "(+ 1 2 3)\n"]
           [:figure.formula
            "\\int_a^bf(t)dt"]
           [:ul

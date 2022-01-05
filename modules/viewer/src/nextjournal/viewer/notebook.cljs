@@ -21,6 +21,8 @@
                     [:div {:class ["viewer"
                                    (when (keyword? viewer)
                                      (str "viewer-" (name viewer)))
+                                   (when (= viewer :code)
+                                     "not-prose")
                                    (case (or width (case viewer
                                                      :code :wide
                                                      :prose))
