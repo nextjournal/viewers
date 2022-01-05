@@ -12,44 +12,51 @@
   (doto (Context/newBuilder (into-array String ["js"]))
     (.option "js.timer-resolution" "1")
     (.option "js.java-package-globals" "false")
-    (.option "js.esm-eval-returns-exports", "true") ;; returns module exports when evaling an esm module file
+    (.option "js.esm-eval-returns-exports", "true") ;; 🚨 returns module exports when evaluating an esm module file
     (.out System/out)
     (.err System/err)
     (.allowIO true)
     (.allowExperimentalOptions true)
     (.allowAllAccess true)
     (.allowNativeAccess true)
-    (.option "engine.WarnInterpreterOnly" "false")))
+    (.option "engine.WarnInterpreterOnly" "false"))) ;; 🚨 silences warning on stock JVMs
 
-(def ^Context ctx (.build context-builder))
+;;  🚨: doesn't work with older (< 23.1) Graal JVM or Libraries, consumers might provide an alternative context by binding *ctx* dynamically.
 
-(def ^Value MD-imports
+(defn new-graal-context [] ^Context (.build context-builder))
+
+(defn build-source []
   ;; Contructing a `java.io.Reader` first to work around a bug with graal on windows
   ;; see https://github.com/oracle/graaljs/issues/534 and https://github.com/nextjournal/viewers/pull/33
-  (let [source (-> (io/resource "js/markdown.mjs")
-                   io/input-stream
-                   io/reader
-                   (as-> r (Source/newBuilder "js" ^java.io.Reader r "markdown.mjs")))]
-    (.. ctx
-        (eval (.build source))
-        (getMember "default"))))
+  (.build (-> (io/resource "js/markdown.mjs")
+              io/input-stream
+              io/reader
+              (as-> r (Source/newBuilder "js" ^java.io.Reader r "markdown.mjs")))))
 
-(defn make-js-fn [fn-name]
-  (let [f (.getMember MD-imports fn-name)]
-    (fn [& args] (.execute f (to-array args)))))
+(defn new-context []
+  (let [^Context ctx (new-graal-context)]
+    {:graal-ctx ctx ;; reference to graal ctx for closing it
+     :parse-fn (.. ctx (eval ^Source (build-source)) (getMember "default") (getMember "parseJ"))}))
 
-(def parse* (make-js-fn "parseJ"))
+(defn close-context [{::keys [graal-ctx]}] (.close ^Context graal-ctx))
 
-(comment
-  (.execute (.getMember MD-imports "parse") (to-array ["# Hello"]))
-  (parse* "# Hello"))
+(def ^:dynamic *ctx* (delay (new-context)))
+(defn get-current-context [] (cond-> *ctx* (delay? *ctx*) deref))
+
+(defn parse*
+  ([text] (parse* (get-current-context) text))
+  ([{:as _ctx :keys [parse-fn]} text]
+   (.execute ^Value parse-fn (into-array String [text]))))
 
 (defn tokenize [markdown-text]
   (let [^Value tokens-json (parse* markdown-text)]
     (json/read-str (.asString tokens-json) :key-fn keyword)))
 
 (defn parse
-  "Turns a markdown string into a nested clojure structure."
+  "Turns a markdown string into a nested clojure structure.
+
+  A custom context might be provided in the caller thread by dynamically binding the *ctx* var, this might be useful for
+  older versions of Graal which do not support options used to build the default context."
   [markdown-text] (-> markdown-text tokenize markdown.parser/parse))
 
 (defn ->hiccup
