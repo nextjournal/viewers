@@ -9,7 +9,6 @@
 /.lsp/sqlite.db
 .shadow-cljs
 /.calva/
-/public/css/app.css
 /public/css/viewer.css
 /public/js/
 node_modules

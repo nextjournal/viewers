@@ -1,5 +1,5 @@
 {:tasks
- {:init (def tailwind-build-cmd "npx tailwindcss --input stylesheets/viewer.css --output public/css/viewer.css")
+ {:init (def tailwind-build-cmd "npx tailwindcss --input resources/css/viewer.css --output public/css/viewer.css")
 
   yarn-install {:doc "Installs and updates npm dependencies"
                 :task (shell "yarn install")}
