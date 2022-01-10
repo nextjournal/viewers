@@ -118,7 +118,7 @@
 }
 @media (min-width: 960px){
   .viewer-notebook .viewer-code {
-    @apply py-4 pl-[2.7rem];
+    @apply py-4 pl-12;
   }
 }
 
