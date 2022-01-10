@@ -121,6 +121,8 @@
     @apply py-4 pl-12;
   }
 }
+/* Don’t show focus outline when double-clicking cell in Safari */
+.cm-scroller { @apply focus:outline-none; }
 
 /* Data Viewer */
 /* --------------------------------------------------------------- */
