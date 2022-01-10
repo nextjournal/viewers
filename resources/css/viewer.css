@@ -185,10 +185,15 @@
 .viewer-markdown {
   @apply prose
     prose-a:text-indigo-600 prose-a:font-medium prose-a:no-underline hover:prose-a:underline
-    prose-p:mt-4 prose-ol:mt-4 prose-ul:mt-4 prose-blockquote:mt-4 prose-figure:mt-4
-    prose-p:leading-snug prose-ol:leading-snug prose-ul:leading-snug prose-blockquote:leading-snug
+    prose-p:mt-4 prose-p:leading-snug
+    prose-ol:mt-4 prose-ol:mb-6 prose-ol:leading-snug
+    prose-ul:mt-4 prose-ul:mb-6 prose-ul:leading-snug
+    prose-blockquote:mt-4 prose-blockquote:leading-snug
     prose-hr:mt-6 prose-hr:border-t-2 prose-hr:border-solid prose-hr:border-slate-200
+    prose-figure:mt-4
     prose-figcaption:mt-2 prose-figcaption:text-xs
+    prose-headings:mb-6
+    prose-th:mb-0
     prose-img:mb-0
     max-w-none;
 }
@@ -233,9 +238,14 @@
 .viewer-markdown .toc li    { @apply m-0; }
 .viewer-markdown .toc ul ul { @apply pl-4; }
 
+/* Notebook Spacing */
+/* --------------------------------------------------------------- */
+
+.viewer-notebook { @apply py-16; }
 .viewer-markdown *:first-child:not(.viewer-code) { @apply mt-0; }
 .viewer + .viewer { @apply mt-6; }
-.viewer-notebook { @apply py-16; }
+.viewer-markdown + .viewer { @apply mt-3; }
+.viewer-markdown + .viewer-markdown { @apply mt-0; }
 
 /* Sidenotes */
 /* --------------------------------------------------------------- */
