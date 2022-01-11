@@ -23,6 +23,7 @@ $$\\int_a^bf(t)dt$$
 (deftest parse-test
   (testing "ingests markdown returns nested nodes"
     (is (= {:type :doc
+            :title "Hello"
             :content [{:content [{:text "Hello"
                                   :type :text}]
                        :heading-level 1
@@ -105,7 +106,14 @@ $$\\int_a^bf(t)dt$$
              "two"]]]]
          (md/->hiccup markdown-text))))
 
-;;(ns-unmap *ns* '->hiccup-toc-test)
+(deftest set-title-when-missing
+  (testing "sets title in document structure to the first heading of whatever level"
+    (is (= "and some title"
+           (:title (md/parse "- One
+- Two
+## and some title
+### this is not a title" ))))))
+
 (deftest ->hiccup-toc-test
   "Builds Toc"
 
@@ -123,6 +131,7 @@ $$\\int_a^bf(t)dt$$
         hiccup (md.transform/->hiccup data)]
 
     (is (= {:type :doc
+            :title "Title"
             :content [{:content [{:text "Title"
                                   :type :text}]
                        :heading-level 1
@@ -239,7 +248,9 @@ $$\\int_a^bf(t)dt$$
 
 (deftest tags-text
   (testing "parsing tags"
-    (is (= {:content [{:content [{:text "Hello Tags"
+    (is (= {:type :doc
+            :title "Hello Tags"
+            :content [{:content [{:text "Hello Tags"
                                   :type :text}]
                        :heading-level 1
                        :type :heading}
@@ -260,8 +271,7 @@ $$\\int_a^bf(t)dt$$
                               :heading-level 1
                               :path [:content
                                      0]
-                              :title "Hello Tags"}]}
-            :type :doc}
+                              :title "Hello Tags"}]}}
            (md/parse "# Hello Tags
 par with #really_nice #useful-123 tags
 "))))

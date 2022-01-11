@@ -159,6 +159,9 @@
                                 (assoc :title (md.transform/->text h)
                                        :path path))))))
 
+(defn set-title-when-missing [{:as doc :keys [title] ::keys [path]}]
+  (cond-> doc (nil? title) (assoc :title (md.transform/->text (get-in doc path)))))
+
 (comment
  (-> {:type :toc}
      (into-toc {:heading-level 3 :title "Foo"})
@@ -209,7 +212,7 @@ end"
 
 ;; blocks
 (defmethod apply-token "heading_open" [doc token] (open-node doc :heading {} {:heading-level (hlevel token)}))
-(defmethod apply-token "heading_close" [doc {doc-level :level}] (-> doc close-node (cond-> (zero? doc-level) add-to-toc)))
+(defmethod apply-token "heading_close" [doc {doc-level :level}] (-> doc close-node (cond-> (zero? doc-level) (-> add-to-toc set-title-when-missing))))
 ;; for building the TOC we just care about headings at document top level (not e.g. nested under lists) ⬆
 
 (defmethod apply-token "paragraph_open" [doc _token] (open-node doc :paragraph))
