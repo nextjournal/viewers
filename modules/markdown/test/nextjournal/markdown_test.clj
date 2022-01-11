@@ -64,13 +64,13 @@ $$\\int_a^bf(t)dt$$
                                              :type :paragraph}]
                                   :type :list-item}]
                        :type :bullet-list}]
-            :toc {:content [{:level 1
-                             :node {:content [{:text "Hello" :type :text}]
-                                    :heading-level 1
-                                    :type :heading}
-                             :path [:content 0]
-                             :title "Hello"
-                             :type :toc}]
+            :toc {:children [{:content [{:text "Hello"
+                                         :type :text}]
+                              :heading-level 1
+                              :path [:content
+                                     0]
+                              :title "Hello"
+                              :type :toc}]
                   :type :toc}
             :type :doc}
            (md/parse markdown-text)))))
@@ -140,42 +140,34 @@ $$\\int_a^bf(t)dt$$
                                   :type :text}]
                        :heading-level 3
                        :type :heading}]
-            :toc {:content [{:content [{:level 2
-                                        :node {:content [{:text "Section 1"
-                                                          :type :text}]
-                                               :heading-level 2
-                                               :type :heading}
-                                        :path [:content
-                                               1]
-                                        :title "Section 1"
-                                        :type :toc}
-                                       {:content [{:level 3
-                                                   :node {:content [{:text "Section 2.1"
-                                                                     :type :text}]
-                                                          :heading-level 3
-                                                          :type :heading}
-                                                   :path [:content
-                                                          4]
-                                                   :title "Section 2.1"
-                                                   :type :toc}]
-                                        :level 2
-                                        :node {:content [{:text "Section 2"
-                                                          :type :text}]
-                                               :heading-level 2
-                                               :type :heading}
-                                        :path [:content
-                                               3]
-                                        :title "Section 2"
-                                        :type :toc}]
-                             :level 1
-                             :node {:content [{:text "Title"
-                                               :type :text}]
-                                    :heading-level 1
-                                    :type :heading}
-                             :path [:content
-                                    0]
-                             :title "Title"
-                             :type :toc}]
+            :toc {:children [{:children [{:content [{:text "Section 1"
+                                                     :type :text}]
+                                          :heading-level 2
+                                          :path [:content
+                                                 1]
+                                          :title "Section 1"
+                                          :type :toc}
+                                         {:children [{:content [{:text "Section 2.1"
+                                                                 :type :text}]
+                                                      :heading-level 3
+                                                      :path [:content
+                                                             4]
+                                                      :title "Section 2.1"
+                                                      :type :toc}]
+                                          :content [{:text "Section 2"
+                                                     :type :text}]
+                                          :heading-level 2
+                                          :path [:content
+                                                 3]
+                                          :title "Section 2"
+                                          :type :toc}]
+                              :content [{:text "Title"
+                                         :type :text}]
+                              :heading-level 1
+                              :path [:content
+                                     0]
+                              :title "Title"
+                              :type :toc}]
                   :type :toc}
             :type :doc}
            data))
@@ -189,7 +181,6 @@ $$\\int_a^bf(t)dt$$
              "Section 1"]
             [:div.toc
              [:div
-              nil
               [:ul
                [:li.toc-item
                 [:div
@@ -203,8 +194,7 @@ $$\\int_a^bf(t)dt$$
                     [:a
                      {:href "#Section%201"}
                      [:h2
-                      "Section 1"]]
-                    nil]]
+                      "Section 1"]]]]
                   [:li.toc-item
                    [:div
                     [:a
@@ -217,8 +207,7 @@ $$\\int_a^bf(t)dt$$
                        [:a
                         {:href "#Section%202.1"}
                         [:h3
-                         "Section 2.1"]]
-                       nil]]]]]]]]]]]
+                         "Section 2.1"]]]]]]]]]]]]]
             [:h2
              {:id "Section%202"}
              "Section 2"]
@@ -274,15 +263,13 @@ $$\\int_a^bf(t)dt$$
                                  {:text " tags"
                                   :type :text}]
                        :type :paragraph}]
-            :toc {:content [{:level 1
-                             :node {:content [{:text "Hello Tags"
-                                               :type :text}]
-                                    :heading-level 1
-                                    :type :heading}
-                             :path [:content
-                                    0]
-                             :title "Hello Tags"
-                             :type :toc}]
+            :toc {:children [{:content [{:text "Hello Tags"
+                                         :type :text}]
+                              :heading-level 1
+                              :path [:content
+                                     0]
+                              :title "Hello Tags"
+                              :type :toc}]
                   :type :toc}
             :type :doc}
            (md/parse "# Hello Tags

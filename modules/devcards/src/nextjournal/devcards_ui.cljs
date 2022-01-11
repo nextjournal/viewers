@@ -179,7 +179,7 @@
       frame
       (let [data (when data (data))]
         (log/trace :devcards/show-card {:card card :frame-id (:frame-id (rf/current-frame))})
-        [:div.not-prose
+        [:div
          (if (fn? data)
            ;; `compile-key` is used to force a re-mount of show-card*
            ;; when the _literal code_ for the card's data has changed.

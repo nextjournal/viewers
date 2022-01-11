@@ -31,25 +31,35 @@
                         (keep (partial ->hiccup (assoc ctx ::parent node)))
                         content)))
 
-(defn toc->hiccup [{:as ctx ::keys [parent]} {:as node heading :node :keys [content]}]
-  (cond->> [:div
-            (when heading
-              [:a {:href (str "#" (-> heading ->text ->id))
-                   #?@(:cljs [:on-click (fn [event]
-                                          (when-let [a (.. event -target (closest ".toc a"))]
-                                            (let [id (.. a (getAttribute "href") (substr 1))]
-                                              (when-let [el (.getElementById js/document id)]
-                                                (.preventDefault event)
-                                                (.scrollIntoViewIfNeeded el)))))])}
-               (-> heading heading-markup (into-markup ctx heading))])
-            (when (seq content)
-              (into [:ul]
-                (map (partial ->hiccup (assoc ctx ::parent node)))
-                content))]
-    (= :toc (:type parent))
-    (conj [:li.toc-item])
-    (not= :toc (:type parent))
-    (conj [:div.toc])))
+(defn toc->hiccup [{:as ctx ::keys [parent]} {:as node :keys [title children]}]
+  (let [toc-item (cond-> [:div]
+                   title
+                   (conj (let [id (->id title)]
+                           [:a {:href (str "#" id) #?@(:cljs [:on-click #(when-some [el (.getElementById js/document id)] (.preventDefault %) (.scrollIntoViewIfNeeded el))])}
+                            (-> node heading-markup (into-markup ctx node))]))
+                   (seq children)
+                   (conj (into [:ul] (keep (partial toc->hiccup (assoc ctx ::parent node))) children)))]
+    (cond->> toc-item
+      (= :toc (:type parent))
+      (conj [:li.toc-item])
+      (not= :toc (:type parent))
+      (conj [:div.toc]))))
+
+(comment
+  ;; override toc rendering
+  (-> "# Hello
+a paragraph
+[[TOC]]
+## Section _nice_ One
+### Section Nested
+## Section **terrible** Idea
+"
+      nextjournal.markdown/parse
+      (->> (->hiccup (assoc default-hiccup-renderers
+                            :toc (fn [ctx {:as node :keys [title children]}]
+                                   (cond-> [:div.toc]
+                                     title (conj [:span.title title])
+                                     (seq children) (conj (into [:ul] (map (partial ->hiccup ctx)) children)))))))))
 
 (def default-hiccup-renderers
   {:doc (partial into-markup [:div])
@@ -58,7 +68,7 @@
    :text (fn [_ {:keys [text]}] text)
    :hashtag (fn [_ {:keys [text]}] [:a.tag {:href (str "/tags/" text)} (str "#" text)]) ;; TODO: make it configurable
    :blockquote (partial into-markup [:blockquote])
-   :ruler (partial into-markup [:hr])
+   :ruler (constantly [:hr])
 
    ;; images
    :image (fn [{:as ctx ::keys [parent]} {:as node :keys [attrs]}]

@@ -9,7 +9,7 @@
   - info: (optional) fenced code info
   - content: (optional) a collection of Nodes representing nested content
   - text: (optional) content of text nodes, a collection of Nodes
-  - level: (optional) heading level
+  - heading-level: (on `:heading` nodes)
   - attrs: attributes as passed by markdownit tokens (e.g {:attrs {:style \"some style info\"}})
   "
   (:require [clojure.string :as str]
@@ -132,8 +132,8 @@
 ;; endregion
 
 ;; region TOC builder: (`add-to-toc` acts on toc after closing a header node)
-(defn into-toc [toc {:as toc-item :keys [level]}]
-  (loop [toc toc l level toc-path [:content]]
+(defn into-toc [toc {:as toc-item :keys [heading-level]}]
+  (loop [toc toc l heading-level toc-path [:children]]
     ;; toc-path is always of the form `[:content i1 :content i2 ... in :content]`
     (let [type-path (assoc toc-path (dec (count toc-path)) :type)]
       (cond
@@ -153,30 +153,29 @@
                (dec l)
                (conj toc-path
                      (max 0 (dec (count (get-in toc toc-path)))) ;; select last child at level if it exists
-                     :content))))))
+                     :children))))))
 
 (defn add-to-toc [{:as doc :keys [toc] path ::path}]
   (let [{:as h :keys [heading-level]} (get-in doc path)]
     (cond-> doc
       (pos-int? heading-level)
-      (update :toc into-toc {:level heading-level
-                             :type :toc
-                             :title (md.transform/->text h)
-                             :node h
-                             :path path}))))
+      (update :toc into-toc (assoc h
+                                   :type :toc
+                                   :title (md.transform/->text h)
+                                   :path path)))))
 
 (comment
  (-> {:type :toc}
-     ;;(into-toc {:level 3 :title "Foo"})
-     ;;(into-toc {:level 2 :title "Section 1"})
-     (into-toc {:level 1 :title "Title" :type :toc})
-     (into-toc {:level 4 :title "Section 2" :type :toc})
-     ;;(into-toc {:level 4 :title "Section 2.1"})
-     ;;(into-toc {:level 2 :title "Section 3"})
+     ;;(into-toc {:heading-level 3 :title "Foo"})
+     ;;(into-toc {:heading-level 2 :title "Section 1"})
+     (into-toc {:heading-level 1 :title "Title" :type :toc})
+     (into-toc {:heading-level 4 :title "Section 2" :type :toc})
+     ;;(into-toc {:heading-level 4 :title "Section 2.1"})
+     ;;(into-toc {:heading-level 2 :title "Section 3"})
      )
 
 
- (-> "# Start
+ (-> "# Top _Title_
 
 par
 
@@ -195,6 +194,8 @@ foo
 par
 
 # One Again
+
+[[TOC]]
 
 #### Four
 
