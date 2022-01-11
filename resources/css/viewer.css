@@ -19,6 +19,7 @@
   code, .code {
     @apply font-mono text-sm text-gray-900 bg-slate-50 px-0.5 py-px rounded;
   }
+  code::before, code::after { @apply content-none !important; }
   h1, h2, h3, h4, h5, h6 {
     @apply font-condensed font-bold mt-8 first:mt-0;
   }
