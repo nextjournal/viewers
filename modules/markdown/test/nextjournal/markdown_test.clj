@@ -22,7 +22,8 @@ $$\\int_a^bf(t)dt$$
 
 (deftest parse-test
   (testing "ingests markdown returns nested nodes"
-    (is (= {:content [{:content [{:text "Hello"
+    (is (= {:type :doc
+            :content [{:content [{:text "Hello"
                                   :type :text}]
                        :heading-level 1
                        :type :heading}
@@ -69,10 +70,8 @@ $$\\int_a^bf(t)dt$$
                               :heading-level 1
                               :path [:content
                                      0]
-                              :title "Hello"
-                              :type :toc}]
-                  :type :toc}
-            :type :doc}
+                              :title "Hello"}]
+                  :type :toc}}
            (md/parse markdown-text)))))
 
 (deftest ->hiccup-test
@@ -106,7 +105,7 @@ $$\\int_a^bf(t)dt$$
              "two"]]]]
          (md/->hiccup markdown-text))))
 
-
+;;(ns-unmap *ns* '->hiccup-toc-test)
 (deftest ->hiccup-toc-test
   "Builds Toc"
 
@@ -123,7 +122,8 @@ $$\\int_a^bf(t)dt$$
         data (md/parse md)
         hiccup (md.transform/->hiccup data)]
 
-    (is (= {:content [{:content [{:text "Title"
+    (is (= {:type :doc
+            :content [{:content [{:text "Title"
                                   :type :text}]
                        :heading-level 1
                        :type :heading}
@@ -140,36 +140,27 @@ $$\\int_a^bf(t)dt$$
                                   :type :text}]
                        :heading-level 3
                        :type :heading}]
-            :toc {:children [{:children [{:content [{:text "Section 1"
+            :toc {:type :toc
+                  :children [{:children [{:content [{:text "Section 1"
                                                      :type :text}]
                                           :heading-level 2
-                                          :path [:content
-                                                 1]
-                                          :title "Section 1"
-                                          :type :toc}
+                                          :path [:content 1]
+                                          :title "Section 1"}
                                          {:children [{:content [{:text "Section 2.1"
                                                                  :type :text}]
                                                       :heading-level 3
-                                                      :path [:content
-                                                             4]
-                                                      :title "Section 2.1"
-                                                      :type :toc}]
+                                                      :path [:content 4]
+                                                      :title "Section 2.1"}]
                                           :content [{:text "Section 2"
                                                      :type :text}]
                                           :heading-level 2
-                                          :path [:content
-                                                 3]
-                                          :title "Section 2"
-                                          :type :toc}]
+                                          :path [:content 3]
+                                          :title "Section 2"}]
                               :content [{:text "Title"
                                          :type :text}]
                               :heading-level 1
-                              :path [:content
-                                     0]
-                              :title "Title"
-                              :type :toc}]
-                  :type :toc}
-            :type :doc}
+                              :path [:content 0]
+                              :title "Title"}]}}
            data))
 
     (is (= [:div
@@ -214,7 +205,7 @@ $$\\int_a^bf(t)dt$$
             [:h3
              {:id "Section%202.1"}
              "Section 2.1"]]
-          hiccup))))
+           hiccup))))
 
 (deftest todo-lists
   (testing "todo lists"
@@ -263,14 +254,13 @@ $$\\int_a^bf(t)dt$$
                                  {:text " tags"
                                   :type :text}]
                        :type :paragraph}]
-            :toc {:children [{:content [{:text "Hello Tags"
+            :toc {:type :toc
+                  :children [{:content [{:text "Hello Tags"
                                          :type :text}]
                               :heading-level 1
                               :path [:content
                                      0]
-                              :title "Hello Tags"
-                              :type :toc}]
-                  :type :toc}
+                              :title "Hello Tags"}]}
             :type :doc}
            (md/parse "# Hello Tags
 par with #really_nice #useful-123 tags

@@ -31,19 +31,19 @@
                         (keep (partial ->hiccup (assoc ctx ::parent node)))
                         content)))
 
-(defn toc->hiccup [{:as ctx ::keys [parent]} {:as node :keys [title children]}]
+(defn toc->hiccup [ctx {:as node :keys [type title children]}]
   (let [toc-item (cond-> [:div]
                    title
                    (conj (let [id (->id title)]
                            [:a {:href (str "#" id) #?@(:cljs [:on-click #(when-some [el (.getElementById js/document id)] (.preventDefault %) (.scrollIntoViewIfNeeded el))])}
                             (-> node heading-markup (into-markup ctx node))]))
                    (seq children)
-                   (conj (into [:ul] (keep (partial toc->hiccup (assoc ctx ::parent node))) children)))]
+                   (conj (into [:ul] (map (partial toc->hiccup ctx)) children)))]
     (cond->> toc-item
-      (= :toc (:type parent))
-      (conj [:li.toc-item])
-      (not= :toc (:type parent))
-      (conj [:div.toc]))))
+      (= :toc type) ;; topmost toc node
+      (conj [:div.toc])
+      (nil? type) ;; else
+      (conj [:li.toc-item]))))
 
 (comment
   ;; override toc rendering
@@ -56,10 +56,11 @@ a paragraph
 "
       nextjournal.markdown/parse
       (->> (->hiccup (assoc default-hiccup-renderers
-                            :toc (fn [ctx {:as node :keys [title children]}]
+                            :toc (fn render-toc [ctx {:as node :keys [heading-level title children]}]
                                    (cond-> [:div.toc]
+                                     heading-level (conj {:data-level heading-level})
                                      title (conj [:span.title title])
-                                     (seq children) (conj (into [:ul] (map (partial ->hiccup ctx)) children)))))))))
+                                     (seq children) (conj (into [:ul] (map (partial render-toc ctx)) children)))))))))
 
 (def default-hiccup-renderers
   {:doc (partial into-markup [:div])
