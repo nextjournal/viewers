@@ -71,7 +71,8 @@ $$\\int_a^bf(t)dt$$
                               :heading-level 1
                               :path [:content
                                      0]
-                              :title "Hello"}]
+                              :title "Hello"
+                              :type :toc}]
                   :type :toc}}
            (md/parse markdown-text)))))
 
@@ -149,27 +150,35 @@ $$\\int_a^bf(t)dt$$
                                   :type :text}]
                        :heading-level 3
                        :type :heading}]
-            :toc {:type :toc
-                  :children [{:children [{:content [{:text "Section 1"
+            :toc {:children [{:children [{:content [{:text "Section 1"
                                                      :type :text}]
                                           :heading-level 2
-                                          :path [:content 1]
-                                          :title "Section 1"}
+                                          :path [:content
+                                                 1]
+                                          :title "Section 1"
+                                          :type :toc}
                                          {:children [{:content [{:text "Section 2.1"
                                                                  :type :text}]
                                                       :heading-level 3
-                                                      :path [:content 4]
-                                                      :title "Section 2.1"}]
+                                                      :path [:content
+                                                             4]
+                                                      :title "Section 2.1"
+                                                      :type :toc}]
                                           :content [{:text "Section 2"
                                                      :type :text}]
                                           :heading-level 2
-                                          :path [:content 3]
-                                          :title "Section 2"}]
+                                          :path [:content
+                                                 3]
+                                          :title "Section 2"
+                                          :type :toc}]
                               :content [{:text "Title"
                                          :type :text}]
                               :heading-level 1
-                              :path [:content 0]
-                              :title "Title"}]}}
+                              :path [:content
+                                     0]
+                              :title "Title"
+                              :type :toc}]
+                  :type :toc}}
            data))
 
     (is (= [:div
@@ -214,7 +223,7 @@ $$\\int_a^bf(t)dt$$
             [:h3
              {:id "Section%202.1"}
              "Section 2.1"]]
-           hiccup))))
+          hiccup))))
 
 (deftest todo-lists
   (testing "todo lists"
@@ -266,12 +275,12 @@ $$\\int_a^bf(t)dt$$
                                   :type :text}]
                        :type :paragraph}]
             :toc {:type :toc
-                  :children [{:content [{:text "Hello Tags"
+                  :children [{:type :toc
+                              :title "Hello Tags"
+                              :content [{:text "Hello Tags"
                                          :type :text}]
                               :heading-level 1
-                              :path [:content
-                                     0]
-                              :title "Hello Tags"}]}}
+                              :path [:content 0]}]}}
            (md/parse "# Hello Tags
 par with #really_nice #useful-123 tags
 "))))
