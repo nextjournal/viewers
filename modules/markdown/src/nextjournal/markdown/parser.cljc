@@ -131,7 +131,9 @@
       ))
 ;; endregion
 
-;; region TOC builder: (`add-to-toc` acts on toc after closing a header node)
+;; region TOC builder:
+;; toc nodes are heading nodes but with `:type` `:toc` and an extra branching along
+;; the key `:children` representing the sub-sections of the node
 (defn into-toc [toc {:as toc-item :keys [heading-level]}]
   (loop [toc toc l heading-level toc-path [:children]]
     ;; `toc-path` is `[:children i₁ :children i₂ ... :children]`
@@ -155,17 +157,18 @@
                      (max 0 (dec (count (get-in toc toc-path)))) ;; select last child at level if it exists
                      :children))))))
 
-(defn add-to-toc [{:as doc :keys [toc] path ::path}]
-  (let [{:as h :keys [heading-level]} (get-in doc path)]
-    (cond-> doc
-      (pos-int? heading-level)
-      (update :toc into-toc (assoc h
-                                   :type :toc
-                                   :title (md.transform/->text h)
-                                   :path path)))))
+(defn add-to-toc [doc {:as h :keys [heading-level]}]
+  (cond-> doc (pos-int? heading-level) (update :toc into-toc (assoc h :type :toc))))
 
-(defn set-title-when-missing [{:as doc :keys [title] ::keys [path]}]
-  (cond-> doc (nil? title) (assoc :title (md.transform/->text (get-in doc path)))))
+(defn set-title-when-missing [{:as doc :keys [title]} heading]
+  (cond-> doc (nil? title) (assoc :title (md.transform/->text heading))))
+
+(defn add-title+toc
+  "Computes and adds a :title and a :toc to the document-like structure `doc` which might have not been constructed by means of `parse`."
+  [{:as doc :keys [content]}]
+  (let [rf (fn [doc heading] (-> doc (add-to-toc heading) (set-title-when-missing heading)))
+        xf (filter (comp #{:heading} :type))]
+    (reduce (xf rf) (assoc doc :toc {:type :toc}) content)))
 
 (comment
  (-> {:type :toc}
@@ -176,7 +179,6 @@
      ;;(into-toc {:heading-level 4 :title "Section 2.1"})
      ;;(into-toc {:heading-level 2 :title "Section 3"})
      )
-
 
  (-> "# Top _Title_
 
@@ -217,7 +219,10 @@ end"
 
 ;; blocks
 (defmethod apply-token "heading_open" [doc token] (open-node doc :heading {} {:heading-level (hlevel token)}))
-(defmethod apply-token "heading_close" [doc {doc-level :level}] (-> doc close-node (cond-> (zero? doc-level) (-> add-to-toc set-title-when-missing))))
+(defmethod apply-token "heading_close" [doc {doc-level :level}]
+  (let [{:as doc ::keys [path]} (close-node doc)
+        heading (-> doc (get-in path) (assoc :path path))]
+    (cond-> doc (zero? doc-level) (-> (add-to-toc heading) (set-title-when-missing heading)))))
 ;; for building the TOC we just care about headings at document top level (not e.g. nested under lists) ⬆
 
 (defmethod apply-token "paragraph_open" [doc _token] (open-node doc :paragraph))
