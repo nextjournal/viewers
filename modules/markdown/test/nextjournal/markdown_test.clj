@@ -69,9 +69,7 @@ $$\\int_a^bf(t)dt$$
             :toc {:children [{:content [{:text "Hello"
                                          :type :text}]
                               :heading-level 1
-                              :path [:content
-                                     0]
-                              :title "Hello"
+                              :path [:content 0]
                               :type :toc}]
                   :type :toc}}
            (md/parse markdown-text)))))
@@ -153,30 +151,22 @@ $$\\int_a^bf(t)dt$$
             :toc {:children [{:children [{:content [{:text "Section 1"
                                                      :type :text}]
                                           :heading-level 2
-                                          :path [:content
-                                                 1]
-                                          :title "Section 1"
+                                          :path [:content 1]
                                           :type :toc}
                                          {:children [{:content [{:text "Section 2.1"
                                                                  :type :text}]
                                                       :heading-level 3
-                                                      :path [:content
-                                                             4]
-                                                      :title "Section 2.1"
+                                                      :path [:content 4]
                                                       :type :toc}]
                                           :content [{:text "Section 2"
                                                      :type :text}]
                                           :heading-level 2
-                                          :path [:content
-                                                 3]
-                                          :title "Section 2"
+                                          :path [:content 3]
                                           :type :toc}]
                               :content [{:text "Title"
                                          :type :text}]
                               :heading-level 1
-                              :path [:content
-                                     0]
-                              :title "Title"
+                              :path [:content 0]
                               :type :toc}]
                   :type :toc}}
            data))
@@ -276,7 +266,6 @@ $$\\int_a^bf(t)dt$$
                        :type :paragraph}]
             :toc {:type :toc
                   :children [{:type :toc
-                              :title "Hello Tags"
                               :content [{:text "Hello Tags"
                                          :type :text}]
                               :heading-level 1
