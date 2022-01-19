@@ -227,6 +227,32 @@ Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium dolor
 Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
 "})
 
+(dc/defcard toc-standalone
+  "Shows how to render the TOC of a document"
+  [toc]
+  [:div.viewer-markdown
+   [inspect* {:nextjournal/viewer :hiccup
+              :nextjournal/value (md.transform/->hiccup @toc)}]]
+  {::dc/state (-> "# My Document
+## Section 1
+### Section 1.1
+## Section 2
+### Section 2.1
+" md/parse :toc)})
+
+(dc/defcard toc-standalone-dropping-title
+  "Shows how to drop top h1 entry from TOC"
+  [toc]
+  [:div.viewer-markdown
+   [inspect* {:nextjournal/viewer :hiccup
+              :nextjournal/value (md.transform/->hiccup @toc)}]]
+  {::dc/state (-> "# My Document
+## Section 1
+### Section 1.1
+## Section 2
+### Section 2.1
+" md/parse :toc :children first (dissoc :content))})
+
 (dc/defcard reference
   [markdown]
   [:div.viewer-markdown

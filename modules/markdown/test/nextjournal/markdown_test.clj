@@ -22,7 +22,9 @@ $$\\int_a^bf(t)dt$$
 
 (deftest parse-test
   (testing "ingests markdown returns nested nodes"
-    (is (= {:content [{:content [{:text "Hello"
+    (is (= {:type :doc
+            :title "Hello"
+            :content [{:content [{:text "Hello"
                                   :type :text}]
                        :heading-level 1
                        :type :heading}
@@ -64,15 +66,12 @@ $$\\int_a^bf(t)dt$$
                                              :type :paragraph}]
                                   :type :list-item}]
                        :type :bullet-list}]
-            :toc {:content [{:level 1
-                             :node {:content [{:text "Hello" :type :text}]
-                                    :heading-level 1
-                                    :type :heading}
-                             :path [:content 0]
-                             :title "Hello"
-                             :type :toc}]
-                  :type :toc}
-            :type :doc}
+            :toc {:children [{:content [{:text "Hello"
+                                         :type :text}]
+                              :heading-level 1
+                              :path [:content 0]
+                              :type :toc}]
+                  :type :toc}}
            (md/parse markdown-text)))))
 
 (deftest ->hiccup-test
@@ -106,6 +105,13 @@ $$\\int_a^bf(t)dt$$
              "two"]]]]
          (md/->hiccup markdown-text))))
 
+(deftest set-title-when-missing
+  (testing "sets title in document structure to the first heading of whatever level"
+    (is (= "and some title"
+           (:title (md/parse "- One
+- Two
+## and some title
+### this is not a title" ))))))
 
 (deftest ->hiccup-toc-test
   "Builds Toc"
@@ -123,7 +129,9 @@ $$\\int_a^bf(t)dt$$
         data (md/parse md)
         hiccup (md.transform/->hiccup data)]
 
-    (is (= {:content [{:content [{:text "Title"
+    (is (= {:type :doc
+            :title "Title"
+            :content [{:content [{:text "Title"
                                   :type :text}]
                        :heading-level 1
                        :type :heading}
@@ -140,44 +148,27 @@ $$\\int_a^bf(t)dt$$
                                   :type :text}]
                        :heading-level 3
                        :type :heading}]
-            :toc {:content [{:content [{:level 2
-                                        :node {:content [{:text "Section 1"
-                                                          :type :text}]
-                                               :heading-level 2
-                                               :type :heading}
-                                        :path [:content
-                                               1]
-                                        :title "Section 1"
-                                        :type :toc}
-                                       {:content [{:level 3
-                                                   :node {:content [{:text "Section 2.1"
-                                                                     :type :text}]
-                                                          :heading-level 3
-                                                          :type :heading}
-                                                   :path [:content
-                                                          4]
-                                                   :title "Section 2.1"
-                                                   :type :toc}]
-                                        :level 2
-                                        :node {:content [{:text "Section 2"
-                                                          :type :text}]
-                                               :heading-level 2
-                                               :type :heading}
-                                        :path [:content
-                                               3]
-                                        :title "Section 2"
-                                        :type :toc}]
-                             :level 1
-                             :node {:content [{:text "Title"
-                                               :type :text}]
-                                    :heading-level 1
-                                    :type :heading}
-                             :path [:content
-                                    0]
-                             :title "Title"
-                             :type :toc}]
-                  :type :toc}
-            :type :doc}
+            :toc {:children [{:children [{:content [{:text "Section 1"
+                                                     :type :text}]
+                                          :heading-level 2
+                                          :path [:content 1]
+                                          :type :toc}
+                                         {:children [{:content [{:text "Section 2.1"
+                                                                 :type :text}]
+                                                      :heading-level 3
+                                                      :path [:content 4]
+                                                      :type :toc}]
+                                          :content [{:text "Section 2"
+                                                     :type :text}]
+                                          :heading-level 2
+                                          :path [:content 3]
+                                          :type :toc}]
+                              :content [{:text "Title"
+                                         :type :text}]
+                              :heading-level 1
+                              :path [:content 0]
+                              :type :toc}]
+                  :type :toc}}
            data))
 
     (is (= [:div
@@ -189,7 +180,6 @@ $$\\int_a^bf(t)dt$$
              "Section 1"]
             [:div.toc
              [:div
-              nil
               [:ul
                [:li.toc-item
                 [:div
@@ -203,8 +193,7 @@ $$\\int_a^bf(t)dt$$
                     [:a
                      {:href "#Section%201"}
                      [:h2
-                      "Section 1"]]
-                    nil]]
+                      "Section 1"]]]]
                   [:li.toc-item
                    [:div
                     [:a
@@ -217,8 +206,7 @@ $$\\int_a^bf(t)dt$$
                        [:a
                         {:href "#Section%202.1"}
                         [:h3
-                         "Section 2.1"]]
-                       nil]]]]]]]]]]]
+                         "Section 2.1"]]]]]]]]]]]]]
             [:h2
              {:id "Section%202"}
              "Section 2"]
@@ -259,7 +247,9 @@ $$\\int_a^bf(t)dt$$
 
 (deftest tags-text
   (testing "parsing tags"
-    (is (= {:content [{:content [{:text "Hello Tags"
+    (is (= {:type :doc
+            :title "Hello Tags"
+            :content [{:content [{:text "Hello Tags"
                                   :type :text}]
                        :heading-level 1
                        :type :heading}
@@ -274,17 +264,12 @@ $$\\int_a^bf(t)dt$$
                                  {:text " tags"
                                   :type :text}]
                        :type :paragraph}]
-            :toc {:content [{:level 1
-                             :node {:content [{:text "Hello Tags"
-                                               :type :text}]
-                                    :heading-level 1
-                                    :type :heading}
-                             :path [:content
-                                    0]
-                             :title "Hello Tags"
-                             :type :toc}]
-                  :type :toc}
-            :type :doc}
+            :toc {:type :toc
+                  :children [{:type :toc
+                              :content [{:text "Hello Tags"
+                                         :type :text}]
+                              :heading-level 1
+                              :path [:content 0]}]}}
            (md/parse "# Hello Tags
 par with #really_nice #useful-123 tags
 "))))
