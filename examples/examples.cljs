@@ -26,6 +26,7 @@
 
 (def routes
   [["/"           {:name ::home}]
+   ["/devdocs/*"  {:name ::devdocs  :router devdocs.demo/router    :view devdocs.demo/view}]
    ["/devcards/*" {:name ::devcards :router devcards.routes/router  :view devcards.routes/view}]])
 
 (commands/register! :go-to/home
