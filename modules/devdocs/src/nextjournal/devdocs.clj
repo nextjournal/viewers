@@ -36,7 +36,7 @@
                                    (clerk/parse-file file))]
     (-> doc
         (dissoc :blocks)
-        (assoc :edn-doc (clerk-view/->edn (clerk-view/doc->viewer {:inline-results? true :toc? true} doc))))))
+        (assoc :edn-doc (clerk-view/->edn (clerk-view/doc->viewer {:inline-results? true} doc))))))
 
 
 #_(file->doc "docs/clerk.clj" {})
