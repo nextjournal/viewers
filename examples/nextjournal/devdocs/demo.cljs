@@ -11,8 +11,8 @@
 (devdocs/collection "Frontend"
                     [{:path "docs/frontend.md"}])
 
-(devdocs/collection "Clerk"
-                    [{:path "docs/clerk.clj"}])
+(devdocs/defcollection "Clerk"
+  [{:path "docs/clerk.clj"}])
 
 (defonce router
   (rf/router routes/routes))

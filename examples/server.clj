@@ -1,10 +1,11 @@
 (ns server
   (:require [nextjournal.clerk :as clerk]
+            [nextjournal.clerk.config :as clerk-config]
             [nextjournal.clerk.webserver :as clerk-webserver]
             [nextjournal.clerk.view :as clerk-view]))
 
 
-(alter-var-root #'clerk-view/resource->static-url assoc "/js/viewer.js" "http://localhost:7779/js/viewer.js")
+(swap! clerk-config/!resource->url assoc "/js/viewer.js" "http://localhost:7779/js/viewer.js")
 
 (def docs
   #{"docs/reference.md" "docs/simple.md" "docs/frontend.md" "docs/clerk.clj"})

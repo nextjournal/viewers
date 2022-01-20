@@ -33,11 +33,12 @@
   (let [{:as doc :keys [blocks]} (clerk/eval-file file)]
     (-> doc
         (dissoc :blocks)
-        (assoc :edn-doc (clerk-view/->edn (clerk-view/doc->viewer {:inline-results? true} blocks))))))
+        (assoc :edn-doc (clerk-view/->edn (clerk-view/doc->viewer {:inline-results? true :toc? true} doc))))))
+
 
 #_(file->doc "docs/clerk.clj")
 
-(defmacro collection
+(defmacro defcollection
   "Create a Devdoc Collection out of a set of Markdown documents
 
   Takes a name for the collection, a map of options, and a sequence of paths to
