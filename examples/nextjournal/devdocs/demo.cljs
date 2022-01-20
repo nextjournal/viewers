@@ -4,14 +4,14 @@
             [nextjournal.devdocs.routes :as routes]
             [reitit.frontend :as rf]))
 
-(devdocs/collection "Simple"
-                    [{:path "docs/simple.md"}
-                     {:path "docs/reference.md"}])
+(devdocs/defcollection "Simple" {:eval? false}
+  [{:path "docs/simple.md"}
+   {:path "docs/reference.md"}])
 
-(devdocs/collection "Frontend"
-                    [{:path "docs/frontend.md"}])
+(devdocs/defcollection "Devcards" {}
+  [{:path "docs/devcards.md"}])
 
-(devdocs/defcollection "Clerk"
+(devdocs/defcollection "Clerk" {}
   [{:path "docs/clerk.clj"}])
 
 (defonce router

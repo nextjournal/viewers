@@ -29,14 +29,18 @@
 (defn file->doc
   "Takes the path to a Clerk notebook, returns a `:toc` based on the headers in
   the markdown comments, and a `:view` (Hiccup)."
-  [file]
-  (let [{:as doc :keys [blocks]} (clerk/eval-file file)]
+  [file {:keys [eval?]
+         :or {eval? true}}]
+  (let [{:as doc :keys [blocks]} (if eval?
+                                   (clerk/eval-file file)
+                                   (clerk/parse-file file))]
     (-> doc
         (dissoc :blocks)
         (assoc :edn-doc (clerk-view/->edn (clerk-view/doc->viewer {:inline-results? true :toc? true} doc))))))
 
 
-#_(file->doc "docs/clerk.clj")
+#_(file->doc "docs/clerk.clj" {})
+#_(file->doc "docs/frontend.md" {:eval? false})
 
 (defmacro defcollection
   "Create a Devdoc Collection out of a set of Markdown documents
@@ -47,7 +51,7 @@
 
   Documents should start with a `h1`, this is taken as the title of the
   document, and also used to determine the URL slug of the document."
-  [name paths]
+  [name opts paths]
   ;; Not pretty but it means we can run and inline notebooks as part of a
   ;; `shadow-cljs release`. It might be cleaner to move to a separate build
   ;; step which just handles Clerk and writes EDN to disk, and pick that up
@@ -65,7 +69,7 @@
                                    (println "WARN: Devdoc devdoc not found: " path))]
                          :when exists?]
                      (let [file (shellutils/relativize (shellutils/canonicalize "") (shellutils/canonicalize path))
-                           {:keys [toc title edn-doc]} (file->doc path)
+                           {:keys [toc title edn-doc]} (file->doc path opts)
                            devdoc-id (or slug (slugify title))]
                        (prn :path path :id devdoc-id slug :title title :collection-id collection-id)
                        `{:id ~devdoc-id
