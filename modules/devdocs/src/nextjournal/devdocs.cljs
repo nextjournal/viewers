@@ -12,7 +12,7 @@
             [re-frame.context :as re-frame :refer [defc]]
             [reagent.core :as reagent]
             [reitit.frontend.easy :as rfe])
-  (:require-macros [nextjournal.devdocs :refer [collection]]
+  (:require-macros [nextjournal.devdocs]
                    [nextjournal.util.macros :refer [for!]]))
 
 (defonce registry (reagent/atom (om/ordered-map)))
