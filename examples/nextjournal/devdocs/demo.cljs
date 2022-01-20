@@ -8,8 +8,8 @@
   [{:path "docs/simple.md"}
    {:path "docs/reference.md"}])
 
-#_(devdocs/defcollection "Devcards" {}
-    [{:path "docs/devcards.md"}])
+(devdocs/defcollection "Devcards" {}
+  [{:path "docs/devcards.md"}])
 
 (devdocs/defcollection "Clerk" {}
   [{:path "docs/clerk.clj"}])

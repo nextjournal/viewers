@@ -7,7 +7,7 @@
 
 (clerk/set-viewers! [{:pred #(and (map? %) (contains? % :nextjournal.devcards/id))
                       :transform-fn (fn [{:nextjournal/keys [width] :nextjournal.devcards/keys [id]}]
-                                      (-> {::devcards/registry-path [(namespace id) (name id)]}
+                                      (-> {:nextjournal.devcards/registry-path [(namespace id) (name id)]}
                                           viewer/wrap-value
                                           (assoc :nextjournal/width (or width :wide))))
                       :fetch-fn (fn [_ x] x)
