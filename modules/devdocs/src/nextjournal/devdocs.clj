@@ -9,7 +9,6 @@
             [clojure.tools.reader :as reader]
             [clojure.tools.reader.reader-types :as readers]
             [clojure.walk :as walk]
-            [lambdaisland.shellutils :as shellutils]
             [nextjournal.markdown :as markdown]
             [nextjournal.markdown.transform :as markdown.transform]
             [nextjournal.clerk :as clerk]
@@ -74,20 +73,21 @@
              :title ~name
              :devdocs
              ~(vec (for [{:keys [path slug] :as path-opts} paths
-                         :let [exists? (.exists (io/file path))
+                         :let [file (io/file path)
+                               exists? (.exists file)
                                _ (when (not exists?)
                                    (println "WARN: Devdoc devdoc not found: " path))]
                          :when exists?]
-                     (let [file (shellutils/relativize (shellutils/canonicalize "") (shellutils/canonicalize path))
-                           {:keys [toc title edn-doc]} (file->doc path opts)
-                           devdoc-id (or slug (slugify (or title (path->slug path))))]
+                     (let [{:keys [toc title edn-doc]} (file->doc path opts)
+                           devdoc-id (or slug (slugify (or title (path->slug path))))
+                           title (or title (-> devdoc-id (str/replace #"[-_]" " ") str/capitalize))]
                        `{:id ~devdoc-id
                          :toc ~toc
                          :title ~title
-                         :path ~(str file)
+                         :path ~path
                          :collection-id ~collection-id
                          :file-size ~(.length file)
-                         :last-modified ~(let [ts (str/trim (:out (sh/sh "git" "log" "-1" "--format=%ct" (str file))))]
+                         :last-modified ~(let [ts (str/trim (:out (sh/sh "git" "log" "-1" "--format=%ct" path)))]
                                            (when (not= "" ts)
                                              (* (Long/parseLong ts) 1000)))
                          :edn-doc ~edn-doc})))})))
