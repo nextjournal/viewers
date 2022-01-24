@@ -12,7 +12,8 @@
            :main-opts ["-m" "shadow.cljs.devtools.cli"]}
   :examples
   {:extra-paths ["examples"]
-   :extra-deps {metosin/reitit-frontend {:mvn/version "0.5.15"}}}
+   :extra-deps {metosin/reitit-frontend {:mvn/version "0.5.15"}
+                org.babashka/sci {:mvn/version "0.2.8"}}}
 
   :test/markdown
   {:extra-paths ["modules/markdown/test"]

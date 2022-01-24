@@ -2,6 +2,10 @@
   (:require [clojure.string :as str]
             [nextjournal.devcards.routes :as devcards.routes]
             [nextjournal.devdocs.demo :as devdocs.demo]
+            [nextjournal.devcards-ui :as devcards-ui]
+            [nextjournal.clerk.sci-viewer :as clerk-sci-viewer]
+            [nextjournal.clerk-sci-env]
+            [nextjournal.clerk.static-app :as clerk-static-app]
             [nextjournal.ui.components.icon :as icon]
             [reagent.dom :as rdom]
             [reagent.core :as reagent]
@@ -23,7 +27,7 @@
 (def routes
   [["/"           {:name ::home}]
    ["/devdocs/*"  {:name ::devdocs  :router devdocs.demo/router    :view devdocs.demo/view}]
-   ["/devcards/*" {:name ::devcards :router devcards.routes/router :view devcards.routes/view}]])
+   ["/devcards/*" {:name ::devcards :router devcards.routes/router  :view devcards.routes/view}]])
 
 (commands/register! :go-to/home
                     {:title "Viewers Home"

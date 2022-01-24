@@ -1,5 +1,5 @@
 {:deps {:aliases [:shadow :examples]}
- :dev-http {7779 ["classpath:public" "public"]}
+ :dev-http {7779 {:roots ["classpath:public" "public"]}}
  :builds {:browser {:target :browser
                     :output-to "public/js/viewer.js"
                     :output-dir "public/js"

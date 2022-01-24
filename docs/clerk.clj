@@ -1,3 +1,4 @@
+^{:nextjournal.clerk/visibility :hide-ns}
 (ns notebooks.clerk)
 
 ;; # A Clerk Notebook

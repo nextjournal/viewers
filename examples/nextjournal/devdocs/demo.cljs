@@ -1,24 +1,18 @@
 (ns nextjournal.devdocs.demo
-  (:require [nextjournal.devdocs :as devdocs :refer [devdoc-collection show-card]]
+  (:require [nextjournal.devdocs :as devdocs]
             [nextjournal.commands.core :as commands]
             [nextjournal.devdocs.routes :as routes]
             [reitit.frontend :as rf]))
 
-(devdoc-collection
- "Simple"
- {:slug "simple" :cljs-eval? false :view-source? true}
- [{:path "docs/simple.md"}
-  {:path "docs/reference.md"}])
+(devdocs/defcollection "Simple" {:eval? false}
+  [{:path "docs/simple.md"}
+   {:path "docs/reference.md"}])
 
-(devdoc-collection
- "Frontend"
- {:slug "frontend" :cljs-eval? true :view-source? true}
- [{:path "docs/frontend.md"}])
+(devdocs/defcollection "Devcards" {}
+  [{:path "docs/devcards.md"}])
 
-(devdoc-collection
- "Clerk"
- {:slug "clerk" :clerk? true :view-source? true :resource? false}
- [{:path "resources/docs/clerk.clj"}])
+(devdocs/defcollection "Clerk" {}
+  [{:path "docs/clerk.clj"}])
 
 (defonce router
   (rf/router routes/routes))

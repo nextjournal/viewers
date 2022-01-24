@@ -6,7 +6,7 @@
         io.github.nextjournal/cljs-extensions {:local/root "../cljs-extensions"}
         io.github.nextjournal/markdown {:local/root "../markdown"}
 
-        io.github.nextjournal/clerk {:git/sha "ebc8f998c761f1b0e2c9fc4750ae87d8f1766faa"}
+        io.github.nextjournal/clerk {:git/sha "8cbb055078eddc2a20a6c9ea5d78155b262a7988"}
 
         ;; we use shadow-resource directly
         thheller/shadow-cljs {:mvn/version "2.15.12"}
