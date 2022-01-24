@@ -18,13 +18,23 @@
             [nextjournal.devcards :as dc]
             [shadow.resource :as shadow-resource]))
 
-(defn- slugify [s]
-  (-> s
-      (str/lower-case)
-      (str/replace #"[^a-z0-9~@$*]+" " ")
-      (str/trim)
-      (str/replace " " "-")))
+(defn slugify [s]
+  (some-> s
+          (str/lower-case)
+          (str/replace #"[^a-z0-9~@$*]+" " ")
+          (str/trim)
+          (str/replace "_" "-")
+          (str/replace " " "-")))
 
+(defn path->slug [path]
+  (-> path
+      io/file
+      .getName
+      (str/replace #"\.(clj(.?)|md)$" "")))
+
+#_(path->slug "notebooks/data_mappers.clj")
+#_(path->slug "notebooks/data_mappers.cljc")
+#_(path->slug "notebooks/data_mappers.md")
 
 (defn file->doc
   "Takes the path to a Clerk notebook, returns a `:toc` based on the headers in
@@ -70,8 +80,7 @@
                          :when exists?]
                      (let [file (shellutils/relativize (shellutils/canonicalize "") (shellutils/canonicalize path))
                            {:keys [toc title edn-doc]} (file->doc path opts)
-                           devdoc-id (or slug (slugify title))]
-                       (prn :path path :id devdoc-id slug :title title :collection-id collection-id)
+                           devdoc-id (or slug (slugify (or title (path->slug path))))]
                        `{:id ~devdoc-id
                          :toc ~toc
                          :title ~title
