@@ -4,6 +4,11 @@
             [nextjournal.util.cljs-extensions]
             [reagent.core :as r]))
 
+(set! (.-MathJax js/window)
+      #js {"tex" #js {"tags" "ams"}                         ;; enable equation numbering
+           "startup" #js {"pageReady" (fn [_] (this-as self (js/console.log :DoNothing self)))} ;; disable scanning the whole document for math
+           "options" #js {"enableAssistiveMml" false}})
+
 (def output-format
   "the output format to use. Either `:svg` or `:html`. See
   http://docs.mathjax.org/en/latest/output/index.html for a discussion of

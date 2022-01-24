@@ -2,6 +2,7 @@
   (:require [nextjournal.markdown :as md]
             [nextjournal.markdown.transform :as md.transform]
             [nextjournal.viewer.katex :as katex]
+            [nextjournal.viewer.mathjax :as mathjax]
             [nextjournal.devcards :as dc]))
 
 ;; FIXME: inspect should be passed down to viewers via ctx or something
@@ -444,4 +445,46 @@ wird zu
  | ---------- | ---------
  | Cell 1     | **Cell 2**
  | `Cell\\|3` | _Cell 4_
+"})
+
+(dc/defcard mathjax-formulas
+  "Render formulas with Mathjax instead of the default KaTeX"
+  [md]
+  [:div.viewer-markdown [inspect* {:nextjournal/viewer :hiccup
+                                   :nextjournal/value (md/->hiccup
+                                                       (assoc default-renderers
+                                                              :formula (fn [_ node] (mathjax/viewer (md.transform/->text node) {:inline? true}))
+                                                              :block-formula (fn [_ node] (mathjax/viewer (md.transform/->text node))))
+                                                       @md)
+                                   }]]
+  {::dc/state "# Mathjax
+Sine is **injective** for inputs from $-\\frac{\\pi}{2}$ to $+\\frac{\\pi}{2}$ this is claimed by the following equation with a custom name
+
+$$
+\\begin{equation}
+\\cos \\theta_1 = \\cos \\theta_2 \\implies \\theta_1 = \\theta_2
+\\label{eq:cosinjective}
+\\tag{COS-INJ}
+\\end{equation}
+$$
+
+you can reference the above equation by $\\eqref{eq:cosinjective}$. If we don't give a formula an explicit name, Mathjax should number it
+
+$$
+\\begin{equation}
+\\int_0^\\infty \\frac{x^2}{e^x-1}\\,dx = \\frac{\\pi^4}{15}
+\\label{eq:some-nice-label}
+\\end{equation}
+$$
+
+we can reference the above one by its label still  $\\eqref{eq:some-nice-label}$. And again
+
+$$
+\\begin{equation}
+\\int_0^\\infty\\frac{x^2}{e^x-1}\\,dx = \\frac{\\pi^4}{15}
+\\label{eq:again}
+\\end{equation}
+$$
+
+and a reference $\\eqref{eq:again}$.
 "})
