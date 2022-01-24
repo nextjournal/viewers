@@ -230,7 +230,6 @@
 
 ;; :devdocs/devdoc
 (defn devdoc-view [{:keys [collection devdoc fragment] :as data}]
-  (js/console.log :devdocs/devdoc data)
   (let [{:keys [id title devdocs]} (get @registry collection)
         devdoc (some (return (comp #{devdoc} :id)) devdocs)]
     [:div.flex.h-screen.devdocs-body
