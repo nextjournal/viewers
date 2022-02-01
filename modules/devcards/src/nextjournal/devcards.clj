@@ -1,4 +1,6 @@
-(ns nextjournal.devcards)
+(ns nextjournal.devcards
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str]))
 
 (defmacro when-enabled [& body]
   `(do ~@body))
@@ -7,9 +9,9 @@
   (let [ns-str (str *ns*)
         name-str (name vname)]
     `(when-enabled
-         (~'nextjournal.devcards/register-devcard*
-          (assoc ~opts :ns ~ns-str :name ~name-str))
-       ~(str ns-str "/" name-str))))
+      (~'nextjournal.devcards/register-devcard*
+       (assoc ~opts :ns ~ns-str :name ~name-str))
+      ~(str ns-str "/" name-str))))
 
 (defn parse-optional-preds
   "Return a list of bindings corresponding to `preds`.
@@ -32,6 +34,28 @@
   [env]
   (some? (:ns env)))
 
+(defn form-source
+  "Returns source string for (meta &form)"
+  [{:keys [line end-line column end-column file source]}]
+  (let [file-string (or source (->> (io/resource file) slurp str/split-lines))
+        lines (->> file-string
+                   str/split-lines
+                   (drop (dec line))
+                   (take (inc (- end-line line)))
+                   vec)
+        lines (-> lines
+                  (update 0 #(subs % column))
+                  (update (dec (count lines)) #(subs % 0 end-column)))]
+    (str/join \newline lines)))
+
+(comment
+ (= (form-source {:line 0
+                  :end-line 1
+                  :column 1
+                  :end-column 1
+                  :source "ab\ncd"})
+    "b\nc"))
+
 (defmacro defcard
   {:arglists '([name ?doc ?argv body ?data])}
   [& args]
@@ -45,6 +69,7 @@
       (register-devcard! name
                          {:data `(fn [] ~data)
                           :doc doc
+                          :source (form-source (meta &form))
                           :compile-key (hash data)
                           :main `(fn [] ~main)}))))
 
