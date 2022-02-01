@@ -36,8 +36,8 @@
 
 (defn form-source
   "Returns source string for (meta &form)"
-  [{:keys [line end-line column end-column file source]}]
-  (let [file-string (or source (->> (io/resource file) slurp str/split-lines))
+  [{:keys [line end-line column end-column file file-string]}]
+  (let [file-string (or file-string (->> (io/resource file) slurp str/split-lines))
         lines (->> file-string
                    str/split-lines
                    (drop (dec line))
@@ -53,7 +53,7 @@
                   :end-line 1
                   :column 1
                   :end-column 1
-                  :source "ab\ncd"})
+                  :file-string "ab\ncd"})
     "b\nc"))
 
 (defmacro defcard
