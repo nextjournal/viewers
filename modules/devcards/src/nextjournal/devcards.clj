@@ -36,23 +36,22 @@
 
 (defn form-source
   "Returns source string for (meta &form)"
-  [{:keys [line end-line column end-column file file-string]}]
-  (let [file-string (or file-string (->> (io/resource file) slurp str/split-lines))
-        lines (->> file-string
-                   str/split-lines
-                   (drop (dec line))
-                   (take (inc (- end-line line)))
-                   vec)
-        lines (-> lines
-                  (update 0 #(subs % column))
-                  (update (dec (count lines)) #(subs % 0 end-column)))]
-    (str/join \newline lines)))
+  [{:as meta :keys [line end-line column end-column file file-string]}]
+  (let [file-string (or file-string (->> (io/resource file) slurp))
+        line (dec line)
+        column (dec column)]
+    (-> (str/split-lines file-string)
+        vec
+        (update line #(subs % column))
+        (update (dec end-line) #(subs % 0 (- end-column 2)))
+        (subvec line end-line)
+        (->> (str/join \newline)))))
 
 (comment
  (= (form-source {:line 0
-                  :end-line 1
+                  :end-line 2
                   :column 1
-                  :end-column 1
+                  :end-column 2
                   :file-string "ab\ncd"})
     "b\nc"))
 
