@@ -137,7 +137,6 @@
                    [main state]
                    main)]
         [:div
-         [:pre (:source props)]
          [nextjournal.devcards/error-boundary
           [:div {:class (or class "p-3")} main]]
          (when initial-state

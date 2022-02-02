@@ -9,9 +9,9 @@
   (let [ns-str (str *ns*)
         name-str (name vname)]
     `(when-enabled
-      (~'nextjournal.devcards/register-devcard*
-       (assoc ~opts :ns ~ns-str :name ~name-str))
-      ~(str ns-str "/" name-str))))
+         (~'nextjournal.devcards/register-devcard*
+          (assoc ~opts :ns ~ns-str :name ~name-str))
+       ~(str ns-str "/" name-str))))
 
 (defn parse-optional-preds
   "Return a list of bindings corresponding to `preds`.
@@ -37,23 +37,15 @@
 (defn form-source
   "Returns source string for (meta &form)"
   [{:as meta :keys [line end-line column end-column file file-string]}]
-  (let [file-string (or file-string (->> (io/resource file) slurp))
-        line (dec line)
-        column (dec column)]
-    (-> (str/split-lines file-string)
-        vec
-        (update line #(subs % column))
-        (update (dec end-line) #(subs % 0 (- end-column 2)))
-        (subvec line end-line)
-        (->> (str/join \newline)))))
-
-(comment
- (= (form-source {:line 0
-                  :end-line 2
-                  :column 1
-                  :end-column 2
-                  :file-string "ab\ncd"})
-    "b\nc"))
+  (let [file-string (or file-string (some-> file io/resource slurp))]
+    (when-let [file-string (or file-string (some-> file io/resource slurp))]
+      (let [line (dec line)
+            column (dec column)]
+        (-> (str/split-lines file-string)
+            (update line #(subs % column))
+            (update (dec end-line) #(subs % 0 (dec end-column)))
+            (subvec line end-line)
+            (->> (str/join \newline)))))))
 
 (defmacro defcard
   {:arglists '([name ?doc ?argv body ?data])}
