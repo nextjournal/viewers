@@ -40,9 +40,12 @@
   the markdown comments, and a `:view` (Hiccup)."
   [file {:keys [eval?]
          :or {eval? true}}]
-  (let [{:as doc :keys [blocks]} (if eval?
-                                   (clerk/eval-file file)
-                                   (clerk/parse-file file))]
+  (when-some [doc (if eval?
+                    (try
+                      (clerk/eval-file file)
+                      (catch Throwable e
+                        (println (str "Failed eval of notebook: " file "- " e))))
+                    (clerk/parse-file file))]
     (-> doc
         (dissoc :blocks)
         (assoc :edn-doc (clerk-view/->edn (clerk-view/doc->viewer {:inline-results? true} doc))))))
