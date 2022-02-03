@@ -36,18 +36,20 @@
 #_(path->slug "notebooks/data_mappers.cljc")
 #_(path->slug "notebooks/data_mappers.md")
 
+(def lock (Object.))
 (defn file->doc
   "Takes the path to a Clerk notebook, returns a `:toc` based on the headers in
   the markdown comments, and a `:view` (Hiccup)."
   [file {:keys [eval?]
          :or {eval? true}}]
   (when-some [doc (if eval?
-                    (try
-                      (clerk/eval-file file)
-                      (catch Throwable e
-                        (println (str "Failed eval of notebook: " file " - " (ex-message e)))
-                        (stacktrace/print-stack-trace e)
-                        (throw e)))
+                    (locking lock
+                      (try
+                        (clerk/eval-file file)
+                        (catch Throwable e
+                          (println (str "Failed eval of notebook: " file " - " (ex-message e)))
+                          (stacktrace/print-stack-trace e)
+                          (throw e))))
                     (clerk/parse-file file))]
     (-> doc
         (dissoc :blocks)
