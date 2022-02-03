@@ -5,6 +5,7 @@
   (:require [cljs.env :as env]
             [clojure.java.io :as io]
             [clojure.java.shell :as sh]
+            [clojure.stacktrace :as stacktrace]
             [clojure.string :as str]
             [clojure.tools.reader :as reader]
             [clojure.tools.reader.reader-types :as readers]
@@ -40,11 +41,14 @@
   the markdown comments, and a `:view` (Hiccup)."
   [file {:keys [eval?]
          :or {eval? true}}]
+  (println "building doc for " file)
   (when-some [doc (if eval?
                     (try
                       (clerk/eval-file file)
                       (catch Throwable e
-                        (println (str "Failed eval of notebook: " file "- " e))))
+                        (println (str "Failed eval of notebook: " file " - " (ex-message e)))
+                        (stacktrace/print-stack-trace e)
+                        (throw e)))
                     (clerk/parse-file file))]
     (-> doc
         (dissoc :blocks)
