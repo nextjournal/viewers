@@ -53,12 +53,6 @@
 #_(file->doc "docs/clerk.clj" {})
 #_(file->doc "docs/frontend.md" {:eval? false})
 
-(defn total-memory [obj]
-  (let [baos (java.io.ByteArrayOutputStream.)]
-    (with-open [oos (java.io.ObjectOutputStream. baos)]
-      (.writeObject oos obj))
-    (count (.toByteArray baos))))
-
 (defmacro defcollection
   "Create a Devdoc Collection out of a set of Markdown documents
 
@@ -92,7 +86,7 @@
                              {:keys [toc title edn-doc]} result
                              devdoc-id (or slug (slugify (or title (path->slug path))))
                              title (or title (-> devdoc-id (str/replace #"[-_]" " ") str/capitalize))]
-                         (println "finished building doc for " path " {:seconds " (/ time-ms 1000) ", :bytes " (total-memory edn-doc) "}")
+                         (println "finished building doc for " path " {:seconds " (/ time-ms 1000) ", :EDN-size " (count edn-doc) "}")
                          `{:id ~devdoc-id
                            :toc ~toc
                            :title ~title
