@@ -78,19 +78,23 @@
                                _ (when (not exists?)
                                    (println "WARN: Devdoc devdoc not found: " path))]
                          :when exists?]
-                     (let [{:keys [toc title edn-doc]} (file->doc path opts)
-                           devdoc-id (or slug (slugify (or title (path->slug path))))
-                           title (or title (-> devdoc-id (str/replace #"[-_]" " ") str/capitalize))]
-                       `{:id ~devdoc-id
-                         :toc ~toc
-                         :title ~title
-                         :path ~path
-                         :collection-id ~collection-id
-                         :file-size ~(.length file)
-                         :last-modified ~(let [ts (str/trim (:out (sh/sh "git" "log" "-1" "--format=%ct" path)))]
-                                           (when (not= "" ts)
-                                             (* (Long/parseLong ts) 1000)))
-                         :edn-doc ~edn-doc})))})))
+                     (do
+                       (println "started building doc for " path)
+                       (let [{:keys [time-ms result]} (clerk/time-ms (file->doc path opts))
+                             {:keys [toc title edn-doc]} result
+                             devdoc-id (or slug (slugify (or title (path->slug path))))
+                             title (or title (-> devdoc-id (str/replace #"[-_]" " ") str/capitalize))]
+                         (println "finished building doc for " path " [" time-ms "ms]")
+                         `{:id ~devdoc-id
+                           :toc ~toc
+                           :title ~title
+                           :path ~path
+                           :collection-id ~collection-id
+                           :file-size ~(.length file)
+                           :last-modified ~(let [ts (str/trim (:out (sh/sh "git" "log" "-1" "--format=%ct" path)))]
+                                             (when (not= "" ts)
+                                               (* (Long/parseLong ts) 1000)))
+                           :edn-doc ~edn-doc}))))})))
 
 (defmacro only-on-ci
   "Only include the wrapped form in the build output if CI=true."
