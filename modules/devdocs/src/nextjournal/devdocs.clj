@@ -35,21 +35,29 @@
 #_(path->slug "notebooks/data_mappers.cljc")
 #_(path->slug "notebooks/data_mappers.md")
 
+(def clerk-lock (Object.))
+
 (defn file->doc
   "Takes the path to a Clerk notebook, returns a `:toc` based on the headers in
   the markdown comments, and a `:view` (Hiccup)."
   [file {:keys [eval?]
          :or {eval? true}}]
-  (let [{:as doc :keys [blocks]} (if eval?
-                                   (clerk/eval-file file)
-                                   (clerk/parse-file file))]
+  (let [{:as doc :keys [blocks]} (locking clerk-lock
+                                   (if eval?
+                                     (clerk/eval-file file)
+                                     (clerk/parse-file file)))]
     (-> doc
         (dissoc :blocks)
         (assoc :edn-doc (clerk-view/->edn (clerk-view/doc->viewer {:inline-results? true} doc))))))
 
-
 #_(file->doc "docs/clerk.clj" {})
 #_(file->doc "docs/frontend.md" {:eval? false})
+
+(defn total-memory [obj]
+  (let [baos (java.io.ByteArrayOutputStream.)]
+    (with-open [oos (java.io.ObjectOutputStream. baos)]
+      (.writeObject oos obj))
+    (count (.toByteArray baos))))
 
 (defmacro defcollection
   "Create a Devdoc Collection out of a set of Markdown documents
@@ -84,7 +92,7 @@
                              {:keys [toc title edn-doc]} result
                              devdoc-id (or slug (slugify (or title (path->slug path))))
                              title (or title (-> devdoc-id (str/replace #"[-_]" " ") str/capitalize))]
-                         (println "finished building doc for " path " [" time-ms "ms]")
+                         (println "finished building doc for " path " {:seconds " (/ time-ms 1000) ", :bytes " (total-memory edn-doc) "}")
                          `{:id ~devdoc-id
                            :toc ~toc
                            :title ~title

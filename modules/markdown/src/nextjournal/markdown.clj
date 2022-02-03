@@ -37,8 +37,7 @@
 (defn make-js-fn [fn-name]
   (let [f (.getMember MD-imports fn-name)]
     (fn [& args]
-      (locking MD-imports
-        (.execute f (to-array args))))))
+      (.execute f (to-array args)))))
 
 (def parse* (make-js-fn "parseJ"))
 
