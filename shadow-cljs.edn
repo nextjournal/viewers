@@ -6,5 +6,7 @@
                     :modules {:viewer {:entries [nextjournal.viewer
                                                  nextjournal.viewer.notebook
                                                  nextjournal.devdocs.demo
-                                                 examples]}}
+                                                 examples]
+                                       :depends-on #{:devcards}}
+                              :devcards {:entries [nextjournal.devcards]}}
                     :js-options {:output-feature-set :es8}}}}
