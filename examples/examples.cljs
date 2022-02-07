@@ -40,7 +40,7 @@
                {:commands [:dev/devcards :dev/docs]}}})
 
 (defn view []
-  (let [{:keys [name data]} @match
+  (let [{:keys [_name data]} @match
         {:keys [view submatch]} data]
     [:<>
      [:div.fixed.bottom-0.left-0.right-0.z-20
@@ -54,12 +54,12 @@
           [:img.inline-block {:src "https://cdn.nextjournal.com/images/nextjournal-logo.svg" :width 260}]]
          [:div.bg-white.shadow-md.rounded-md.overflow-hidden.border.border-gray-300.border-b-0
           [:ul.text-2xl
-           (for [[route title] [[:devcards/root "Devcards"]
-                                [:devdocs/index "Devdocs"]]]
+           (for [[route title] [[[:devcards/root] "Devcards"]
+                                [[:devdocs/show {:path ""}] "Devdocs"]]]
              ^{:key title}
              [:li
               [:a.text-gray-800.block.px-8.justify-between.py-4.text-lg.border-b.border-gray-300.flex.items-center.bg-white-50.hover:bg-indigo-50.transition-all.ease-in-out.duration-150
-               {:href (rfe/href route)}
+               {:href (apply rfe/href route)}
                title
                [icon/chevron-right {:size 20}]]])]]]])])) ;; FIXME: using ui.components.icon not working
 
