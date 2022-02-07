@@ -65,32 +65,33 @@
   ;; `shadow-cljs release`. It might be cleaner to move to a separate build
   ;; step which just handles Clerk and writes EDN to disk, and pick that up
   ;; here.
-  (let [collection-id (slugify name)]
-    `(swap! registry
-            assoc
-            ~collection-id
-            {:id ~collection-id
-             :title ~name
-             :devdocs
-             ~(vec (for [{:keys [path slug] :as path-opts} paths
-                         :let [file (io/file path)
-                               exists? (.exists file)
-                               _ (when (not exists?)
-                                   (println "WARN: Devdoc devdoc not found: " path))]
-                         :when exists?]
-                     (let [{:keys [toc title edn-doc]} (file->doc path opts)
-                           devdoc-id (or slug (slugify (or title (path->slug path))))
-                           title (or title (-> devdoc-id (str/replace #"[-_]" " ") str/capitalize))]
-                       `{:id ~devdoc-id
-                         :toc ~toc
-                         :title ~title
-                         :path ~path
-                         :collection-id ~collection-id
-                         :file-size ~(.length file)
-                         :last-modified ~(let [ts (str/trim (:out (sh/sh "git" "log" "-1" "--format=%ct" path)))]
-                                           (when (not= "" ts)
-                                             (* (Long/parseLong ts) 1000)))
-                         :edn-doc ~edn-doc})))})))
+  (dc/when-enabled
+      (let [collection-id (slugify name)]
+        `(swap! registry
+                assoc
+                ~collection-id
+                {:id ~collection-id
+                 :title ~name
+                 :devdocs
+                 ~(vec (for [{:keys [path slug] :as path-opts} paths
+                             :let [file (io/file path)
+                                   exists? (.exists file)
+                                   _ (when (not exists?)
+                                       (println "WARN: Devdoc devdoc not found: " path))]
+                             :when exists?]
+                         (let [{:keys [toc title edn-doc]} (file->doc path opts)
+                               devdoc-id (or slug (slugify (or title (path->slug path))))
+                               title (or title (-> devdoc-id (str/replace #"[-_]" " ") str/capitalize))]
+                           `{:id ~devdoc-id
+                             :toc ~toc
+                             :title ~title
+                             :path ~path
+                             :collection-id ~collection-id
+                             :file-size ~(.length file)
+                             :last-modified ~(let [ts (str/trim (:out (sh/sh "git" "log" "-1" "--format=%ct" path)))]
+                                               (when (not= "" ts)
+                                                 (* (Long/parseLong ts) 1000)))
+                             :edn-doc ~edn-doc})))}))))
 
 (defmacro only-on-ci
   "Only include the wrapped form in the build output if CI=true."
