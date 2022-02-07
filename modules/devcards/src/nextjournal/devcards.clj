@@ -1,7 +1,8 @@
 (ns nextjournal.devcards)
 
 (defmacro when-enabled [& body]
-  `(do ~@body))
+  (when-not (= "true" (System/getenv "NEXTJOURNAL_DEVCARDS_ELIDE"))
+    `(do ~@body)))
 
 (defn register-devcard! [vname opts]
   (let [ns-str (str *ns*)
