@@ -87,6 +87,12 @@
 .disclose:hover {
   border-color: var(--near-black-color) transparent;
 }
+@media (prefers-color-scheme: dark) {
+  .disclose,
+  .disclose:hover {
+    border-color: white transparent;
+  }
+}
 .disclose.collapsed {
   @apply rotate-[-90deg];
 }

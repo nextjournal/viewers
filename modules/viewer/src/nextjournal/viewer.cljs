@@ -584,6 +584,35 @@
            [:pre [:code.inspected-value (binding [*print-meta* true] (pr-str value))]] [:span.inspected-value " => "]
            [inspect {} value]])))
 
+(dc/defcard inspect-values-dark
+  (into [:div.p-6]
+        (for [value [123
+                     ##NaN
+                     'symbol
+                     ::keyword
+                     "a string"
+                     nil
+                     true
+                     false
+                     {:some "map"}
+                     '[vector of symbols]
+                     '(:list :of :keywords)
+                     #js {:js "object"}
+                     #js ["array"]
+                     (js/Date.)
+                     (random-uuid)
+                     (fn a-function [foo])
+                     (atom "an atom")
+                     ^{:nextjournal/tag 'object} ['clojure.lang.Atom 0x2c42b421 {:status :ready, :val 1}]
+                     ^{:nextjournal/tag 'var} ['user/a {:foo :bar}]
+                     ^{:nextjournal/tag 'object} ['clojure.lang.Ref 0x73aff8f1 {:status :ready, :val 1}]]]
+          [:div.mb-3.result-viewer.dark:text-slate-300
+           [:pre [:code.inspected-value.dark:bg-transparent.dark:text-slate-300
+                  (binding [*print-meta* true] (pr-str value))]]
+           [:span.inspected-value " => "]
+           [inspect {} value]]))
+  {::dc/class "dark has-dark-mode bg-slate-900"})
+
 (dc/defcard inspect-large-values
   "Defcard for larger datastructures clj and json, we make use of the db viewer."
   [:div]
