@@ -2,3 +2,6 @@
   (:require-macros [nextjournal.devdocs-noop]))
 
 (defonce registry (atom {}))
+
+(defn devdoc-commands
+  [])
