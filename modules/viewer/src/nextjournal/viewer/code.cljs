@@ -28,7 +28,7 @@
                                                        :border-top-right-radius "3px"}})))
 
 (def ext #js [cm-clj/default-extensions
-              highlight/defaultHighlightStyle
+              highlight/classHighlightStyle
               (.. EditorView -editable (of false))
               cm6-theme])
 

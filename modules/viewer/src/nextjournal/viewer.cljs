@@ -164,7 +164,7 @@
                                   (when (or expanded? map-like?)
                                     (let [item (if (or map-like? (set? coll)) item i)]
                                       (cond->> [:span.inspected-value
-                                                {:class (if map-like? "syntax-key" "syntax-index")}
+                                                {:class (if map-like? "cmt-atom" "cmt-number")}
                                                 (if map-like? [inspect (update options :path conj i) item] i) ": "]
                                         (navigable-item? options path item)
                                         (conj [browsify-button (conj (:nav/path options) item) options]))))
@@ -225,7 +225,7 @@
              [(if expanded? :div.result-data-field :span)
               (when (and (not expanded?) (< 0 i)) [:span.inspected-value ", "])
               [:span.inspected-value
-               {:class "syntax-tag"}
+               {:class "cmt-meta"}
                k ": "]
               [inspect (update options :path conj k)  (value-of obj k)]]))
          (when (and (not (or empty? short?)) (> count @visible-nb-items))
@@ -349,21 +349,21 @@
        :else
        (case type-key
          :edn-var [:span.inspected-value
-                   [:span.syntax-tag "#'" (str (first value)) " "]
+                   [:span.cmt-meta "#'" (str (first value)) " "]
                    [inspect options (second value)]]
          :edn-atom [:span.inspected-value
-                    [:span.syntax-tag 'clojure.lang.Atom " "]
+                    [:span.cmt-meta 'clojure.lang.Atom " "]
                     [inspect options (:val (get value 2))]]
          :edn-object [:span.inspected-value
-                      [:span.syntax-tag "#" (str tag) " "]
+                      [:span.cmt-meta "#" (str tag) " "]
                       [:span "["
-                       [:span.syntax-tag (first value)] " "
+                       [:span.cmt-meta (first value)] " "
                        [:span "0x" (.toString (second value) 16)] " "
                        [inspect options (nth value 2)] "]"]]
          :edn-empty [:span.inspected-value
-                     [:span.syntax-tag "#"]]
+                     [:span.cmt-meta "#"]]
          :edn-unknown-tag [:span.inspected-value
-                           [:span.syntax-tag "#" (str tag) " "]
+                           [:span.cmt-meta "#" (str tag) " "]
                            [inspect options (let [m (select-keys value-meta [:nextjournal/truncated?])]
                                               (cond-> value (seq m) (vary-meta merge m)))]]
          :var
@@ -374,7 +374,7 @@
 
          :derefable
          [:span.inspected-value
-          [:span.syntax-tag (-> data type pr-str) " "]
+          [:span.cmt-meta (-> data type pr-str) " "]
           [inspect options @data]]
 
          (:map
@@ -387,49 +387,49 @@
 
          :transit-tagged-value
          [:span.inspected-value
-          [:span.syntax-tag "#" (.-tag ^clj data) " "]
+          [:span.cmt-meta "#" (.-tag ^clj data) " "]
           [inspect options (.-rep ^clj data)]]
 
          :fn
          [:span.inspected-value
-          [:span.syntax-tag "ƒ"] "()"]
+          [:span.cmt-meta "ƒ"] "()"]
 
          :uuid
          [:span.inspected-value
-          [:span.syntax-tag "#uuid "]
+          [:span.cmt-meta "#uuid "]
           [inspect options (str data)]]
 
          :string
-         [:span.syntax-string.inspected-value "\"" data "\""]
+         [:span.cmt-string.inspected-value "\"" data "\""]
 
          :number
-         [:span.syntax-number.inspected-value
+         [:span.cmt-number.inspected-value
           (if (js/Number.isNaN data)
             "NaN"
             (str data))]
 
          :keyword
-         [:span.syntax-keyword.inspected-value (str data)]
+         [:span.cmt-atom.inspected-value (str data)]
 
          :symbol
-         [:span.syntax-symbol.inspected-value (str data)]
+         [:span.cmt-keyword.inspected-value (str data)]
 
          :nil
-         [:span.syntax-nil.inspected-value "nil"]
+         [:span.cmt-atom.inspected-value "nil"]
 
          :boolean
-         [:span.syntax-bool.inspected-value (str data)]
+         [:span.cmt-bool.inspected-value (str data)]
 
          :inst
          [:span.inspected-value
-          [:span.syntax-tag "#inst "]
+          [:span.cmt-meta "#inst "]
           [inspect options (.toISOString data)]]
 
          :object
          [inspect-object inspect options data]
 
          :untyped
-         [:span.syntax-untyped.inspected-value (str (type data) "[" data "]")])))))
+         [:span.cmt-invalid.untyped-value.inspected-value (str (type data) "[" data "]")])))))
 
 
 (comment
