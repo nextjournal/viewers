@@ -224,9 +224,8 @@
              ^{:key i}
              [(if expanded? :div.result-data-field :span)
               (when (and (not expanded?) (< 0 i)) [:span.inspected-value ", "])
-              [:span.inspected-value
-               {:class "cmt-meta"}
-               k ": "]
+              [:span.inspected-value.cmt-atom
+               k [:span.cmt-punctuation ": "]]
               [inspect (update options :path conj k)  (value-of obj k)]]))
          (when (and (not (or empty? short?)) (> count @visible-nb-items))
            [more-button visible-nb-items {:expanded? expanded? :count count}])
