@@ -19,6 +19,10 @@
   code, .code {
     @apply font-mono text-sm text-gray-900 bg-slate-50 px-0.5 py-px rounded;
   }
+  .has-dark-mode code,
+  .has-dark-mode .code {
+    @apply dark:bg-slate-800;
+  }
   code::before, code::after { @apply content-none !important; }
   h1, h2, h3, h4, h5, h6 {
     @apply font-condensed font-bold mt-8 first:mt-0;
@@ -123,6 +127,9 @@
 .viewer-code {
   @apply font-mono bg-slate-100 rounded-sm py-4 px-8 text-sm mt-4 overflow-x-auto;
 }
+.has-dark-mode .viewer-code {
+  @apply dark:bg-slate-800;
+}
 @media (min-width: 960px){
   .viewer-notebook .viewer-code {
     @apply py-4 pl-12;
@@ -131,34 +138,98 @@
 /* Don’t show focus outline when double-clicking cell in Safari */
 .cm-scroller { @apply focus:outline-none; }
 
-/* Data Viewer */
+/* Syntax Highlighting */
 /* --------------------------------------------------------------- */
 
 .inspected-value { @apply text-xs font-mono; }
+.cmt-strong, .cmt-heading { @apply font-bold; }
+.cmt-emphasis { @apply italic; }
+.cmt-strikethrough { @apply line-through; }
+.cmt-link { @apply underline; }
+.untyped-value { @apply whitespace-nowrap; }
 
-.syntax-tag, .cm-number, .syntax-number, .cm-string, .syntax-string,
-.cm-atom, .syntax-keyword, .cm-builtin, .cm-keyword, .syntax-symbol,
-.syntax-bool, .syntax-nil, .syntax-untyped, .syntax-key, .syntax-index {
-  @apply font-mono;
+.cm-editor, .cmt-default, .viewer-result {
+  @apply text-slate-700;
+}
+.cmt-keyword {
+  @apply text-pink-800;
+}
+.cmt-name, .cmt-deleted, .cmt-character, .cmt-propertyName, .cmt-macroName {
+  @apply text-red-700;
+}
+.cmt-variableName, .cmt-variableName2, .cmt-labelName {
+  @apply text-sky-700;
+}
+.cmt-typeName, .cmt-className, .cmt-number, .cmt-changed, .cmt-annotation,
+.cmt-modifier, .cmt-self, .cmt-namespace {
+  @apply text-orange-800;
+}
+.cmt-url, .cmt-escape, .cmt-string2,
+.cmt-regexp, .cmt-link {
+  @apply text-cyan-700;
+}
+.cmt-meta, .cmt-comment, .cmt-operator, .cmt-operatorKeyword {
+  @apply text-slate-500;
+}
+.cmt-punctuation {
+  @apply text-slate-600;
+}
+.cmt-atom, .cmt-bool {
+  @apply text-amber-700;
+}
+.cmt-processingInstruction, .cmt-string, .cmt-inserted, .cmt-literal {
+  @apply text-teal-700;
+}
+.cmt-invalid {
+  @apply text-white;
 }
 
-.syntax-tag     { @apply text-pink-900 !important; }
-.cm-number      { @apply text-sky-900 !important; }
-.syntax-number  { @apply text-sky-900 !important; }
-.cm-string      { @apply text-teal-700 !important; }
-.syntax-string  { @apply text-teal-700 !important; }
-.cm-atom        { @apply text-sky-900 !important; }
-.syntax-keyword { @apply text-sky-900 !important; }
-.cm-builtin     { @apply text-pink-900 !important; }
-.cm-keyword     { @apply text-pink-900 !important; }
-.syntax-symbol  { @apply text-pink-900 !important; }
-.syntax-bool    { @apply text-sky-900 !important; }
-.syntax-nil     { @apply text-sky-900 !important; }
-.syntax-untyped { @apply text-rose-500 !important; }
-.syntax-key     { @apply text-fuchsia-900 !important; }
-.syntax-index   { @apply text-fuchsia-900 !important; }
-
-.syntax-untyped { @apply whitespace-nowrap; }
+@media (prefers-color-scheme: dark) {
+  .has-dark-mode .cm-editor, .has-dark-mode .cmt-default,
+  .has-dark-mode .viewer-result {
+    @apply dark:text-slate-300;
+  }
+  .has-dark-mode .cmt-keyword {
+    @apply dark:text-pink-400;
+  }
+  .has-dark-mode .cmt-name, .has-dark-mode .cmt-deleted,
+  .has-dark-mode .cmt-character, .has-dark-mode .cmt-propertyName,
+  .has-dark-mode .cmt-macroName {
+    @apply dark:text-red-400;
+  }
+  .has-dark-mode .cmt-variableName, .has-dark-mode .cmt-variableName2,
+  .has-dark-mode .cmt-labelName {
+    @apply dark:text-sky-300;
+  }
+  .has-dark-mode .cmt-typeName, .has-dark-mode .cmt-className,
+  .has-dark-mode .cmt-number, .has-dark-mode .cmt-changed,
+  .has-dark-mode .cmt-annotation, .has-dark-mode .cmt-modifier,
+  .has-dark-mode .cmt-self, .has-dark-mode .cmt-namespace {
+    @apply dark:text-orange-300;
+  }
+  .has-dark-mode .cmt-url, .has-dark-mode .cmt-escape,
+  .has-dark-mode .cmt-string2, .has-dark-mode .cmt-regexp,
+  .has-dark-mode .cmt-link {
+    @apply dark:text-cyan-300;
+  }
+  .has-dark-mode .cmt-meta, .has-dark-mode .cmt-comment,
+  .has-dark-mode .cmt-operator, .has-dark-mode .cmt-operatorKeyword {
+    @apply dark:text-slate-400;
+  }
+  .has-dark-mode .cmt-punctuation {
+    @apply dark:text-slate-500;
+  }
+  .has-dark-mode .cmt-atom, .has-dark-mode .cmt-bool {
+    @apply dark:text-amber-200;
+  }
+  .has-dark-mode .cmt-processingInstruction, .has-dark-mode .cmt-string,
+  .has-dark-mode .cmt-inserted, .has-dark-mode .cmt-literal {
+    @apply dark:text-teal-300;
+  }
+  .has-dark-mode .cmt-invalid {
+    @apply dark:text-white;
+  }
+}
 
 .result-data {
   @apply font-mono text-sm overflow-x-auto whitespace-nowrap leading-normal;
@@ -191,7 +262,8 @@
 .viewer-notebook,
 .viewer-markdown {
   @apply prose
-    prose-a:text-indigo-600 prose-a:font-medium prose-a:no-underline hover:prose-a:underline
+    prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
+    dark:prose-a:text-blue-300
     prose-p:mt-4 prose-p:leading-snug
     prose-ol:mt-4 prose-ol:mb-6 prose-ol:leading-snug
     prose-ul:mt-4 prose-ul:mb-6 prose-ul:leading-snug
@@ -206,6 +278,14 @@
 }
 .viewer-markdown li > p {
   @apply inline;
+}
+
+/* Dark Mode: opt-in via `.has-dark-mode` */
+/* --------------------------------------------------------------- */
+
+.has-dark-mode .viewer-notebook,
+.has-dark-mode .viewer-markdown {
+  @apply dark:prose-invert;
 }
 
 /* Todo Lists */
