@@ -254,7 +254,7 @@
                               "Parse error..."))]]]))
 
 (defn view [{:as data :keys [path]}]
-  (if (= "" path)
+  (if (or (nil? path) (contains? #{"" "/"} path))
     [index-view* @registry]
     (let [{:as node :keys [devdocs edn-doc]} (lookup @registry path)]
       (js/console.log :data data :node node
