@@ -14,6 +14,7 @@
             [reitit.frontend.easy :as rfe])
   (:require-macros [nextjournal.devdocs]
                    [nextjournal.util.macros :refer [for!]]))
+
 (goog-define contentsTitle "contents")
 (goog-define logoImage "https://cdn.nextjournal.com/images/nextjournal-logo-white.svg")
 
@@ -59,8 +60,7 @@
          (when (seq children)
            [inner-toc coll-id devdoc-id children])))]))
 
-(defn devdocs-toc [{:as coll :keys [devdocs]} & [{:keys [inner?]}]]
-  (js/console.log :DD-TOC coll )
+(defn devdocs-toc [{:keys [devdocs]} & [{:keys [inner?]}]]
   (for! [{:keys [title path toc]} devdocs
          :into [:<>]]
     [:div.mt-1
@@ -178,23 +178,22 @@
     [:h1.text-4xl.uppercase.tracking-wide.font-semibold.mb-10 contentsTitle]
     [index-view** collections]]])
 (defn index-view** [collections]
-  (for! [{:keys [id title path devdocs] sub-colls :collections} collections
+  (for! [{:keys [title path devdocs] sub-colls :collections} collections
          :into [:div]]
     [:div.mb-10
      [:div
       [:h2.text-xl.uppercase.tracking-wide.font-bold
        [:a.hover:underline
         {:href (rfe/href :devdocs/show {:path path})} title]]]
-     (for! [{devdoc-id :id title :title :as devdoc path :path} devdocs
+     (for! [{:keys [title path last-modified]} devdocs
             :into [:div]]
        [:div.mt-4.ml-4
         [:a.hover:underline.font-bold
-         {:data-ids (pr-str {:collection id :devdoc devdoc-id})
-          :href (rfe/href :devdocs/show {:path path})
+         {:href (rfe/href :devdocs/show {:path path})
           :title path} title]
-        (when-let [ts (:last-modified devdoc)]
+        (when last-modified
           [:p.text-xs.text-gray-500.mt-1
-           (-> ts
+           (-> last-modified
                deja-fu/local-date-time
                (deja-fu/format "MMM dd yyyy, HH:mm"))])])
      (when (seq sub-colls)
@@ -268,22 +267,24 @@
 
 (defn devdoc-commands
   "For use with the commands/command-bar API"
-  []
-  {:subcommands
-   (fn [context]
-     (into [{:title "Index"
-             :dispatch [:router/push [:devdocs/index]]}]
-           (map (fn [{title :title coll-id :id devdocs :devdocs}]
-                  {:title title
-                   :subcommands
-                   (into [{:title (str "-" (str/upper-case title) "-")
-                           :dispatch [:router/push [:devdocs/collection {:collection coll-id}]]}]
-                         (map (fn [{title :title devdoc-id :id}]
-                                {:title title
-                                 :dispatch [:router/push [:devdocs/devdoc {:collection coll-id
-                                                                           :devdoc devdoc-id}]]}))
-                         devdocs)}))
-           (vals @registry)))})
+  ([] (devdoc-commands @registry))
+  ([collections]
+   {:subcommands
+    (fn [_]
+      (into [{:title "Index"
+              :dispatch [:router/push [:devdocs/show]]}]
+            (map (fn collection->commands [{:keys [title path devdocs collections]}]
+                   {:title title
+                    :subcommands
+                    (-> [{:title (str "-" (str/upper-case title) "-")
+                          :dispatch [:router/push [:devdocs/show {:path path}]]}]
+                        (into (map (fn [{:keys [title path]}]
+                                     {:title title
+                                      :dispatch [:router/push [:devdocs/show {:path path}]]}))
+                              devdocs)
+                        (cond-> collections
+                          (into (map collection->commands) collections)))}))
+            collections))}))
 
 (defn view-data
   "Get the view and and path-params data from a reitit match. Pass this to the
