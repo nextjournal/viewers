@@ -236,7 +236,7 @@
   (fn [val] (when (pred val) val)))
 
 ;; :devdocs/devdoc
-(defn devdoc-view [{:keys [parent-collection edn-doc fragment]}]
+(defn devdoc-view [{:as doc :keys [parent-collection edn-doc fragment]}]
   (let [{:keys [path title]} parent-collection]
     [:div.flex.h-screen.devdocs-body
      [sidebar {:title [:a.hover:text-white {:href (rfe/href :devdocs/show {:path path})} title]
@@ -246,7 +246,7 @@
       (cond-> {:style {:padding-top 45 :padding-bottom 70}}
         fragment (assoc :ref #(scroll-to-fragment fragment)))
       [:div.absolute.right-0.top-0.p-4
-       [:div.text-gray-400.text-xs.font-mono.float-right path]]
+       [:div.text-gray-400.text-xs.font-mono.float-right (:path doc)]]
       [sci-viewer/inspect (try
                             (sci-viewer/read-string edn-doc)
                             (catch :default e
