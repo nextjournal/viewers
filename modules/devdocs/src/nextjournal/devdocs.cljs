@@ -26,18 +26,18 @@
     [(= path p) coll]))
 (defn find-doc [{:keys [devdocs]} path] (some #(and (= path (:path %)) %) devdocs))
 (defn lookup [registry path]
-  (loop [r registry]
+  (loop [r registry parent-collection nil]
     (when-some [[exact-match? {:as coll :keys [collections]}] (find-coll r path)]
       (if exact-match?
-        coll
+        (assoc coll :parent-collection parent-collection)
         (or (when-some [doc (find-doc coll path)]
               (assoc doc :parent-collection coll))
-            (when collections (recur collections)))))))
+            (when collections (recur collections coll)))))))
 
-#_(lookup (dirs->config ["dev/ductile/insights" "notebooks"]) "notebooks")
-#_(lookup (dirs->config ["dev/ductile/insights" "notebooks"]) "notebooks/import_manufacturers.clj")
-#_(lookup (dirs->config ["dev/ductile/insights" "notebooks"]) "dev/ductile/insights/edi_history")
-#_(lookup (dirs->config ["dev/ductile/insights" "notebooks"]) "dev/ductile/insights/edi_history/model_names.clj")
+#_(lookup @registry "notebooks")
+#_(lookup @registry "notebooks/import_manufacturers.clj")
+#_(lookup @registry "dev/ductile/insights/edi_history")
+#_(lookup @registry "dev/ductile/insights/edi_history/model_names.clj")
 
 (defn scroll-to-fragment [el-id]
   (when-let [el (js/document.getElementById el-id)]
@@ -60,14 +60,26 @@
          (when (seq children)
            [inner-toc coll-id devdoc-id children])))]))
 
-(defn devdocs-toc [{:keys [devdocs]} & [{:keys [inner?]}]]
-  (for! [{:keys [title path toc]} devdocs
-         :into [:<>]]
-    [:div.mt-1
-     [:a.hover:text-gray-400
-      {:href (rfe/href :devdocs/show {:path path})} title]
-     (when inner? ;; TODO: conform into Clerk's toc
-       [inner-toc path path (:children toc)])]))
+(defn collection-toc [{:keys [title path collections]}]
+  [:<>
+   [:a.block.hover:text-gray-400 {:href (rfe/href :devdocs/show {:path path})}
+    (str "📁 " title)]
+   (when (seq collections)
+     (for! [c collections :into [:div.mt-1.ml-2]]
+       [collection-toc c]))])
+
+(defn devdocs-toc [{:keys [devdocs collections]} & [{:keys [inner?]}]]
+  [:<>
+   (for! [{:keys [title path toc]} devdocs
+          :into [:<>]]
+     [:div.mt-1
+      [:a.hover:text-gray-400
+       {:href (rfe/href :devdocs/show {:path path})} title]
+      (when inner?                                          ;; TODO: conform into Clerk's toc
+        [inner-toc path path (:children toc)])])
+   (when (seq collections)
+     (for! [c collections :into [:div.mt-2]]
+       [collection-toc c]))])
 
 (defn toc-container [{label :title up :up} & children]
   (reagent/with-let [pinned? (reagent/atom true)]
@@ -163,10 +175,8 @@
            (into [sidebar-content options] content)]]
          (into [sidebar-content options] content))])))
 
-;; :devdocs/index
-(declare index-view* index-view**)
-(defn index-view [_] [index-view* @registry])
-(defn index-view* [collections]
+(declare index-inner-view)
+(defn index-view [collections]
   [:div.flex.h-screen.devdocs-body
    (for! [{:keys [title path]} collections
           :into [sidebar {:title contentsTitle}]]
@@ -176,13 +186,13 @@
    [:div.overflow-y-auto.px-12.bg-white.flex-auto
     {:style {:padding-top 80 :padding-bottom 70}}
     [:h1.text-4xl.uppercase.tracking-wide.font-semibold.mb-10 contentsTitle]
-    [index-view** collections]]])
-(defn index-view** [collections]
+    [index-inner-view collections {:level 4}]]])
+(defn index-inner-view [collections {:keys [level]}]
   (for! [{:keys [title path devdocs] sub-colls :collections} collections
          :into [:div]]
     [:div.mb-10
      [:div
-      [:h2.text-xl.uppercase.tracking-wide.font-bold
+      [(str "h" level ".uppercase.tracking-wide.font-bold")
        [:a.hover:underline
         {:href (rfe/href :devdocs/show {:path path})} title]]]
      (for! [{:keys [title path last-modified]} devdocs
@@ -198,44 +208,36 @@
                (deja-fu/format "MMM dd yyyy, HH:mm"))])])
      (when (seq sub-colls)
        [:div.mt-4.ml-4
-        [index-view** sub-colls]])]))
+        [index-inner-view sub-colls {:level (inc level)}]])]))
 
-(defn breadcrumb [items]
-  (into [:div.text-sm.mr-4]
-        (->> items
-             (map (fn [[title url]]
-                    [:a.hover:underline {:href url} title]))
-             (interpose [:span.text-gray-500 " / "]))))
+(declare collection-inner-view)
+(defn collection-view [{:as collection :keys [title parent-collection]}]
+  [:div.flex.h-screen.devdocs-body
+   [sidebar {:title title
+             :footer [:a.hover:text-gray-400
+                      {:href (rfe/href :devdocs/show {:path (or (:path parent-collection) "")})}
+                      "← Back"]}
+    [devdocs-toc collection]]
+   [:div.overflow-y-auto.px-12.bg-white.flex-auto
+    {:style {:padding-top 80 :padding-bottom 70}}
+    [collection-inner-view collection]]])
+(defn collection-inner-view [{:keys [path title devdocs collections level] :or {level 1}}]
+  [:div
+   [(str "h" level ".uppercase.tracking-wide.font-semibold.mb-6")
+    [:a.hover:underline {:href (rfe/href :devdocs/show {:path path})} title]]
+   (for! [{:keys [title path last-modified]} devdocs :into [:div]]
+     [:div.mb-2.ml-2
+      [:a.hover:underline.font-bold
+       {:href (rfe/href :devdocs/show {:path path}) :title path} title]
+      (when last-modified
+        [:p.text-xs.text-gray-500.mt-1
+         (-> last-modified
+             deja-fu/local-date-time
+             (deja-fu/format "MMM dd yyyy, HH:mm"))])])
+   (when (seq collections)
+     (for! [coll collections :into [:div.ml-2.mt-4]]
+       [collection-inner-view (assoc coll :level (inc level))]))])
 
-;; :devdocs/collection
-(defn collection-view [collection]
-  (let [{:keys [path title devdocs]} collection]
-    [:div.flex.h-screen.devdocs-body
-     [sidebar {:title title
-               :footer [:a.hover:text-gray-400
-                        {:href (rfe/href :devdocs/show {:path ""})}
-                        "← Back"]}
-      [devdocs-toc collection]]
-     [:div.overflow-y-auto.px-12.bg-white.flex-auto
-      {:style {:padding-top 80 :padding-bottom 70}}
-      [:h1.text-4xl.uppercase.tracking-wide.font-semibold.mb-8
-       [:a.hover:underline
-        {:href (rfe/href :devdocs/show {:path path})} title]]
-      [:div
-       (for! [{:keys [title path last-modified]} devdocs :into [:div]]
-         [:div.mb-4
-          [:a.hover:underline.font-bold
-           {:href (rfe/href :devdocs/show {:path path}) :title path} title]
-          (when last-modified
-            [:p.text-xs.text-gray-500.mt-1
-             (-> last-modified
-                 deja-fu/local-date-time
-                 (deja-fu/format "MMM dd yyyy, HH:mm"))])])]]]))
-
-(defn- return [pred]
-  (fn [val] (when (pred val) val)))
-
-;; :devdocs/devdoc
 (defn devdoc-view [{:as doc :keys [parent-collection edn-doc fragment]}]
   (let [{:keys [path title]} parent-collection]
     [:div.flex.h-screen.devdocs-body
@@ -255,12 +257,12 @@
 
 (defn view [{:as data :keys [path]}]
   (if (or (nil? path) (contains? #{"" "/"} path))
-    [index-view* @registry]
+    [index-view @registry]
     (let [{:as node :keys [devdocs edn-doc]} (lookup @registry path)]
       (js/console.log :data data :node node
                       :coll? (some? devdocs)
                       :doc? (some? edn-doc)
-                      :parent (when (some? edn-doc) (:parent-collection node)))
+                      :parent (:parent-collection node))
       (cond
         devdocs [collection-view node]
         edn-doc [devdoc-view node]))))
@@ -292,9 +294,3 @@
   [match]
   (let [{:keys [data path-params]} match]
     (merge data path-params)))
-
-(comment
-  (first (vals @registry))
-
-  (commands/register! :dev/devdocs
-    (devdoc-commands)))
