@@ -272,7 +272,7 @@
    {:subcommands
     (fn [_]
       (into [{:title "Index"
-              :dispatch [:router/push [:devdocs/show]]}]
+              :dispatch [:router/push [:devdocs/show {:path ""}]]}]
             (map (fn collection->commands [{:keys [title path devdocs collections]}]
                    {:title title
                     :subcommands
