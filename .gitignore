@@ -6,7 +6,6 @@
 .nrepl-history
 .cpcache
 .clerk
-.clj-kondo
 
 /.lsp/sqlite.db
 .shadow-cljs
