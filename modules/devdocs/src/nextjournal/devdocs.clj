@@ -20,17 +20,25 @@
       (select-keys [:title :doc])
       (assoc :path (str path))))
 
-(declare dirs->config)
-(defn dir->config [directory]
-  (let [subdirs (filter fs/directory? (fs/list-dir directory))]
-    (cond-> {:path (str directory)
-             :title (path->title directory)
-             :devdocs (mapv file->doc-info (fs/glob directory "*.{clj,md}"))}
-      (seq subdirs)
-      (assoc :collections (dirs->config subdirs)))))
-(defn dirs->config [paths] (mapv dir->config paths))
-#_(dir->config "docs")
-#_(dirs->config ["docs"])
+(defn path-info->collection [{:as opts :keys [path pattern]}]
+  (let [subcollections (into [] (comp (filter fs/directory?)
+                                      (map #(path-info->collection (assoc opts :path %)))
+                                      (remove (comp empty? :devdocs)))
+                             (fs/list-dir path))]
+    (cond-> {:path (str path)
+             :title (path->title path)
+             :devdocs (into []
+                            (comp (filter (comp (if pattern
+                                                  #(re-find (cond-> pattern (string? pattern) re-pattern) (str %))
+                                                  (constantly true))))
+                                  (map file->doc-info))
+                            (fs/glob path "*.{clj,cljc,md}"))}
+      (seq subcollections)
+      (assoc :collections subcollections))))
+
+#_(path-info->collection {:path "docs"})
+#_(path-info->collection {:path "dev/ductile/insights"})
+#_(path-info->collection {:path "src/re_db" :pattern #"notebook"})
 
 ;; FIXME: visibility is only assigned when blocks are evaluated
 (defn assign-visibility [{:as doc :keys [visibility]}]
@@ -54,12 +62,12 @@
       clerk.view/->edn))
 #_(doc-info->edn {:path "docs/clerk/clerk.md" :eval? false})
 
-(defn config->paths [cfg]
-  (->> cfg
+(defn collections->paths [colls]
+  (->> colls
        (mapcat (fn [{:keys [devdocs collections]}]
                  (cond-> (map :path devdocs)
-                   collections (concat (config->paths collections)))))))
-#_(config->paths (dirs->config ["docs"]))
+                   collections (concat (collections->paths collections)))))))
+#_(collections->paths [(path-info->collection {:path "docs"})])
 
 (defn guard [p? val] (when (p? val) val))
 (defn +viewer-edn [{:as opts :keys [path]}]
@@ -75,15 +83,18 @@
              (update :devdocs (partial mapv +viewer-edn))
              (update :collections hydrate-docs))
         registry))
-#_(hydrate-docs (dirs->config ["docs"]))
 
 (defmacro build-registry
-  "Populates a nested registry of compiled notebooks structured along the targed filesystem fragments."
-  [{:keys [paths]}] (-> paths dirs->config hydrate-docs))
+  "Populates a nested registry (a vector of collections) of compiled notebooks structured along the target filesystem fragments.
 
-(defn build! [paths]
-  ;; `dirs->config` actually also filters notebooks (currently path/**/*.{clj,md})
-  (doseq [path (config->paths (dirs->config paths))]
+  `paths` is a collection of maps with `:path` and an optional `:pattern` keys to refine the notebook collection."
+  [{:keys [paths]}]
+  (->> paths (mapv path-info->collection) hydrate-docs))
+
+(defn build!
+  "Takes same options as `build-registry`, evals resulting notebooks with clerk and persists EDN results to fs at conventional path."
+  [{:keys [paths]}]
+  (doseq [path (->> paths (map path-info->collection) collections->paths)]
     (println "started building notebook" path)
     (let [{edn-str :result :keys [time-ms edn-path]}
           (try
@@ -102,4 +113,5 @@
   (fs/delete-tree ".clerk/devdocs")
   (fs/glob ".clerk/devdocs" "**/*.edn")
   (fs/delete-tree ".clerk/devdocs")
-  (build! ["docs"]))
+  (collections->paths (map path-info->collection [{:path "docs" :pattern "clerk|devcards"}]))
+  (build! {:paths [{:path "docs" :pattern "clerk|devcards"}]}))

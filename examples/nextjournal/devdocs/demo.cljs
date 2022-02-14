@@ -4,7 +4,7 @@
             [reitit.frontend :as rf]))
 
 
-(reset! devdocs/registry (devdocs/build-registry {:paths ["docs"]}))
+(reset! devdocs/registry (devdocs/build-registry {:paths [{:path "docs"}]}))
 
 (defonce router
   (rf/router ["/docs" ["/*path" {:name :devdocs/show}]]))
