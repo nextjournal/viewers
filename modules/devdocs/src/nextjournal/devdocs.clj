@@ -1,6 +1,7 @@
 (ns nextjournal.devdocs
   "Embedded (pre-built) Clerk notebooks."
   (:require [babashka.fs :as fs]
+            [clojure.java.shell :as sh]
             [clojure.stacktrace :as stacktrace]
             [clojure.string :as str]
             [nextjournal.clerk :as clerk]
@@ -22,7 +23,9 @@
 (defn file->doc-info [path]
   (-> (clerk/parse-file (fs/file path))
       (select-keys [:title :doc])
-      (assoc :path (str path))))
+      (assoc :path (str path)
+             :last-modified (when-some [ts (-> (sh/sh "git" "log" "-1" "--format=%ct" (str path)) :out str/trim not-empty)]
+                              (* (Long/parseLong ts) 1000)))))
 
 (defn path-info->collection [{:as opts :keys [path pattern]}]
   (let [subcollections (into [] (comp (filter fs/directory?)
