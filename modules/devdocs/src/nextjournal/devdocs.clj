@@ -6,9 +6,13 @@
             [nextjournal.clerk :as clerk]
             [nextjournal.clerk.hashing :as clerk.hashing]
             [nextjournal.clerk.view :as clerk.view]
-            [nextjournal.clerk.viewer :as clerk.viewer]))
+            [nextjournal.clerk.viewer :as clerk.viewer]
+            [nextjournal.dejavu :as djv]))
 
-(defn doc-path->edn-path [path] (str ".clerk/devdocs/" (str path ".edn")))
+(defn doc-path->cached-edn-path [path]
+  (str ".clerk/devdocs/" (djv/sha1 (fs/file path)) "|" (djv/sha1-file path) ".edn"))
+#_(doc-path->cached-edn-path "docs/clerk/clerk.md")
+#_(doc-path->cached-edn-path "docs/clerk/clerk.clj")
 
 (defn path->title [path]
   (-> path fs/file-name (str/split #"_")
@@ -73,7 +77,7 @@
 (defn +viewer-edn [{:as opts :keys [path]}]
   (assoc opts
          :edn-doc
-         (if-some [edn-path (guard fs/exists? (doc-path->edn-path path))]
+         (if-some [edn-path (guard fs/exists? (doc-path->cached-edn-path path))]
            (do (println "Found cached EDN doc at" edn-path)
                (slurp edn-path))
            (doc-info->edn (assoc opts :eval? false)))))
@@ -93,21 +97,20 @@
 
 (defn build!
   "Takes same options as `build-registry`, evals resulting notebooks with clerk and persists EDN results to fs at conventional path."
-  [{:keys [paths]}]
+  [{:keys [paths ignore-cache?]}]
   (doseq [path (->> paths (map path-info->collection) collections->paths)]
     (println "started building notebook" path)
-    (let [{edn-str :result :keys [time-ms edn-path]}
-          (try
-            (assoc (clerk/time-ms (doc-info->edn {:path path :eval? true}))
-                   :edn-path (doc-path->edn-path path))
-            (catch Exception e
-              (println "failed building notebook" path "with" (ex-message e) "continuing...")
-              (stacktrace/print-stack-trace e) {}))]
-      (when edn-path
-        (println "finished building notebook" path "in" time-ms "ms, writing" (count edn-str) "chars EDN to" edn-path)
-        (fs/delete-if-exists edn-path)
-        (when-not (fs/exists? (fs/parent edn-path)) (fs/create-dirs (fs/parent edn-path)))
-        (spit edn-path edn-str)))))
+    (let [edn-path (doc-path->cached-edn-path path)]
+      (if (and (fs/exists? edn-path) (not ignore-cache?))
+        (println "Found cached EDN doc at" edn-path)
+        (try
+          (let [{edn-str :result :keys [time-ms]} (clerk/time-ms (doc-info->edn {:path path :eval? true}))]
+            (println "finished building notebook" path "in" time-ms "ms, writing" (count edn-str) "chars EDN to" edn-path)
+            (when-not (fs/exists? (fs/parent edn-path)) (fs/create-dirs (fs/parent edn-path)))
+            (spit edn-path edn-str))
+          (catch Exception e
+            (println "failed building notebook" path "with" (ex-message e) "continuing...")
+            (stacktrace/print-stack-trace e) {}))))))
 
 (comment
   (fs/delete-tree ".clerk/devdocs")
