@@ -1,19 +1,12 @@
 (ns nextjournal.devdocs
   (:require [cljs.reader :as cljs-reader]
             [clojure.string :as str]
-            [flatland.ordered.map :as om]
             [nextjournal.ui.components.icon :as icon]
             [lambdaisland.deja-fu :as deja-fu]
-            [nextjournal.devcards]
-            [nextjournal.devcards-ui]
-            [nextjournal.viewer :as v]
-            [nextjournal.viewer.notebook]
             [nextjournal.clerk.sci-viewer :as sci-viewer]
-            [re-frame.context :as re-frame :refer [defc]]
             [reagent.core :as reagent]
             [reitit.frontend.easy :as rfe])
-  (:require-macros [nextjournal.devdocs]
-                   [nextjournal.util.macros :refer [for!]]))
+  (:require-macros [nextjournal.util.macros :refer [for!]]))
 
 (goog-define contentsTitle "contents")
 (goog-define logoImage "https://cdn.nextjournal.com/images/nextjournal-logo-white.svg")
