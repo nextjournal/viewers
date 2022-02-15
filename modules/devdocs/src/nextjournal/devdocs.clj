@@ -110,6 +110,7 @@
             (spit edn-path edn-str))
           (catch Exception e
             (println "failed building notebook" path "with" (ex-message e) "continuing...")
+            (println "caused by " (ex-cause e))
             (stacktrace/print-stack-trace e) {}))))))
 
 (comment
