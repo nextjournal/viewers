@@ -1,9 +1,8 @@
 # 🎩 Demo Markdown
 
 ```clojure
-(ns demo-markdown
+(ns ^:nextjournal.clerk/no-cache demo-markdown
   (:import (java.time Instant)))
-
 ```
 
 And **today** is 

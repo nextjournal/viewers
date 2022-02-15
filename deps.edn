@@ -17,7 +17,7 @@
 
   :nextjournal/clerk
   {:exec-fn nextjournal.devdocs/build!
-   :exec-args {:paths [{:path "docs" :pattern "clerk|devcards"}]}}
+   :exec-args {:paths [{:path "docs" :filter-pattern "clerk|devcards"}]}}
 
   :test/markdown
   {:extra-paths ["modules/markdown/test"]

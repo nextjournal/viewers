@@ -27,7 +27,12 @@
              :last-modified (when-some [ts (-> (sh/sh "git" "log" "-1" "--format=%ct" (str path)) :out str/trim not-empty)]
                               (* (Long/parseLong ts) 1000)))))
 
-(defn path-info->collection [{:as opts :keys [path pattern]}]
+(defn pattern->fn [mode pattern]
+  (let [ps (cond-> pattern (not (vector? pattern)) vector)
+        p->fn (fn [p] #(re-find (cond-> p (string? p) re-pattern) (str %)))]
+    (apply (case mode :or some-fn :and every-pred) (map p->fn ps))))
+
+(defn path-info->collection [{:as opts :keys [path filter-pattern exclude-pattern]}]
   (let [subcollections (into [] (comp (filter fs/directory?)
                                       (map #(path-info->collection (assoc opts :path %)))
                                       (remove (comp empty? :devdocs)))
@@ -35,17 +40,18 @@
     (cond-> {:path (str path)
              :title (path->title path)
              :devdocs (into []
-                            (comp (filter (comp (if pattern
-                                                  #(re-find (cond-> pattern (string? pattern) re-pattern) (str %))
-                                                  (constantly true))))
-                                  (map file->doc-info))
+                            (apply comp
+                                   (cond->> [(map file->doc-info)]
+                                     exclude-pattern (cons (remove (pattern->fn :or exclude-pattern)))
+                                     filter-pattern (cons (filter (pattern->fn :and filter-pattern)))))
                             (fs/glob path "*.{clj,cljc,md}"))}
       (seq subcollections)
       (assoc :collections subcollections))))
 
 #_(path-info->collection {:path "docs"})
 #_(path-info->collection {:path "dev/ductile/insights"})
-#_(path-info->collection {:path "src/re_db" :pattern #"notebook"})
+#_(path-info->collection {:path "src/re_db" :filter-pattern ["notebook"]})
+#_(path-info->collection {:path "src/re_db" :filter-pattern ["form" "u"] :exclude-pattern ["ui"]})
 
 ;; FIXME: visibility is only assigned when blocks are evaluated
 (defn assign-visibility [{:as doc :keys [visibility]}]
@@ -94,7 +100,7 @@
 (defmacro build-registry
   "Populates a nested registry (a vector of collections) of compiled notebooks structured along the target filesystem fragments.
 
-  `paths` is a collection of maps with `:path` and an optional `:pattern` keys to refine the notebook collection."
+  `paths` is a collection of maps with `:path` and optional `:filter-pattern` `:exclude-pattern` keys to refine the notebook collection."
   [{:keys [paths]}]
   (->> paths (mapv path-info->collection) hydrate-docs))
 
@@ -119,6 +125,5 @@
 (comment
   (fs/delete-tree ".clerk/devdocs")
   (fs/glob ".clerk/devdocs" "**/*.edn")
-  (fs/delete-tree ".clerk/devdocs")
-  (collections->paths (map path-info->collection [{:path "docs" :pattern "clerk|devcards"}]))
-  (build! {:paths [{:path "docs" :pattern "clerk|devcards"}]}))
+  (collections->paths (map path-info->collection [{:path "docs" :filter-pattern "clerk|devcards"}]))
+  (build! {:paths [{:path "docs" :filter-pattern "clerk|devcards"}]}))
