@@ -1,8 +1,8 @@
 (ns nextjournal.devdocs.demo
   (:require [nextjournal.devdocs :as devdocs]
             [nextjournal.commands.core :as commands]
-            [reitit.frontend :as rf]))
-
+            [reitit.frontend :as rf])
+  (:require-macros [nextjournal.devdocs :as devdocs]))
 
 (reset! devdocs/registry (devdocs/build-registry {:paths [{:path "docs"}]}))
 

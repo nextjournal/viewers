@@ -74,43 +74,6 @@
      (for! [c collections :into [:div.mt-2]]
        [collection-toc c]))])
 
-(defn toc-container [{label :title up :up} & children]
-  (reagent/with-let [pinned? (reagent/atom true)]
-    [:div.toc
-     {:class (when @pinned? "pinned")
-      :style (cond-> {:top 0}
-               @pinned?
-               (assoc :position "relative"
-                      :width "auto"
-                      :top 0))}
-     [:div.toc-button
-      [:div.toc-label.text-base.flex
-       label]]
-     [:div.toc-content.border-r.border-black-10
-      {:style (cond-> {:height "100vh"
-                       :max-height "100vh"
-                       :width "260px"
-                       :padding-bottom 40
-                       :padding-right 0}
-                @pinned?
-                (assoc :position "relative"
-                       :top "auto"
-                       :transform "none")
-                (not @pinned?)
-                (assoc :box-shadow "0 3px 20px rgba(0,0,0,.2)"))}
-      [:div.toc-header.ml-4.border-b.pb-2.mb-2.mr-2
-       {:style {:color "var(--near-black-color)"}}
-       (if up
-         [:div.text-black.rounded.flex.justify-center.items-center.cursor-pointer.cursor-pointer.hover:underline
-          {:on-click #(re-frame/dispatch [:router/push up])}
-          [icon/view "ChevronLeft" {:size 18 :class "relative flex-shrink-0" :style {:top -1}}]
-          [:span.ml-1 label]]
-         label)
-       [:div.toc-pin.ml-2
-        {:on-click #(swap! pinned? not)}
-        (if @pinned? "Unpin" "Pin")]]
-      (into [:div.pl-4] children)]]))
-
 (defn sidebar-content [{:keys [title footer collapsed? mobile?]} & content]
   [:div.px-12.py-6.overflow-y-auto.flex-shrink-0.sidebar-content.text-white
    (if @mobile?
