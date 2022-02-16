@@ -87,7 +87,7 @@
   (assoc opts
          :edn-doc
          (if-some [edn-path (guard fs/exists? (doc-path->cached-edn-path path))]
-           (do (println "Found cached EDN doc at" edn-path)
+           (do (println "Found cached EDN doc at" edn-path (str "(size: " (fs/size edn-path) ")"))
                (slurp edn-path))
            (doc-info->edn (assoc opts :eval? false)))))
 
