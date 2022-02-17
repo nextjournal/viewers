@@ -68,7 +68,7 @@ jobs:
           ssh-private-key: ${{ secrets.NEXTJOURNAL_CI_SSH_KEY }}
 
       - name: Build Notebooks
-        run: clojure -X:nextjournal/clerk
+        run: clojure -X:nextjournal/devdocs
 
       - name: Compile ClojureScript (snapshot devcards/stories build)
         env:

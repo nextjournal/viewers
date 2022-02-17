@@ -15,7 +15,7 @@
    :extra-deps {metosin/reitit-frontend {:mvn/version "0.5.15"}
                 org.babashka/sci {:mvn/version "0.2.9"}}}
 
-  :nextjournal/clerk
+  :nextjournal/devdocs
   {:exec-fn nextjournal.devdocs/build!
    :exec-args {:paths [{:path "docs" :filter-pattern "clerk|devcards"}]}}
 
