@@ -35,13 +35,13 @@
 (defn viewer* [value]
   ^{:key value}
   [:div {:ref #(when %
-                 ;; remove previous editor-view, if it exists
-                 (some-> (j/get % :editorView)
-                         (j/call :destroy))
-                 ;; create new editor-view & attach to DOM element so we can destroy it above
-                 (j/assoc! % :editorView
-                           (EditorView. #js {:state (.create EditorState #js {:doc value :extensions ext})
-                                             :parent %})))}])
+                 (let [prev-view (j/get % :editorView)]
+                   (when (or (nil? prev-view)
+                             (not= value (j/call-in prev-view [:state :doc :toString])))
+                     (some-> prev-view (j/call :destroy))
+                     (j/assoc! % :editorView
+                               (EditorView. #js {:state (.create EditorState #js {:doc value :extensions ext})
+                                                 :parent %})))))}])
 
 (defn viewer [value]
   ^{:nextjournal/viewer :reagent} [viewer* value])
