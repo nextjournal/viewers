@@ -33,15 +33,15 @@
               cm6-theme])
 
 (defn viewer* [value]
+  ^{:key value}
   [:div {:ref #(when %
                  ;; remove previous editor-view, if it exists
                  (some-> (j/get % :editorView)
                          (j/call :destroy))
-
+                 ;; create new editor-view & attach to DOM element so we can destroy it above
                  (j/assoc! % :editorView
                            (EditorView. #js {:state (.create EditorState #js {:doc value :extensions ext})
                                              :parent %})))}])
 
 (defn viewer [value]
-  ^{:nextjournal/viewer :reagent
-    :key value} [viewer* value])
+  ^{:nextjournal/viewer :reagent} [viewer* value])
