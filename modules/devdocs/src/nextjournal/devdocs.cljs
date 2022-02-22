@@ -1,6 +1,12 @@
 (ns nextjournal.devdocs
-  (:require [cljs.reader :as cljs-reader]
-            [clojure.string :as str]
+  "Views for devdocs:
+  * a collection view
+  * a document view
+
+  The registry -- holding document and navigation structure -- is a nested collection (a map) of
+  * `:devdocs` a sequence of clerk docs
+  * `:collections` a sequence of sub-collections."
+  (:require [clojure.string :as str]
             [nextjournal.ui.components.icon :as icon]
             [lambdaisland.deja-fu :as deja-fu]
             [nextjournal.clerk.sci-viewer :as sci-viewer]
@@ -15,22 +21,24 @@
 
 ;; TODO: maybe compile into reitit router
 (defn find-coll [reg path]
-  (when-some [{:as coll p :path} (some #(and (str/starts-with? path (:path %)) %) reg)]
+  (when-some [{:as coll p :path} (some #(and (str/starts-with? path (:path %)) %) (:collections reg))]
     [(= path p) coll]))
 (defn find-doc [{:keys [devdocs]} path] (some #(and (= path (:path %)) %) devdocs))
 (defn lookup [registry path]
-  (loop [r registry parent-collection nil]
-    (when-some [[exact-match? {:as coll :keys [collections]}] (find-coll r path)]
-      (if exact-match?
-        (assoc coll :parent-collection parent-collection)
-        (or (when-some [doc (find-doc coll path)]
-              (assoc doc :parent-collection coll))
-            (when collections (recur collections coll)))))))
+  (or (when-some [doc (find-doc registry path)]
+        (assoc doc :parent-collection registry))
+      (loop [r registry parent-collection nil]
+        (when-some [[exact-match? {:as coll :keys [collections]}] (find-coll r path)]
+          (if exact-match?
+            (assoc coll :parent-collection parent-collection)
+            (or (when-some [doc (find-doc coll path)]
+                  (assoc doc :parent-collection coll))
+                (when collections (recur coll r))))))))
 
-#_(lookup @registry "notebooks")
-#_(lookup @registry "notebooks/import_manufacturers.clj")
-#_(lookup @registry "dev/ductile/insights/edi_history")
-#_(lookup @registry "dev/ductile/insights/edi_history/model_names.clj")
+#_(lookup @registry "README.md")
+#_(lookup @registry "docs/reference.md")
+#_(lookup @registry "docs/clerk")
+#_(lookup @registry "docs/clerk/clerk.clj")
 
 (defn scroll-to-fragment [el-id]
   (when-let [el (js/document.getElementById el-id)]
@@ -131,41 +139,6 @@
            (into [sidebar-content options] content)]]
          (into [sidebar-content options] content))])))
 
-(declare index-inner-view)
-(defn index-view [collections]
-  [:div.flex.h-screen.devdocs-body
-   (for! [{:keys [title path]} collections
-          :into [sidebar {:title contentsTitle}]]
-     [:div.mt-1
-      [:a.hover:text-gray-400.font-light.block
-       {:href (rfe/href :devdocs/show {:path path})} title]])
-   [:div.overflow-y-auto.px-12.bg-white.flex-auto
-    {:style {:padding-top 80 :padding-bottom 70}}
-    [:h1.text-4xl.uppercase.tracking-wide.font-semibold.mb-10 contentsTitle]
-    [index-inner-view collections {:level 4}]]])
-(defn index-inner-view [collections {:keys [level]}]
-  (for! [{:keys [title path devdocs] sub-colls :collections} collections
-         :into [:div]]
-    [:div.mb-10
-     [:div
-      [(str "h" level ".uppercase.tracking-wide.font-bold")
-       [:a.hover:underline
-        {:href (rfe/href :devdocs/show {:path path})} title]]]
-     (for! [{:keys [title path last-modified]} devdocs
-            :into [:div]]
-       [:div.mt-4.ml-4
-        [:a.hover:underline.font-bold
-         {:href (rfe/href :devdocs/show {:path path})
-          :title path} title]
-        (when last-modified
-          [:p.text-xs.text-gray-500.mt-1
-           (-> last-modified
-               deja-fu/local-date-time
-               (deja-fu/format "MMM dd yyyy, HH:mm"))])])
-     (when (seq sub-colls)
-       [:div.mt-4.ml-4
-        [index-inner-view sub-colls {:level (inc level)}]])]))
-
 (declare collection-inner-view)
 (defn collection-view [{:as collection :keys [title parent-collection]}]
   [:div.flex.h-screen.devdocs-body
@@ -179,7 +152,7 @@
     [collection-inner-view collection]]])
 (defn collection-inner-view [{:keys [path title devdocs collections level] :or {level 1}}]
   [:div
-   [(str "h" level ".uppercase.tracking-wide.font-semibold.mb-6")
+   [(str "h" level ".uppercase.tracking-wide.font-semibold.mb-2")
     [:a.hover:underline {:href (rfe/href :devdocs/show {:path path})} title]]
    (for! [{:keys [title path last-modified]} devdocs :into [:div]]
      [:div.mb-2.ml-2
@@ -213,7 +186,7 @@
 
 (defn view [{:as data :keys [path]}]
   (if (or (nil? path) (contains? #{"" "/"} path))
-    [index-view @registry]
+    [collection-view @registry]
     (let [{:as node :keys [devdocs edn-doc]} (lookup @registry path)]
       (js/console.log :data data :node node
                       :coll? (some? devdocs)

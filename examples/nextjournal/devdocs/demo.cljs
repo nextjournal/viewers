@@ -4,10 +4,9 @@
             [reitit.frontend :as rf])
   (:require-macros [nextjournal.devdocs :as devdocs]))
 
-(reset! devdocs/registry (devdocs/build-registry {:paths [{:path "docs"}]}))
+(reset! devdocs/registry (devdocs/build-registry {:paths ["docs/**.{clj,md}" "README.md"]}))
 
-(defonce router
-  (rf/router ["/docs" ["/*path" {:name :devdocs/show}]]))
+(defonce router (rf/router ["/docs" ["/*path" {:name :devdocs/show}]]))
 
 (defn view [match]
   [:div.flex.h-screen.bg-white

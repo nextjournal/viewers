@@ -20,39 +20,6 @@
       (->> (map str/capitalize)
            (str/join " "))))
 
-(defn file->doc-info [path]
-  (-> (clerk/parse-file (fs/file path))
-      (select-keys [:title :doc])
-      (assoc :path (str path)
-             :last-modified (when-some [ts (-> (sh/sh "git" "log" "-1" "--format=%ct" (str path)) :out str/trim not-empty)]
-                              (* (Long/parseLong ts) 1000)))))
-
-(defn pattern->fn [mode pattern]
-  (let [ps (cond-> pattern (not (vector? pattern)) vector)
-        p->fn (fn [p] #(re-find (cond-> p (string? p) re-pattern) (str %)))]
-    (apply (case mode :or some-fn :and every-pred) (map p->fn ps))))
-
-(defn path-info->collection [{:as opts :keys [path filter-pattern exclude-pattern]}]
-  (let [subcollections (into [] (comp (filter fs/directory?)
-                                      (map #(path-info->collection (assoc opts :path %)))
-                                      (remove (comp empty? :devdocs)))
-                             (fs/list-dir path))]
-    (cond-> {:path (str path)
-             :title (path->title path)
-             :devdocs (into []
-                            (apply comp
-                                   (cond->> [(map file->doc-info)]
-                                     exclude-pattern (cons (remove (pattern->fn :or exclude-pattern)))
-                                     filter-pattern (cons (filter (pattern->fn :and filter-pattern)))))
-                            (fs/glob path "*.{clj,cljc,md}"))}
-      (seq subcollections)
-      (assoc :collections subcollections))))
-
-#_(path-info->collection {:path "docs"})
-#_(path-info->collection {:path "dev/ductile/insights"})
-#_(path-info->collection {:path "src/re_db" :filter-pattern ["notebook"]})
-#_(path-info->collection {:path "src/re_db" :filter-pattern ["form" "u"] :exclude-pattern ["ui"]})
-
 ;; FIXME: visibility is only assigned when blocks are evaluated
 (defn assign-visibility [{:as doc :keys [visibility]}]
   (update doc
@@ -67,48 +34,83 @@
                                                 visibility)})))))))
 
 (defn doc-info->edn [{:keys [path eval?]}]
-  (-> (clerk/parse-file path)
+  (-> (clerk/parse-file (fs/file path))
       (cond->
         eval? clerk/eval-doc
         (not eval?) assign-visibility)
       (->> (clerk.view/doc->viewer {:inline-results? true}))
       clerk.view/->edn))
-#_(doc-info->edn {:path "docs/clerk/clerk.md" :eval? false})
-
-(defn collections->paths [colls]
-  (->> colls
-       (mapcat (fn [{:keys [devdocs collections]}]
-                 (cond-> (map :path devdocs)
-                   collections (concat (collections->paths collections)))))))
-#_(collections->paths [(path-info->collection {:path "docs"})])
 
 (defn guard [p? val] (when (p? val) val))
-(defn +viewer-edn [{:as opts :keys [path]}]
-  (assoc opts
-         :edn-doc
-         (if-some [edn-path (guard fs/exists? (doc-path->cached-edn-path path))]
-           (do (println "Found cached EDN doc at" edn-path (str "(size: " (fs/size edn-path) ")"))
-               (slurp edn-path))
-           (doc-info->edn (assoc opts :eval? false)))))
+(defn file->doc-info [path]
+  (-> (clerk/parse-file (fs/file path))
+      (select-keys [:title :doc])
+      (assoc :path (str path)
+             :last-modified (when-some [ts (-> (sh/sh "git" "log" "-1" "--format=%ct" (str path)) :out str/trim not-empty)]
+                              (* (Long/parseLong ts) 1000))
+             :edn-doc
+             (if-some [edn-path (guard fs/exists? (doc-path->cached-edn-path path))]
+               (do (println "Found cached EDN doc at" edn-path (str "(size: " (fs/size edn-path) ")"))
+                   (slurp edn-path))
+               (doc-info->edn {:path path :eval? false})))))
 
-(defn hydrate-docs [registry]
-  (mapv #(-> %
-             (update :devdocs (partial mapv +viewer-edn))
-             (update :collections hydrate-docs))
-        registry))
+#_(file->doc-info "docs/clerk/clerk.clj")
+
+(defn doc-path->path-in-registry [registry folder-path]
+  (let [index-of-matching (fn [r] (first (keep-indexed #(when (str/starts-with? folder-path (:path %2)) %1) (:collections r))))]
+    (loop [r registry nav-path [:collections]]
+      (if-some [idx (index-of-matching r)]
+        (recur (get-in r (conj nav-path idx)) (conj nav-path idx :collections))
+        nav-path))))
+
+(defn add-collection [registry [path coll]]
+  (if (str/blank? path)
+    (assoc registry :devdocs coll)
+    (update-in registry
+               (doc-path->path-in-registry registry path)
+               (fnil conj []) {:title (path->title path)
+                               :path path
+                               :devdocs coll})))
+
+#_(-> {:collections [{:title "x" :path "x"}]}
+      (add-collection ["foo" [:a]])
+      (add-collection ["foo/bar" [:b]])
+      (add-collection ["foo/bar/dang" [:c]])
+      (add-collection ["foo/caz" [:d]]))
+
+(defn expand-paths [paths]
+  (mapcat (partial fs/glob ".")
+          (if (symbol? paths)
+            (let [ps (requiring-resolve paths)] (cond-> ps (fn? ps) (ps)))
+            paths)))
+
+#_(expand-paths ["docs/**.{clj,md}"
+                 "README.md"
+                 "modules/devdocs/src/nextjournal/devdocs.clj"])
 
 (defmacro build-registry
-  "Populates a nested registry (a vector of collections) of compiled notebooks structured along the target filesystem fragments.
-
-  `paths` is a collection of maps with `:path` and optional `:filter-pattern` `:exclude-pattern` keys to refine the notebook collection."
+  "Populates a nested registry of parsed notebooks given a set of paths."
   [{:keys [paths]}]
-  (->> paths (mapv path-info->collection) hydrate-docs))
+  (->> paths
+       expand-paths
+       (map file->doc-info)
+       (group-by (comp str fs/parent :path))
+       (sort-by first)
+       (reduce add-collection {})))
+
+#_(letfn [(strip-edn [coll] (-> coll
+                                (update :devdocs (partial into [] (map #(dissoc % :edn-doc))))
+                                (update :collections (partial into [] (map strip-edn)))))]
+    (strip-edn
+     (build-registry {:paths ["docs/**/*.{clj,md}"
+                              "README.md"
+                              "modules/devdocs/src/nextjournal/devdocs.clj"]})))
 
 (defn build!
-  "Takes same options as `build-registry`, evals resulting notebooks with clerk and persists EDN results to fs at conventional path."
+  "Expand paths and evals resulting notebooks with clerk. Persists EDN results to fs at conventional path (see `doc-path->cached-edn-path`)."
   [{:keys [paths ignore-cache?]}]
-  (doseq [path (->> paths (map path-info->collection) collections->paths)]
-    (println "started building notebook" path)
+  (doseq [path (expand-paths paths)]
+    (println "started building notebook" (str path))
     (let [edn-path (doc-path->cached-edn-path path)]
       (if (and (fs/exists? edn-path) (not ignore-cache?))
         (println "Found cached EDN doc at" edn-path)
@@ -123,7 +125,5 @@
             (stacktrace/print-stack-trace e) {}))))))
 
 (comment
-  (fs/delete-tree ".clerk/devdocs")
-  (fs/glob ".clerk/devdocs" "**/*.edn")
-  (collections->paths (map path-info->collection [{:path "docs" :filter-pattern "clerk|devcards"}]))
-  (build! {:paths [{:path "docs" :filter-pattern "clerk|devcards"}]}))
+  (build! {:paths ["docs/**/*.{clj,md}" "README.md"]})
+  (fs/delete-tree ".clerk/devdocs"))
