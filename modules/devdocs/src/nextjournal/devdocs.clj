@@ -81,7 +81,8 @@
 (defn expand-paths [paths]
   (mapcat (partial fs/glob ".")
           (if (symbol? paths)
-            (let [ps (requiring-resolve paths)] (cond-> ps (fn? ps) (ps)))
+            (when-some [ps (some-> paths requiring-resolve deref)]
+              (cond-> ps (fn? ps) (apply [])))
             paths)))
 
 #_(expand-paths ["docs/**.{clj,md}"
