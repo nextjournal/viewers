@@ -97,7 +97,7 @@
        (map file->doc-info)
        (group-by (comp str fs/parent :path))
        (sort-by first)
-       (reduce add-collection {})))
+       (reduce add-collection {:title "DevDocs"})))
 
 #_(letfn [(strip-edn [coll] (-> coll
                                 (update :devdocs (partial into [] (map #(dissoc % :edn-doc))))

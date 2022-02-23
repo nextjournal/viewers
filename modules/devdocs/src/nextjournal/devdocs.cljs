@@ -27,13 +27,14 @@
 (defn lookup [registry path]
   (or (when-some [doc (find-doc registry path)]
         (assoc doc :parent-collection registry))
-      (loop [r registry parent-collection nil]
+      (loop [r registry]
         (when-some [[exact-match? {:as coll :keys [collections]}] (find-coll r path)]
           (if exact-match?
-            (assoc coll :parent-collection parent-collection)
+            (assoc coll :parent-collection r)
             (or (when-some [doc (find-doc coll path)]
                   (assoc doc :parent-collection coll))
-                (when collections (recur coll r))))))))
+                (when collections
+                  (recur coll))))))))
 
 #_(lookup @registry "README.md")
 #_(lookup @registry "docs/reference.md")
