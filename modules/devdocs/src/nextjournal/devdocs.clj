@@ -9,16 +9,11 @@
             [nextjournal.clerk.view :as clerk.view]
             [nextjournal.clerk.viewer :as clerk.viewer]))
 
-(defn sha1-file [f]
-  (let [fn (str/replace f fs/file-separator "|")
-        fn (str fn ".sha1")]
-    fn))
+(defn doc-path->edn-path [path]
+  (str "build/devdocs/" (str/replace (str path) fs/file-separator "|") ".edn"))
 
-(defn doc-path->cached-edn-path [path]
-  (str ".clerk/devdocs/" (-> path fs/file fs/read-all-bytes clerk.hashing/sha1-base58) "|" (sha1-file path) ".edn"))
-
-#_(doc-path->cached-edn-path "docs/clerk/clerk.md")
-#_(doc-path->cached-edn-path "docs/clerk/clerk.clj")
+#_(doc-path->edn-path "docs/clerk/clerk.md")
+#_(doc-path->edn-path "docs/clerk/clerk.clj")
 
 (defn path->title [path]
   (-> path fs/file-name (str/split #"_")
@@ -54,7 +49,7 @@
              :last-modified (when-some [ts (-> (sh/sh "git" "log" "-1" "--format=%ct" (str path)) :out str/trim not-empty)]
                               (* (Long/parseLong ts) 1000))
              :edn-doc
-             (if-some [edn-path (guard fs/exists? (doc-path->cached-edn-path path))]
+             (if-some [edn-path (guard fs/exists? (doc-path->edn-path path))]
                (do (println "Found cached EDN doc at" edn-path (str "(size: " (fs/size edn-path) ")"))
                    (slurp edn-path))
                (doc-info->edn {:path path :eval? false})))))
@@ -117,7 +112,7 @@
   [{:keys [paths ignore-cache?]}]
   (doseq [path (expand-paths paths)]
     (println "started building notebook" (str path))
-    (let [edn-path (doc-path->cached-edn-path path)]
+    (let [edn-path (doc-path->edn-path path)]
       (if (and (fs/exists? edn-path) (not ignore-cache?))
         (println "Found cached EDN doc at" edn-path)
         (try
