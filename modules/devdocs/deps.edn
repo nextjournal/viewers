@@ -1,6 +1,5 @@
 {:path ["src"]
  :deps {io.github.nextjournal/clerk {:git/sha "8cbb055078eddc2a20a6c9ea5d78155b262a7988"}
-        io.github.nextjournal/dejavu {:git/sha "a468387ca22e1fb48b2428ac5fe00c9a59cf4de9"}
 
         ;; devdocs views deps
         re-frame/re-frame {:git/url "https://github.com/nextjournal/freerange"

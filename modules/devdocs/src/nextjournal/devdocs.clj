@@ -7,11 +7,16 @@
             [nextjournal.clerk :as clerk]
             [nextjournal.clerk.hashing :as clerk.hashing]
             [nextjournal.clerk.view :as clerk.view]
-            [nextjournal.clerk.viewer :as clerk.viewer]
-            [nextjournal.dejavu :as djv]))
+            [nextjournal.clerk.viewer :as clerk.viewer]))
+
+(defn sha1-file [f]
+  (let [fn (str/replace f fs/file-separator "|")
+        fn (str fn ".sha1")]
+    fn))
 
 (defn doc-path->cached-edn-path [path]
-  (str ".clerk/devdocs/" (djv/sha1 (fs/file path)) "|" (djv/sha1-file path) ".edn"))
+  (str ".clerk/devdocs/" (-> path fs/file fs/read-all-bytes clerk.hashing/sha1-base58) "|" (sha1-file path) ".edn"))
+
 #_(doc-path->cached-edn-path "docs/clerk/clerk.md")
 #_(doc-path->cached-edn-path "docs/clerk/clerk.clj")
 
