@@ -117,11 +117,11 @@
         (println "Found cached EDN doc at" edn-path)
         (try
           (let [{edn-str :result :keys [time-ms]} (clerk/time-ms (doc-info->edn {:path path :eval? true}))]
-            (println "finished building notebook" path "in" time-ms "ms, writing" (count edn-str) "chars EDN to" edn-path)
+            (println "finished building notebook" (str path) "in" time-ms "ms, writing" (count edn-str) "chars EDN to" edn-path)
             (when-not (fs/exists? (fs/parent edn-path)) (fs/create-dirs (fs/parent edn-path)))
             (spit edn-path edn-str))
           (catch Exception e
-            (println "failed building notebook" path "with" (ex-message e) "continuing...")
+            (println "failed building notebook" (str path) "with" (ex-message e) "continuing...")
             (println "caused by " (ex-cause e))
             (stacktrace/print-stack-trace e) {}))))))
 
