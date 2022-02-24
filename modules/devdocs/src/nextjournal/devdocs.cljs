@@ -55,27 +55,29 @@
                        str/lower-case
                        js/encodeURIComponent)]
          ;; TODO: implement fragment nav based on Clerk's toc
-         [:a.block.mb-1 {:href (rfe/href :devdocs/show {:collection coll-id
+         [:a.mb-1 {:href (rfe/href :devdocs/show {:collection coll-id
                                                         :devdoc devdoc-id
                                                         :fragment el-id})}
           title]
          (when (seq children)
            [inner-toc coll-id devdoc-id children])))]))
 
-(defn collection-toc [{:keys [title path collections]}]
+(defn collection-toc [{:keys [title path collections nested?]}]
   [:<>
-   [:a.block.hover:text-gray-400 {:href (rfe/href :devdocs/show {:path path})}
-    (str "📁 " title)]
+   [:a.block.hover:text-gray-400
+    {:href (rfe/href :devdocs/show {:path path})
+     :class (when-not nested? "mt-2")}
+    title]
    (when (seq collections)
-     (for! [c collections :into [:div.mt-1.ml-2]]
-       [collection-toc c]))])
+     (for! [c collections :into [:div.mt-1 {:class "text-[0.8em]"}]]
+       [collection-toc (assoc c :nested? true)]))])
 
 (defn devdocs-toc [{:keys [devdocs collections]} & [{:keys [inner?]}]]
   [:<>
    (for! [{:keys [title path toc]} devdocs
           :into [:<>]]
-     [:div.mt-1
-      [:a.hover:text-gray-400
+     [:div
+      [:a.hover:text-gray-400.mt-2.block
        {:href (rfe/href :devdocs/show {:path path})} title]
       (when inner?                                          ;; TODO: conform into Clerk's toc
         [inner-toc path path (:children toc)])])
@@ -141,6 +143,7 @@
          (into [sidebar-content options] content))])))
 
 (declare collection-inner-view)
+
 (defn collection-view [{:as collection :keys [title parent-collection]}]
   [:div.flex.h-screen.devdocs-body
    [sidebar {:title title
@@ -151,12 +154,14 @@
    [:div.overflow-y-auto.px-12.bg-white.flex-auto
     {:style {:padding-top 80 :padding-bottom 70}}
     [collection-inner-view collection]]])
+
 (defn collection-inner-view [{:keys [path title devdocs collections level] :or {level 1}}]
   [:div
-   [(str "h" level ".uppercase.tracking-wide.font-semibold.mb-2")
+   [(str "h" level ".font-semibold.mb-2")
+    (when (< 1 level) {:style {:margin-top "2rem"}})
     [:a.hover:underline {:href (rfe/href :devdocs/show {:path path})} title]]
    (for! [{:keys [title path last-modified]} devdocs :into [:div]]
-     [:div.mb-2.ml-2
+     [:div.mb-2
       [:a.hover:underline.font-bold
        {:href (rfe/href :devdocs/show {:path path}) :title path} title]
       (when last-modified
@@ -165,7 +170,7 @@
              deja-fu/local-date-time
              (deja-fu/format "MMM dd yyyy, HH:mm"))])])
    (when (seq collections)
-     (for! [coll collections :into [:div.ml-2.mt-4]]
+     (for! [coll collections :into [:div.mt-4]]
        [collection-inner-view (assoc coll :level (inc level))]))])
 
 (defn devdoc-view [{:as doc :keys [parent-collection edn-doc fragment]}]
