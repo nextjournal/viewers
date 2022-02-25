@@ -19,13 +19,13 @@
     (map
       (fn [{:keys [path title items]}]
         [:<>
-         [:a.flex.px-3.py-1.hover:bg-slate-200
+         [:a.flex.px-3.py-1.hover:bg-slate-200.dark:hover:bg-slate-700
           (merge {:href path
                   :on-click (fn [event]
                               (stop-event! event)
                               (scroll-to-anchor! path))}
                  options)
-          [:div {:class "text-[14px]"} title]]
+          [:div.dark:text-white {:class "text-[14px]"} title]]
          (when (seq items)
            [:div.ml-3
             [toc-items !state items]])])
@@ -41,20 +41,20 @@
                       (first (.match label emoji-re)))]
           [:<>
            (if (seq items)
-             [:div.flex.px-3.py-1.hover:bg-slate-200.cursor-pointer
+             [:div.flex.px-3.py-1.hover:bg-slate-200.dark:hover:bg-slate-700.cursor-pointer
               {:on-click (fn [event]
                            (stop-event! event)
                            (swap! !state assoc-in (vec (conj update-at i :expanded?)) (not expanded?)))}
               [:div.flex.items-center.justify-center.flex-shrink-0
                {:class "w-[20px] h-[20px] mr-[4px]"}
-               [:svg.text-slate-500.transform.transition
+               [:svg.text-slate-500.dark:text-slate-400.transform.transition
                 {:viewBox "0 0 100 100"
                  :class ["w-[10px]" "h-[10px]" (if expanded? "rotate-180" "rotate-90")]}
                 [:polygon {:points "5.9,88.2 50,11.8 94.1,88.2 " :fill "currentColor"}]]]
-              [:div
+              [:div.dark:text-white
                {:class "text-[14px]"}
                label]]
-             [:a.flex.px-3.py-1.hover:bg-slate-200
+             [:a.flex.px-3.py-1.hover:bg-slate-200.dark:hover:bg-slate-700
               {:href path
                :on-click (fn [event]
                            (stop-event! event)
@@ -68,16 +68,16 @@
               [:div.flex.items-center.justify-center.flex-shrink-0
                {:class "w-[20px] h-[20px] mr-[4px]"}
                (if loading?
-                 [:svg.animate-spin.h-3.w-3.text-slate-500
+                 [:svg.animate-spin.h-3.w-3.text-slate-500.dark:text-slate-400
                   {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24"}
                   [:circle.opacity-25 {:cx "12" :cy "12" :r "10" :stroke "currentColor" :stroke-width "4"}]
                   [:path.opacity-75 {:fill "currentColor" :d "M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"}]]
                  (if emoji
                    [:div emoji]
-                   [:svg.text-slate-500.h-4.w-4
+                   [:svg.text-slate-500.dark:text-slate-400.h-4.w-4
                     {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor"}
                     [:path {:stroke-linecap "round" :stroke-linejoin "round" :stroke-width "2" :d "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"}]]))]
-              [:div
+              [:div.dark:text-white
                {:class "text-[14px]"}
                (if emoji
                  (subs label (count emoji))
@@ -92,13 +92,13 @@
     [:div.relative.overflow-x-hidden.h-full
      [:div.absolute.left-0.top-0.w-full.h-full.overflow-y-auto.transition.transform.py-3
       {:class (if toc "-translate-x-full" "translate-x-0")}
-      [:div.uppercase.tracking-wider.text-slate-500.font-medium.px-3.mb-1
+      [:div.uppercase.tracking-wider.text-slate-500.dark:text-slate-400.font-medium.px-3.mb-1
        {:class ["text-[12px]"]}
        "Project"]
       [navbar-items !state (:items @!state) [:items]]]
      [:div.absolute.left-0.top-0.w-full.h-full.overflow-y-auto.transition.transform.pt-2.pb-3
       {:class (if toc "translate-x-0" "translate-x-full")}
-      [:div.font-normal.px-3.py-1.cursor-pointer.text-slate-500.hover:bg-slate-200
+      [:div.font-normal.px-3.py-1.cursor-pointer.text-slate-500.dark:text-slate-400.hover:bg-slate-200.dark:hover:bg-slate-700
        {:class ["text-[12px]"]
         :on-click #(swap! !state dissoc :toc)}
        "← Back to project"]
@@ -196,47 +196,81 @@
                !state-toc (r/atom (assoc navbar-long :toc toc-pendulum))
                !state-nested (r/atom (-> navbar-nested (assoc-in [:items 0 :expanded?] true)))]
     [:div
-     [:div.flex
-      [:div.mr-5
+     [:h4.text-base.mb-4.text-slate-400 "Desktop"]
+     [:div.flex.flex-wrap
+      [:div.mr-5.mb-12
        {:class "w-[250px]"}
        [:div.text-slate-400.mb-1
         {:class "text-[11px]"}
         [:strong "Long Example"]]
-       [:div.bg-slate-100.border
+       [:div.bg-slate-100.dark:bg-slate-800.border
         {:class "h-[600px]"}
         [navbar !state-long]]
        [:div.text-slate-400.mt-1
         {:class "text-[11px]"}
         "Emojis are automatically parsed and replace the document icon."]]
-      [:div.mr-5
+      [:div.mr-5.mb-12
        {:class "w-[250px]"}
        [:div.text-slate-400.mb-1
         {:class "text-[11px]"}
         [:strong "TOC Example"]]
-       [:div.bg-slate-100.border
+       [:div.bg-slate-100.dark:bg-slate-800.border
         {:class "h-[600px]"}
         [navbar !state-toc]]
        [:div.text-slate-400.mt-1
         {:class "text-[11px]"}
         "Sidebar items have a loading state while the TOC is fetched. Slide-in animation indicates that you are now inside the notebook."]]
-      [:div.mr-5
+      [:div.mr-5.mb-12
        {:class "w-[250px]"}
        [:div.text-slate-400.mb-1
         {:class "text-[11px]"}
         [:strong "Nested Example"]]
+       [:div.bg-slate-100.dark:bg-slate-800.border
+        {:class "h-[600px]"}
+        [navbar !state-nested]]
+       [:div.text-slate-400.mt-1
+        {:class "text-[11px]"}
+        "Expanded state can be set initially too so that we can use heuristics for more DWIM."]]
+      [:div.mr-5.mb-12.dark
+       {:class "w-[250px]"}
+       [:div.text-slate-400.mb-1
+        {:class "text-[11px]"}
+        [:strong "Dark Mode Example"]]
+       [:div.bg-slate-100.dark:bg-slate-800.border
+        {:class "h-[600px]"}
+        [navbar !state-nested]]
+       [:div.text-slate-400.mt-1
+        {:class "text-[11px]"}]]
+      [:div.mr-5.mb-12
+       {:class "w-[250px]"}
+       [:div.text-slate-400.mb-1
+        {:class "text-[11px]"}
+        [:strong "Ductile-Branded Example"]]
+       [:div.bg-slate-100.border
+        {:class "h-[600px]"}
+        [navbar !state-nested]]
+       [:div.text-slate-400.mt-1
+        {:class "text-[11px]"}
+        "Expanded state can be set initially too so that we can use heuristics for more DWIM."]]
+      [:div.mr-5.mb-12
+       {:class "w-[250px]"}
+       [:div.text-slate-400.mb-1
+        {:class "text-[11px]"}
+        [:strong "Nextjournal-Branded Example"]]
        [:div.bg-slate-100.border
         {:class "h-[600px]"}
         [navbar !state-nested]]
        [:div.text-slate-400.mt-1
         {:class "text-[11px]"}
         "Expanded state can be set initially too so that we can use heuristics for more DWIM."]]]
-     [:div.mt-12
-      [:div.flex
+     [:div
+      [:h4.text-base.mb-4.text-slate-400 "Mobile"]
+      [:div.flex.flex-wrap
        [:div.mr-5
         {:class "w-[300px]"}
         [:div.text-slate-400.mb-1
          {:class "text-[11px]"}
-         [:strong "Mobile Example"]]
+         [:strong "Slide-Over Example"]]
         [:div.border.bg-white.relative.overflow-hidden
          {:class "h-[580px]"}
          [:div.absolute.border-r.bg-slate-100.left-0.top-0.h-full.shadow-xl
