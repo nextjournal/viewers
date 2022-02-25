@@ -13,93 +13,110 @@
 (defn scroll-to-anchor! [anchor]
   (.. (js/document.getElementById (subs anchor 1)) scrollIntoView))
 
+(defn theme-class [theme key]
+  (-> {:project ["py-3"]
+       :toc ["pt-2" "pb-3"]
+       :heading ["text-[12px]" "uppercase" "tracking-wider" "text-slate-500" "dark:text-slate-400" "font-medium" "px-3" "mb-1"]
+       :back ["text-[12px]" "text-slate-500" "dark:text-slate-400" "hover:bg-slate-200" "dark:hover:bg-slate-700" "font-normal" "px-3" "py-1"]
+       :expandable ["text-[14px]" "hover:bg-slate-200" "dark:hover:bg-slate-700" "dark:text-white" "px-3" "py-1"]
+       :triangle ["text-slate-500" "dark:text-slate-400"]
+       :item ["text-[14px]" "hover:bg-slate-200" "dark:hover:bg-slate-700" "dark:text-white" "px-3" "py-1"]
+       :icon ["text-slate-500" "dark:text-slate-400"]}
+      (merge theme)
+      (get key)))
+
 (defn toc-items [!state items & [options]]
-  (into
-    [:div]
-    (map
-      (fn [{:keys [path title items]}]
-        [:<>
-         [:a.flex.px-3.py-1.hover:bg-slate-200.dark:hover:bg-slate-700
-          (merge {:href path
-                  :on-click (fn [event]
-                              (stop-event! event)
-                              (scroll-to-anchor! path))}
-                 options)
-          [:div.dark:text-white {:class "text-[14px]"} title]]
-         (when (seq items)
-           [:div.ml-3
-            [toc-items !state items]])])
-      items)))
+  (let [{:keys [theme]} @!state]
+    (into
+      [:div]
+      (map
+        (fn [{:keys [path title items]}]
+          [:<>
+           [:a.flex
+            {:href path
+             :class (theme-class theme :item)
+             :on-click (fn [event]
+                         (stop-event! event)
+                         (scroll-to-anchor! path))}
+            [:div (merge {} options) title]]
+           (when (seq items)
+             [:div.ml-3
+              [toc-items !state items]])])
+        items))))
 
 (defn navbar-items [!state items update-at]
-  (into
-    [:div]
-    (map-indexed
-      (fn [i {:keys [path title expanded? loading? items toc]}]
-        (let [label (or title (str/capitalize (last (str/split path #"/"))))
-              emoji (when (zero? (.search label emoji-re))
-                      (first (.match label emoji-re)))]
-          [:<>
-           (if (seq items)
-             [:div.flex.px-3.py-1.hover:bg-slate-200.dark:hover:bg-slate-700.cursor-pointer
-              {:on-click (fn [event]
-                           (stop-event! event)
-                           (swap! !state assoc-in (vec (conj update-at i :expanded?)) (not expanded?)))}
-              [:div.flex.items-center.justify-center.flex-shrink-0
-               {:class "w-[20px] h-[20px] mr-[4px]"}
-               [:svg.text-slate-500.dark:text-slate-400.transform.transition
-                {:viewBox "0 0 100 100"
-                 :class ["w-[10px]" "h-[10px]" (if expanded? "rotate-180" "rotate-90")]}
-                [:polygon {:points "5.9,88.2 50,11.8 94.1,88.2 " :fill "currentColor"}]]]
-              [:div.dark:text-white
-               {:class "text-[14px]"}
-               label]]
-             [:a.flex.px-3.py-1.hover:bg-slate-200.dark:hover:bg-slate-700
-              {:href path
-               :on-click (fn [event]
-                           (stop-event! event)
-                           (when toc
-                             (swap! !state assoc-in (vec (conj update-at i :loading?)) true)
-                             (js/setTimeout
-                               (fn []
-                                 (swap! !state #(-> (assoc-in % (vec (conj update-at i :loading?)) false)
-                                                    (assoc :toc toc))))
-                               500)))}
-              [:div.flex.items-center.justify-center.flex-shrink-0
-               {:class "w-[20px] h-[20px] mr-[4px]"}
-               (if loading?
-                 [:svg.animate-spin.h-3.w-3.text-slate-500.dark:text-slate-400
-                  {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24"}
-                  [:circle.opacity-25 {:cx "12" :cy "12" :r "10" :stroke "currentColor" :stroke-width "4"}]
-                  [:path.opacity-75 {:fill "currentColor" :d "M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"}]]
+  (let [{:keys [theme]} @!state]
+    (into
+      [:div]
+      (map-indexed
+        (fn [i {:keys [path title expanded? loading? items toc]}]
+          (let [label (or title (str/capitalize (last (str/split path #"/"))))
+                emoji (when (zero? (.search label emoji-re))
+                        (first (.match label emoji-re)))]
+            [:<>
+             (if (seq items)
+               [:div.flex.cursor-pointer
+                {:class (theme-class theme :expandable)
+                 :on-click (fn [event]
+                             (stop-event! event)
+                             (swap! !state assoc-in (vec (conj update-at i :expanded?)) (not expanded?)))}
+                [:div.flex.items-center.justify-center.flex-shrink-0
+                 {:class "w-[20px] h-[20px] mr-[4px]"}
+                 [:svg.transform.transition
+                  {:viewBox "0 0 100 100"
+                   :class (concat (theme-class theme :triangle)
+                                  ["w-[10px]" "h-[10px]" (if expanded? "rotate-180" "rotate-90")])}
+                  [:polygon {:points "5.9,88.2 50,11.8 94.1,88.2 " :fill "currentColor"}]]]
+                [:div label]]
+               [:a.flex
+                {:href path
+                 :class (theme-class theme :item)
+                 :on-click (fn [event]
+                             (stop-event! event)
+                             (when toc
+                               (swap! !state assoc-in (vec (conj update-at i :loading?)) true)
+                               (js/setTimeout
+                                 (fn []
+                                   (swap! !state #(-> (assoc-in % (vec (conj update-at i :loading?)) false)
+                                                      (assoc :toc toc))))
+                                 500)))}
+                [:div.flex.items-center.justify-center.flex-shrink-0
+                 {:class "w-[20px] h-[20px] mr-[4px]"}
+                 (if loading?
+                   [:svg.animate-spin.h-3.w-3.text-slate-500.dark:text-slate-400
+                    {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24"}
+                    [:circle.opacity-25 {:cx "12" :cy "12" :r "10" :stroke "currentColor" :stroke-width "4"}]
+                    [:path.opacity-75 {:fill "currentColor" :d "M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"}]]
+                   (if emoji
+                     [:div emoji]
+                     [:svg.h-4.w-4
+                      {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor"
+                       :class (theme-class theme :icon)}
+                      [:path {:stroke-linecap "round" :stroke-linejoin "round" :stroke-width "2" :d "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"}]]))]
+                [:div
                  (if emoji
-                   [:div emoji]
-                   [:svg.text-slate-500.dark:text-slate-400.h-4.w-4
-                    {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor"}
-                    [:path {:stroke-linecap "round" :stroke-linejoin "round" :stroke-width "2" :d "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"}]]))]
-              [:div.dark:text-white
-               {:class "text-[14px]"}
-               (if emoji
-                 (subs label (count emoji))
-                 label)]])
-           (when (and (seq items) expanded?)
-             [:div.ml-3
-              [navbar-items !state items (vec (conj update-at i :items))]])]))
-      items)))
+                   (subs label (count emoji))
+                   label)]])
+             (when (and (seq items) expanded?)
+               [:div.ml-3
+                [navbar-items !state items (vec (conj update-at i :items))]])]))
+        items))))
 
 (defn navbar [!state]
-  (let [{:keys [toc]} @!state]
+  (let [{:keys [theme toc]} @!state]
     [:div.relative.overflow-x-hidden.h-full
-     [:div.absolute.left-0.top-0.w-full.h-full.overflow-y-auto.transition.transform.py-3
-      {:class (if toc "-translate-x-full" "translate-x-0")}
-      [:div.uppercase.tracking-wider.text-slate-500.dark:text-slate-400.font-medium.px-3.mb-1
-       {:class ["text-[12px]"]}
+     [:div.absolute.left-0.top-0.w-full.h-full.overflow-y-auto.transition.transform
+      {:class (concat (theme-class theme :project)
+                      [(if toc "-translate-x-full" "translate-x-0")])}
+      [:div.px-3.mb-1
+       {:class (theme-class theme :heading)}
        "Project"]
       [navbar-items !state (:items @!state) [:items]]]
-     [:div.absolute.left-0.top-0.w-full.h-full.overflow-y-auto.transition.transform.pt-2.pb-3
-      {:class (if toc "translate-x-0" "translate-x-full")}
-      [:div.font-normal.px-3.py-1.cursor-pointer.text-slate-500.dark:text-slate-400.hover:bg-slate-200.dark:hover:bg-slate-700
-       {:class ["text-[12px]"]
+     [:div.absolute.left-0.top-0.w-full.h-full.overflow-y-auto.transition.transform
+      {:class (concat (theme-class theme :toc)
+                      [(if toc "translate-x-0" "translate-x-full")])}
+      [:div.px-3.py-1.cursor-pointer
+       {:class (theme-class theme :back)
         :on-click #(swap! !state dissoc :toc)}
        "← Back to project"]
       [toc-items !state toc {:class "font-medium"}]]]))
@@ -194,7 +211,27 @@
 (dc/defcard navbars
   (r/with-let [!state-long (r/atom navbar-long)
                !state-toc (r/atom (assoc navbar-long :toc toc-pendulum))
-               !state-nested (r/atom (-> navbar-nested (assoc-in [:items 0 :expanded?] true)))]
+               !state-nested (r/atom (-> navbar-nested (assoc-in [:items 0 :expanded?] true)))
+               !state-branded-ductile (r/atom (-> navbar-nested
+                                                  (assoc-in [:items 0 :expanded?] true)
+                                                  (assoc :theme {:project ["pt-[83px]" "pb-3"]
+                                                                 :toc ["pt-10" "pb-3"]
+                                                                 :heading ["text-[12px]" "uppercase" "tracking-wider" "text-slate-300" "font-medium" "px-5" "mb-1"]
+                                                                 :back ["text-[12px]" "text-slate-300" "hover:bg-indigo-900" "font-normal" "px-5" "py-1"]
+                                                                 :expandable ["text-[14px]" "hover:bg-indigo-900" "text-white" "px-5" "py-1"]
+                                                                 :triangle ["text-slate-400"]
+                                                                 :item ["text-[14px]" "hover:bg-indigo-900" "text-white" "px-5" "py-1"]
+                                                                 :icon ["text-slate-400"]})))
+               !state-branded-nextjournal (r/atom (-> navbar-nested
+                                                      (assoc-in [:items 0 :expanded?] true)
+                                                      (assoc :theme {:project ["pt-[80px]" "pb-3"]
+                                                                     :toc ["pt-10" "pb-3"]
+                                                                     :heading ["text-[12px]" "uppercase" "tracking-wider" "text-slate-300" "font-medium" "px-5" "mb-1"]
+                                                                     :back ["text-[12px]" "text-slate-300" "hover:bg-white/10" "font-normal" "px-5" "py-1"]
+                                                                     :expandable ["text-[14px]" "hover:bg-white/10" "text-white" "px-5" "py-1"]
+                                                                     :triangle ["text-slate-400"]
+                                                                     :item ["text-[14px]" "hover:bg-white/10" "text-white" "px-5" "py-1"]
+                                                                     :icon ["text-slate-400"]})))]
     [:div
      [:h4.text-base.mb-4.text-slate-400 "Desktop"]
      [:div.flex.flex-wrap
@@ -230,39 +267,45 @@
         [navbar !state-nested]]
        [:div.text-slate-400.mt-1
         {:class "text-[11px]"}
-        "Expanded state can be set initially too so that we can use heuristics for more DWIM."]]
-      [:div.mr-5.mb-12.dark
-       {:class "w-[250px]"}
-       [:div.text-slate-400.mb-1
-        {:class "text-[11px]"}
-        [:strong "Dark Mode Example"]]
-       [:div.bg-slate-100.dark:bg-slate-800.border
-        {:class "h-[600px]"}
-        [navbar !state-nested]]
-       [:div.text-slate-400.mt-1
-        {:class "text-[11px]"}]]
-      [:div.mr-5.mb-12
-       {:class "w-[250px]"}
-       [:div.text-slate-400.mb-1
-        {:class "text-[11px]"}
-        [:strong "Ductile-Branded Example"]]
-       [:div.bg-slate-100.border
-        {:class "h-[600px]"}
-        [navbar !state-nested]]
-       [:div.text-slate-400.mt-1
-        {:class "text-[11px]"}
-        "Expanded state can be set initially too so that we can use heuristics for more DWIM."]]
-      [:div.mr-5.mb-12
-       {:class "w-[250px]"}
-       [:div.text-slate-400.mb-1
-        {:class "text-[11px]"}
-        [:strong "Nextjournal-Branded Example"]]
-       [:div.bg-slate-100.border
-        {:class "h-[600px]"}
-        [navbar !state-nested]]
-       [:div.text-slate-400.mt-1
-        {:class "text-[11px]"}
         "Expanded state can be set initially too so that we can use heuristics for more DWIM."]]]
+     [:div
+      [:h4.text-base.mb-4.text-slate-400 "Dark Mode & Theming"]
+      [:div.flex.flex-wrap
+       [:div.mr-5.mb-12.dark
+        {:class "w-[250px]"}
+        [:div.text-slate-400.mb-1
+         {:class "text-[11px]"}
+         [:strong "Dark Mode Example"]]
+        [:div.bg-slate-100.dark:bg-slate-800.border
+         {:class "h-[600px]"}
+         [navbar !state-nested]]
+        [:div.text-slate-400.mt-1
+         {:class "text-[11px]"}
+         "Dark mode is automatically applied when using the default theme."]]
+       [:div.mr-5.mb-12
+        {:class "w-[250px]"}
+        [:div.text-slate-400.mb-1
+         {:class "text-[11px]"}
+         [:strong "Ductile-Branded Example"]]
+        [:div.bg-indigo-800.border.relative
+         {:class "h-[600px]"}
+         [:a.absolute.w-full.pl-5.pr-12.top-6
+          [:img {:src "https://snapshots.ductile.de/build-3518e610f1ea5a222bd83b496aa450d927d9acf6/images/ductile-logo-white.svg"}]]
+         [navbar !state-branded-ductile]]
+        [:div.text-slate-400.mt-1
+         {:class "text-[11px]"}
+         "Colors, spacing, font-sizes, &c can be overridden via the `theme` option."]]
+       [:div.mr-5.mb-12
+        {:class "w-[250px]"}
+        [:div.text-slate-400.mb-1
+         {:class "text-[11px]"}
+         [:strong "Nextjournal-Branded Example"]]
+        [:div.border.relative
+         {:class "h-[600px]"
+          :style {:background "#1f2937"}}
+         [:a.absolute.w-full.pl-5.pr-12.top-6
+          [:img {:src "https://nextjournal.com/images/nextjournal-logo-white.svg"}]]
+         [navbar !state-branded-nextjournal]]]]]
      [:div
       [:h4.text-base.mb-4.text-slate-400 "Mobile"]
       [:div.flex.flex-wrap
