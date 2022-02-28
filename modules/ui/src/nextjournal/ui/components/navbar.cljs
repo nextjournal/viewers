@@ -1,5 +1,6 @@
 (ns nextjournal.ui.components.navbar
   (:require [nextjournal.devcards :as dc]
+            [nextjournal.viewer :as v]
             [clojure.string :as str]
             [reagent.core :as r]
             ["emoji-regex" :as emoji-regex]))
@@ -206,7 +207,45 @@
                                                                                  {:path "#" :title "Anforderungen Disposition"}
                                                                                  {:path "#" :title "Anforderungen Abrechnung"}
                                                                                  {:path "#" :title "Anforderungen Compound"}]}]}
-             {:path "#" :title "Re-DB" :items [{:path "#" :title "Re-DB: a cljs forms library"}]}]}))
+             {:path "#" :title "Re-DB" :items [{:path "#" :title "Re-DB: a cljs forms library"}]}]})
+  (defn mobile-example [!state]
+    (let [{:keys [navbar-visible?]} @!state]
+      [:div.border.bg-white.relative.overflow-x-hidden
+       {:class "h-[580px]"}
+       [:div.absolute.top-0.left-0.w-full.text-xs.bg-white.border-b.h-8.flex.items-center.justify-between
+        [:div.px-6.h-8.flex.items-center.text-xs.font-bold
+         "Clerk"]
+        [:button.h-8.px-6.hover:bg-slate-100.cursor-pointer.flex.items-center.text-xs.text-slate-400
+         {:on-click #(swap! !state assoc :navbar-visible? true)}
+         "Navigate to…"]]
+       [:div.top-8.left-0.absolute.w-full.bottom-0.overflow-y-auto.px-6.py-4.prose
+        [v/inspect (v/view-as :markdown
+"### Exercise 1.44: The double pendulum
+
+This namespace explores [Exercise 1.44](https://tgvaughan.github.io/sicm/chapter001.html#Exe_1-44) from Sussman
+and Wisdom's [Structure and Interpretation of Classical Mechanics](https://tgvaughan.github.io/sicm/), using
+the [SICMUtils](https://github.com/sicmutils/sicmutils) Clojure library and the Clerk rendering environment.
+
+#### Lagrangian
+Start with a coordinate transformation from `theta1`, `theta2` to rectangular
+coordinates. We'll generate our Lagrangian by composing this with an rectangular
+Lagrangian with the familiar form of `T - V`.")]]
+       [:div.absolute.top-0.left-0.w-full.h-full.bg-gray-500.bg-opacity-75.transition-opacity.pointer-events-none
+        {:class (if navbar-visible? "opacity-100" "opacity-0")}]
+       (when navbar-visible?
+         [:div.absolute.top-0.left-0.w-full.h-full
+          {:on-click #(swap! !state assoc :navbar-visible? false)}])
+       [:div.absolute.top-0.left-0.h-full
+        [:div.absolute.border-r.bg-slate-100.left-0.top-0.h-full.transition.transform
+         {:class (concat ["w-[250px]"] (if navbar-visible?
+                                         ["-translate-x-0" "shadow-xl"]
+                                         ["-translate-x-full"]))}
+         [navbar !state]
+         [:button.w-8.h-8.absolute.top-1.right-1.flex.justify-center.items-center.hover:bg-slate-200.rounded.z-2
+          {:on-click #(swap! !state assoc :navbar-visible? false)}
+          [:svg.h-4.w-4.text-slate-400
+           {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor"}
+           [:path {:stroke-linecap "round" :stroke-linejoin "round" :stroke-width "2" :d "M6 18L18 6M6 6l12 12"}]]]]]])))
 
 (dc/defcard navbars
   (r/with-let [!state-long (r/atom navbar-long)
@@ -231,7 +270,9 @@
                                                                      :expandable ["text-[14px]" "hover:bg-white/10" "text-white" "px-5" "py-1"]
                                                                      :triangle ["text-slate-400"]
                                                                      :item ["text-[14px]" "hover:bg-white/10" "text-white" "px-5" "py-1"]
-                                                                     :icon ["text-slate-400"]})))]
+                                                                     :icon ["text-slate-400"]})))
+               !state-mobile (r/atom navbar-long)
+               !state-mobile-visible (r/atom (assoc navbar-long :navbar-visible? true))]
     [:div
      [:h4.text-base.mb-4.text-slate-400 "Desktop"]
      [:div.flex.flex-wrap
@@ -306,20 +347,19 @@
          [:a.absolute.w-full.pl-5.pr-12.top-6
           [:img {:src "https://nextjournal.com/images/nextjournal-logo-white.svg"}]]
          [navbar !state-branded-nextjournal]]]]]
-     [:div
-      [:h4.text-base.mb-4.text-slate-400 "Mobile"]
-      [:div.flex.flex-wrap
-       [:div.mr-5
-        {:class "w-[300px]"}
-        [:div.text-slate-400.mb-1
-         {:class "text-[11px]"}
-         [:strong "Slide-Over Example"]]
-        [:div.border.bg-white.relative.overflow-hidden
-         {:class "h-[580px]"}
-         [:div.absolute.border-r.bg-slate-100.left-0.top-0.h-full.shadow-xl
-          {:class "w-[250px]"}
-          [navbar !state-nested]
-          [:button.w-8.h-8.absolute.top-1.right-1.flex.justify-center.items-center.hover:bg-slate-200.rounded.z-2
-           [:svg.h-4.w-4.text-slate-400
-            {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor"}
-            [:path {:stroke-linecap "round" :stroke-linejoin "round" :stroke-width "2" :d "M6 18L18 6M6 6l12 12"}]]]]]]]]]))
+     (let [{:keys [navbar-visible?]} @!state-mobile]
+       [:div
+        [:h4.text-base.mb-4.text-slate-400 "Mobile"]
+        [:div.flex.flex-wrap
+         [:div.mr-5
+          {:class "w-[300px]"}
+          [:div.text-slate-400.mb-1
+           {:class "text-[11px]"}
+           [:strong "Nav Hidden"]]
+          [mobile-example !state-mobile]]
+         [:div.mr-5
+          {:class "w-[300px]"}
+          [:div.text-slate-400.mb-1
+           {:class "text-[11px]"}
+           [:strong "Nav Visible"]]
+          [mobile-example !state-mobile-visible]]]])]))
