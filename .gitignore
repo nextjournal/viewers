@@ -13,7 +13,6 @@
 /public/css/viewer.css
 /public/js/
 node_modules
-yarn.lock
 /package-lock.json
 .cache
 
