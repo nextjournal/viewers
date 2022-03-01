@@ -87,6 +87,7 @@ jobs:
           name: Production Build - Clojure Crash Report
           path: |
             public/css/viewer.css
+            public/**/*.js
             yarn.lock
 
       - name: Copy build to bucket under SHA
