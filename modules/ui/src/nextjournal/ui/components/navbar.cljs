@@ -65,6 +65,9 @@
                  {:class "w-[20px] h-[20px] mr-[4px]"}
                  [:svg.transform.transition
                   {:viewBox "0 0 100 100"
+                   ;; DEBUG
+                   :class "w-[10px] h-[10px]"
+                   #_#_
                    :class (concat (theme-class theme :triangle)
                                   ["w-[10px]" "h-[10px]" (if expanded? "rotate-180" "rotate-90")])}
                   [:polygon {:points "5.9,88.2 50,11.8 94.1,88.2 " :fill "currentColor"}]]]
