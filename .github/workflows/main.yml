@@ -81,6 +81,14 @@ jobs:
       - name: Build static devcards
         run: ./bin/build_static_snapshot
 
+      - name: Debug CSS
+        uses: actions/upload-artifact@v2
+        with:
+          name: Production Build - Clojure Crash Report
+          path: |
+            public/css/viewer.css
+            yarn.lock
+
       - name: Copy build to bucket under SHA
         run: |
           gsutil cp -r build gs://nextjournal-snapshots/viewers/build/${{ github.sha }}
