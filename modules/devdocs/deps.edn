@@ -1,16 +1,9 @@
 {:path ["src"]
- :deps {re-frame/re-frame {:git/url "https://github.com/nextjournal/freerange"
+ :deps {io.github.nextjournal/clerk {:git/sha "8cbb055078eddc2a20a6c9ea5d78155b262a7988"}
+
+        ;; devdocs views deps
+        re-frame/re-frame {:git/url "https://github.com/nextjournal/freerange"
                            :git/sha "8cf68c30722a4c6f8f948a134c900d7a656ecad4"}
-        io.github.nextjournal/devcards {:local/root "../devcards"}
-        io.github.nextjournal/viewer {:local/root "../viewer"}
         io.github.nextjournal/cljs-extensions {:local/root "../cljs-extensions"}
-        io.github.nextjournal/markdown {:local/root "../markdown"}
-
-        io.github.nextjournal/clerk {:git/sha "8cbb055078eddc2a20a6c9ea5d78155b262a7988"}
-
-        ;; we use shadow-resource directly
-        thheller/shadow-cljs {:mvn/version "2.15.12"}
-        metosin/reitit-frontend   {:mvn/version "0.5.15"}
-        com.lambdaisland/deja-fu {:mvn/version "0.3.33"}
-        com.lambdaisland/shellutils {:mvn/version "0.0.10"}
-        org.flatland/ordered {:mvn/version "1.15.10"}}}
+        metosin/reitit-frontend {:mvn/version "0.5.15"}
+        com.lambdaisland/deja-fu {:mvn/version "0.3.33"}}}

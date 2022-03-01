@@ -5,6 +5,7 @@
 .nrepl-port
 .nrepl-history
 .cpcache
+.clerk
 
 /.lsp/sqlite.db
 .shadow-cljs

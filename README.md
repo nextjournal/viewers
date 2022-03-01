@@ -1,4 +1,4 @@
-# nextjournal/viewers
+# Viewers
 
 - view
 - viewer
