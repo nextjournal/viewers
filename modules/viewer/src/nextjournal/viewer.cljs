@@ -3,6 +3,7 @@
   (:require [applied-science.js-interop :as j]
             [cljs.reader]
             [clojure.core :as core]
+            [clojure.string :as str]
             [cognitect.transit :as transit]
             [goog.object]
             [nextjournal.devcards :as dc]
@@ -14,9 +15,7 @@
             [nextjournal.viewer.vega-lite :as vega-lite]
             [react :as react]
             [reagent.core :as reagent]
-            [reagent.dom]
-            [clojure.string :as str]
-            [sci.impl.vars]))
+            [reagent.dom]))
 
 (defn edn-type [tag value]
   (case tag

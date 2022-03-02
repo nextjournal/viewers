@@ -13,7 +13,11 @@
   :examples
   {:extra-paths ["examples"]
    :extra-deps {metosin/reitit-frontend {:mvn/version "0.5.15"}
-                org.babashka/sci {:mvn/version "0.2.8"}}}
+                org.babashka/sci {:mvn/version "0.2.9"}}}
+
+  :nextjournal/devdocs
+  {:exec-fn nextjournal.devdocs/build!
+   :exec-args {:paths ["docs/**.{clj,md}" "README.md"]}}
 
   :test/markdown
   {:extra-paths ["modules/markdown/test"]

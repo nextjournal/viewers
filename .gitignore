@@ -5,6 +5,7 @@
 .nrepl-port
 .nrepl-history
 .cpcache
+.clerk
 
 /.lsp/sqlite.db
 .shadow-cljs
@@ -12,7 +13,6 @@
 /public/css/viewer.css
 /public/js/
 node_modules
-yarn.lock
 /package-lock.json
 .cache
 

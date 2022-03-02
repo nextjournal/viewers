@@ -11,7 +11,6 @@ cp public/index.html build/index.html
 cp public/js/viewer.js build/js/
 
 # CSS
-bb build:css
 cp public/css/viewer.css build/css/viewer.css
 
 # Images
