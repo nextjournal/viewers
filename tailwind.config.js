@@ -1,6 +1,6 @@
 module.exports = {
   content: ["./public/**/*.js"],
-  darkMode: "media",
+  darkMode: "class",
   theme: {
     extend: {},
     fontFamily: {

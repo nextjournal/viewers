@@ -2,7 +2,9 @@
   (:require [nextjournal.devcards :as dc]
             #?(:cljs [nextjournal.commands.core :as keybind])
             [nextjournal.ui.components.icon :as icon]
-            [clojure.string :as str]))
+            [nextjournal.ui.components.navbar]
+            [clojure.string :as str]
+            [reagent.core :as r]))
 
 (def theme
   {:code-cell {:background "#eff1f5"}
