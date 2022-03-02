@@ -15,14 +15,14 @@
   (.. (js/document.getElementById (subs anchor 1)) scrollIntoView))
 
 (defn theme-class [theme key]
-  (-> {:project ["py-3"]
-       :toc ["pt-2" "pb-3"]
-       :heading ["text-[12px]" "uppercase" "tracking-wider" "text-slate-500" "dark:text-slate-400" "font-medium" "px-3" "mb-1"]
-       :back ["text-[12px]" "text-slate-500" "dark:text-slate-400" "hover:bg-slate-200" "dark:hover:bg-slate-700" "font-normal" "px-3" "py-1"]
-       :expandable ["text-[14px]" "hover:bg-slate-200" "dark:hover:bg-slate-700" "dark:text-white" "px-3" "py-1"]
-       :triangle ["text-slate-500" "dark:text-slate-400"]
-       :item ["text-[14px]" "hover:bg-slate-200" "dark:hover:bg-slate-700" "dark:text-white" "px-3" "py-1"]
-       :icon ["text-slate-500" "dark:text-slate-400"]}
+  (-> {:project "py-3"
+       :toc "pt-2 pb-3"
+       :heading "text-[12px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-medium px-3 mb-1"
+       :back "text-[12px] text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 font-normal px-3 py-1"
+       :expandable "text-[14px] hover:bg-slate-200 dark:hover:bg-slate-700 dark:text-white px-3 py-1"
+       :triangle "text-slate-500 dark:text-slate-400"
+       :item "text-[14px] hover:bg-slate-200 dark:hover:bg-slate-700 dark:text-white px-3 py-1"
+       :icon "text-slate-500 dark:text-slate-400"}
       (merge theme)
       (get key)))
 
@@ -65,11 +65,9 @@
                  {:class "w-[20px] h-[20px] mr-[4px]"}
                  [:svg.transform.transition
                   {:viewBox "0 0 100 100"
-                   ;; DEBUG
-                   :class "w-[10px] h-[10px]"
-                   #_#_
-                   :class (concat (theme-class theme :triangle)
-                                  ["w-[10px]" "h-[10px]" (if expanded? "rotate-180" "rotate-90")])}
+                   :class (str (theme-class theme :triangle) " "
+                               "w-[10px] h-[10px] "
+                               (if expanded? "rotate-180" "rotate-90"))}
                   [:polygon {:points "5.9,88.2 50,11.8 94.1,88.2 " :fill "currentColor"}]]]
                 [:div label]]
                [:a.flex
@@ -110,15 +108,14 @@
   (let [{:keys [theme toc]} @!state]
     [:div.relative.overflow-x-hidden.h-full
      [:div.absolute.left-0.top-0.w-full.h-full.overflow-y-auto.transition.transform
-      {:class (concat (theme-class theme :project)
-                      [(if toc "-translate-x-full" "translate-x-0")])}
+      {:class (str (theme-class theme :project) " "
+                   (if toc "-translate-x-full" "translate-x-0"))}
       [:div.px-3.mb-1
        {:class (theme-class theme :heading)}
        "Project"]
       [navbar-items !state (:items @!state) [:items]]]
      [:div.absolute.left-0.top-0.w-full.h-full.overflow-y-auto.transition.transform
-      {:class (concat (theme-class theme :toc)
-                      [(if toc "translate-x-0" "translate-x-full")])}
+      {:class (str (theme-class theme :toc) " " (if toc "translate-x-0" "translate-x-full"))}
       [:div.px-3.py-1.cursor-pointer
        {:class (theme-class theme :back)
         :on-click #(swap! !state dissoc :toc)}
@@ -240,9 +237,7 @@ Lagrangian with the familiar form of `T - V`.")]]
           {:on-click #(swap! !state assoc :navbar-visible? false)}])
        [:div.absolute.top-0.left-0.h-full
         [:div.absolute.border-r.bg-slate-100.left-0.top-0.h-full.transition.transform
-         {:class (concat ["w-[250px]"] (if navbar-visible?
-                                         ["-translate-x-0" "shadow-xl"]
-                                         ["-translate-x-full"]))}
+         {:class (str "w-[250px] " (if navbar-visible? "-translate-x-0 shadow-xl" "-translate-x-full"))}
          [navbar !state]
          [:button.w-8.h-8.absolute.top-1.right-1.flex.justify-center.items-center.hover:bg-slate-200.rounded.z-2
           {:on-click #(swap! !state assoc :navbar-visible? false)}
@@ -256,24 +251,24 @@ Lagrangian with the familiar form of `T - V`.")]]
                !state-nested (r/atom (-> navbar-nested (assoc-in [:items 0 :expanded?] true)))
                !state-branded-ductile (r/atom (-> navbar-nested
                                                   (assoc-in [:items 0 :expanded?] true)
-                                                  (assoc :theme {:project ["pt-[83px]" "pb-3"]
-                                                                 :toc ["pt-10" "pb-3"]
-                                                                 :heading ["text-[12px]" "uppercase" "tracking-wider" "text-slate-300" "font-medium" "px-5" "mb-1"]
-                                                                 :back ["text-[12px]" "text-slate-300" "hover:bg-indigo-900" "font-normal" "px-5" "py-1"]
-                                                                 :expandable ["text-[14px]" "hover:bg-indigo-900" "text-white" "px-5" "py-1"]
-                                                                 :triangle ["text-slate-400"]
-                                                                 :item ["text-[14px]" "hover:bg-indigo-900" "text-white" "px-5" "py-1"]
-                                                                 :icon ["text-slate-400"]})))
+                                                  (assoc :theme {:project "pt-[83px] pb-3"
+                                                                 :toc "pt-10 pb-3"
+                                                                 :heading "text-[12px] uppercase tracking-wider text-slate-300 font-medium px-5 mb-1"
+                                                                 :back "text-[12px] text-slate-300 hover:bg-indigo-900 font-normal px-5 py-1"
+                                                                 :expandable "text-[14px] hover:bg-indigo-900 text-white px-5 py-1"
+                                                                 :triangle "text-slate-400"
+                                                                 :item "text-[14px] hover:bg-indigo-900 text-white px-5 py-1"
+                                                                 :icon "text-slate-400"})))
                !state-branded-nextjournal (r/atom (-> navbar-nested
                                                       (assoc-in [:items 0 :expanded?] true)
-                                                      (assoc :theme {:project ["pt-[80px]" "pb-3"]
-                                                                     :toc ["pt-10" "pb-3"]
-                                                                     :heading ["text-[12px]" "uppercase" "tracking-wider" "text-slate-300" "font-medium" "px-5" "mb-1"]
-                                                                     :back ["text-[12px]" "text-slate-300" "hover:bg-white/10" "font-normal" "px-5" "py-1"]
-                                                                     :expandable ["text-[14px]" "hover:bg-white/10" "text-white" "px-5" "py-1"]
-                                                                     :triangle ["text-slate-400"]
-                                                                     :item ["text-[14px]" "hover:bg-white/10" "text-white" "px-5" "py-1"]
-                                                                     :icon ["text-slate-400"]})))
+                                                      (assoc :theme {:project "pt-[80px] pb-3"
+                                                                     :toc "pt-10 pb-3"
+                                                                     :heading "text-[12px] uppercase tracking-wider text-slate-300 font-medium px-5 mb-1"
+                                                                     :back "text-[12px] text-slate-300 hover:bg-white/10 font-normal px-5 py-1"
+                                                                     :expandable "text-[14px] hover:bg-white/10 text-white px-5 py-1"
+                                                                     :triangle "text-slate-400"
+                                                                     :item "text-[14px] hover:bg-white/10 text-white px-5 py-1"
+                                                                     :icon "text-slate-400"})))
                !state-mobile (r/atom navbar-long)
                !state-mobile-visible (r/atom (assoc navbar-long :navbar-visible? true))]
     [:div
