@@ -179,7 +179,7 @@
   @apply text-blue-700 dark:text-blue-200;
 }
 .cmt-comment {
-  @apply text-amber-700 dark:text-slate-400;
+  @apply text-slate-500 dark:text-slate-400;
 }
 .cmt-meta {
   @apply text-slate-600 dark:text-slate-400;
