@@ -616,21 +616,20 @@
   (let [{:keys [clj clj-map js]} @state]
     [:<>
      [:div
-      [:div.flex.flex-col.items-center.viewer-notebook
-       (into [:div]
-             (map-indexed (fn [i example]
-                            [:div.viewer.viewer-code
-                             [:div.text-slate-400.mb-1
-                              {:class "text-[11px]"}
-                              [:strong "Example " (inc i)]]
-                             [code/viewer example]])
-                          @state))]]
+      (into [:div.flex.flex-col.items-center.viewer-notebook]
+            (map-indexed (fn [i example]
+                           [:div.viewer.viewer-code.w-full.max-w-wide.not-prose
+                            [:div.text-slate-400.mb-1
+                             {:class "text-[11px]"}
+                             [:strong "Example " (inc i)]]
+                            [code/viewer example]])
+                         @state))]
      [:div.dark
       [:div.dark:bg-slate-900
        [:div.flex.flex-col.items-center.viewer-notebook
         (into [:div]
               (map-indexed (fn [i example]
-                             [:div.viewer.viewer-code
+                             [:div.viewer.viewer-code.w-full.max-w-wide
                               [:div.text-slate-400.mb-1
                                {:class "text-[11px]"}
                                [:strong "Example " (inc i)]]
