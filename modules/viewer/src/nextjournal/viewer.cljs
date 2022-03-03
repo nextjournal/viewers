@@ -612,6 +612,37 @@
            [inspect {} value]]))
   {::dc/class "dark has-dark-mode bg-slate-900"})
 
+(dc/defcard code-theme [state]
+  (let [{:keys [clj clj-map js]} @state]
+    [:<>
+     [:div
+      [:div.flex.flex-col.items-center.viewer-notebook
+       (into [:div]
+             (map-indexed (fn [i example]
+                            [:div.viewer.viewer-code
+                             [:div.text-slate-400.mb-1
+                              {:class "text-[11px]"}
+                              [:strong "Example " (inc i)]]
+                             [code/viewer example]])
+                          @state))]]
+     [:div.dark
+      [:div.dark:bg-slate-900
+       [:div.flex.flex-col.items-center.viewer-notebook
+        (into [:div]
+              (map-indexed (fn [i example]
+                             [:div.viewer.viewer-code
+                              [:div.text-slate-400.mb-1
+                               {:class "text-[11px]"}
+                               [:strong "Example " (inc i)]]
+                              [code/viewer example]])
+                           @state))]]]])
+  {::dc/class "p-0"
+   ::dc/state ["(def query-results\n  (let [_run-at #_(java.util.Date.) #inst \"2021-05-20T08:28:29.445-00:00\"\n        ds (next.jdbc/get-datasource {:dbtype \"sqlite\" :dbname \"chinook.db\"})]\n    (with-open [conn (next.jdbc/get-connection ds)]\n      (clerk/table (next.jdbc/execute! conn [\"SELECT AlbumId, Bytes, Name, TrackID, UnitPrice FROM tracks\"])))))"
+               "(/ (+ (* 'A 'C 'gMR (expt (sin 'theta) 2) (cos 'theta))\n      (* (/ 1 2) 'A (expt 'p_psi 2) (expt (sin 'theta) 2))\n      (* (/ 1 2) 'C (expt 'p_psi 2) (expt (cos 'theta) 2))\n      (* (/ 1 2) 'C (expt 'p_theta 2) (expt (sin 'theta) 2))\n      (* -1 'C 'p_phi 'p_psi (cos 'theta))\n      (* (/ 1 2) 'C (expt 'p_phi 2)))\n   (* 'A 'C (expt (sin 'theta) 2)))"
+               "(def literal-viewer\n  {:pred e/literal?\n   :fetch-fn viewer/fetch-all\n   :transform-fn transform-literal\n   :render-fn '(fn [x]\n                 (v/html\n                  (reagent/with-let [!sel (reagent/atom (-> x first key))]\n                    [:<>\n                     (into [:div.flex.items-center.font-sans.text-xs.mb-3\n                            [:span.text-slate-500.mr-2 \"View-as:\"]]\n                           (map (fn [[l _]]\n                                  [:button.px-3.py-1.font-medium.hover:bg-indigo-50.rounded-full.hover:text-indigo-600.transition\n                                   {:class (if (= @!sel l) \"bg-indigo-100 text-indigo-600\" \"text-slate-500\")\n                                    :on-click #(reset! !sel l)}\n                                   l]) x))\n                     (get x @!sel)])))})"
+               "(ns multiviewer\n  (:require [nextjournal.clerk :as clerk]\n            [nextjournal.clerk.viewer :as viewer]\n            [sicmutils.value :as v]\n            [sicmutils.expression :as e]\n            [sicmutils.env :refer :all]))"
+               "{:verts\n [[-0.32999999999999996 -0.5]\n  [-0.3383203922298239 -0.44746711095625896]\n  [-0.36246711095625894 -0.40007650711027953]\n  [-0.40007650711027953 -0.36246711095625894]\n  [-0.4474671109562589 -0.3383203922298239]\n  [-0.5 -0.32999999999999996]\n  [-0.5525328890437411 -0.3383203922298239]\n  [-0.5999234928897205 -0.36246711095625894]\n  [-0.6375328890437411 -0.40007650711027953]\n  [-0.6616796077701761 -0.4474671109562589]\n  [-0.67 -0.5]\n  [-0.6616796077701761 -0.5525328890437411]\n  [-0.6375328890437411 -0.5999234928897205]\n  [-0.5999234928897205 -0.6375328890437411]\n  [-0.5525328890437411 -0.6616796077701761]\n  [-0.5 -0.67]\n  [-0.44746711095625896 -0.6616796077701761]\n  [-0.4000765071102796 -0.6375328890437411]\n  [-0.36246711095625894 -0.5999234928897205]\n  [-0.3383203922298239 -0.5525328890437411]],\n :invert? true}"]})
+
 (dc/defcard inspect-large-values
   "Defcard for larger datastructures clj and json, we make use of the db viewer."
   [:div]
