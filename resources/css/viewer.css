@@ -125,10 +125,13 @@
 /* --------------------------------------------------------------- */
 
 .viewer-code {
-  @apply font-mono bg-slate-100 rounded-sm py-4 px-8 text-sm mt-4 overflow-x-auto dark:bg-slate-800;
+  @apply font-mono bg-slate-100 rounded-sm text-sm mt-4 overflow-x-auto dark:bg-slate-800;
+}
+.viewer-code .cm-content {
+  @apply py-4 px-8;
 }
 @media (min-width: 960px){
-  .viewer-notebook .viewer-code {
+  .viewer-notebook .viewer-code .cm-content {
     @apply py-4 pl-12;
   }
 }

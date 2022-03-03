@@ -619,9 +619,6 @@
       (into [:div.flex.flex-col.items-center.viewer-notebook]
             (map-indexed (fn [i example]
                            [:div.viewer.viewer-code.w-full.max-w-wide.not-prose
-                            [:div.text-slate-400.mb-1
-                             {:class "text-[11px]"}
-                             [:strong "Example " (inc i)]]
                             [code/viewer example]])
                          @state))]
      [:div.dark
@@ -629,10 +626,7 @@
        [:div.flex.flex-col.items-center.viewer-notebook
         (into [:div]
               (map-indexed (fn [i example]
-                             [:div.viewer.viewer-code.w-full.max-w-wide
-                              [:div.text-slate-400.mb-1
-                               {:class "text-[11px]"}
-                               [:strong "Example " (inc i)]]
+                             [:div.viewer.viewer-code.w-full.max-w-wide.not-prose
                               [code/viewer example]])
                            @state))]]]])
   {::dc/class "p-0"
