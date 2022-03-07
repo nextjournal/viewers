@@ -8,6 +8,7 @@
             [nextjournal.ui.components.navbar :as navbar]
             [nextjournal.ui.components.icon :as icon]
             [nextjournal.ui.components.promises :as promises]
+            [nextjournal.ui.components.localstorage :as ls]
             [nextjournal.view :as v]
             [nextjournal.viewer :as data]
             [reitit.frontend.easy :as rfe]
@@ -189,7 +190,11 @@
     [show-card (-> props (merge (get-in @dc/registry [ns name])))]]])
 
 (v/defview layout [{:keys [::v/props view ns]}]
-  (reagent/with-let [!state (reagent/atom (assoc (navbar-state) :pinned? true :width 210))]
+  (reagent/with-let [local-storage-key "devcards-nav"
+                     !state (reagent/atom (assoc (navbar-state)
+                                            :local-storage-key local-storage-key
+                                            :pinned? (ls/get-item local-storage-key)
+                                            :width 210))]
     [:div.flex.h-screen.bg-white
      [navbar/pinnable-slide-over !state [navbar/navbar !state]]
      [:div.h-screen.overflow-y-auto.flex-auto.devcards-content.bg-gray-50

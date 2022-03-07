@@ -2,6 +2,7 @@
   (:require [nextjournal.devcards :as dc]
             [nextjournal.viewer :as v]
             [nextjournal.ui.components.icon :as icon]
+            [nextjournal.ui.components.localstorage :as ls]
             [clojure.string :as str]
             [reagent.core :as r]
             ["emoji-regex" :as emoji-regex]))
@@ -148,10 +149,16 @@
      content]))
 
 (defn pinnable-slide-over [!state content]
-  (r/with-let [resize #(if (< js/innerWidth 640)
+  (r/with-let [{:keys [local-storage-key pinned?]} @!state
+               resize #(if (< js/innerWidth 640)
                          (swap! !state assoc :pinned? false :mobile? true)
-                         (swap! !state assoc :pinned? true :mobile? false))
+                         (swap! !state assoc :pinned? pinned? :mobile? false))
                ref-fn #(when %
+                         (when local-storage-key
+                           (add-watch !state ::persist
+                                      (fn [_ _ old {:keys [pinned?]}]
+                                        (when (not= (:pinned? old) pinned?)
+                                          (ls/set-item! local-storage-key pinned?)))))
                          (js/addEventListener "resize" resize)
                          (resize))]
     (let [{:keys [pinned? mobile?]} @!state]
