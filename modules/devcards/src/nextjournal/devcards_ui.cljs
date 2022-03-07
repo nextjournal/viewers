@@ -147,19 +147,28 @@
            ^{:key compile-key}
            [show-card* (merge card (format-data data) (extract-opts data))])]))]))
 
-(v/defview show-namespace [{:keys [cards ns]}]
+(defn breadcrumb [{:keys [ns !navbar-state]}]
+  (let [{:keys [pinned?]} @!navbar-state]
+    [:div.py-4.border-b
+     [:ol.flex.items-center.space-x-3
+      (when-not pinned?
+        [:li
+         [navbar/pin-button !navbar-state
+          [icon/menu {:size 24}]
+          {:class "flex items-center pt-[2px] mr-2 text-gray-400 hover:text-gray-500 cursor-pointer"}]])
+      [:li
+       [:div.flex.items-center
+        (cards-link)]]
+      [:li
+       [:div.flex.items-center
+        icon/divider
+        [:span.ml-3 (ns-link ns)]]]]]))
+
+(v/defview show-namespace [{:keys [cards ns ::v/props]}]
   (when ns
     ^{:key ns}
     [:div.px-12.sans-serif
-     [:div.py-4.border-b
-      [:ol.flex.items-center.space-x-3 {:role "list"}
-       [:li
-        [:div.flex.items-center
-         (cards-link)]]
-       [:li
-        [:div.flex.items-center
-         icon/divider
-         [:span.ml-3 (ns-link ns)]]]]]
+     [breadcrumb props]
      [:div.py-8
       (doall
         (for [[name card] cards]
@@ -170,30 +179,21 @@
    "TODO: Render welcome devcard"])
 
 (v/defview by-namespace [{:keys [ns ::v/props]}]
-     [show-namespace (-> props
+  [show-namespace (-> props
                       (assoc :cards (get @dc/registry ns)))])
 
 (v/defview by-name [{:keys [ns name ::v/props]}]
   [:div.px-12.sans-serif
-   [:div.py-4.border-b
-    [:ol.flex.items-center.space-x-3 {:role "list"}
-     [:li
-      [:div.flex.items-center
-       (cards-link)]]
-     [:li
-      [:div.flex.items-center
-       icon/divider
-       [:span.ml-3 (ns-link ns)]]]]]
+   [breadcrumb props]
    [:div.py-8
-    [show-card (-> props
-                   (merge (get-in @dc/registry [ns name])))]]])
+    [show-card (-> props (merge (get-in @dc/registry [ns name])))]]])
 
 (v/defview layout [{:keys [::v/props view ns]}]
   (reagent/with-let [!state (reagent/atom (assoc (navbar-state) :pinned? true :width 210))]
     [:div.flex.h-screen.bg-white
      [navbar/pinnable-slide-over !state [navbar/navbar !state]]
      [:div.h-screen.overflow-y-auto.flex-auto.devcards-content.bg-gray-50
-      [view props]]]))
+      [view (assoc props :!navbar-state !state)]]]))
 
 (dc/when-enabled
  (commands/register! :dev/devcards
