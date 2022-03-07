@@ -1,6 +1,7 @@
 (ns nextjournal.ui.components.navbar
   (:require [nextjournal.devcards :as dc]
             [nextjournal.viewer :as v]
+            [nextjournal.ui.components.icon :as icon]
             [clojure.string :as str]
             [reagent.core :as r]
             ["emoji-regex" :as emoji-regex]))
@@ -22,7 +23,10 @@
        :expandable "text-[14px] hover:bg-slate-200 dark:hover:bg-slate-700 dark:text-white px-3 py-1"
        :triangle "text-slate-500 dark:text-slate-400"
        :item "text-[14px] hover:bg-slate-200 dark:hover:bg-slate-700 dark:text-white px-3 py-1"
-       :icon "text-slate-500 dark:text-slate-400"}
+       :icon "text-slate-500 dark:text-slate-400"
+       :slide-over "font-sans bg-white border-r"
+       :slide-over-unpinned "shadow-xl"
+       :pin-toggle "text-[11px] text-slate-500 text-right absolute right-4 top-3 cursor-pointer hover:underline z-10"}
       (merge theme)
       (get key)))
 
@@ -73,8 +77,7 @@
                [:a.flex
                 {:href path
                  :class (theme-class theme :item)
-                 :on-click (fn [event]
-                             (stop-event! event)
+                 :on-click (fn []
                              (when toc
                                (swap! !state assoc-in (vec (conj update-at i :loading?)) true)
                                (js/setTimeout
@@ -121,6 +124,46 @@
         :on-click #(swap! !state dissoc :toc)}
        "← Back to project"]
       [toc-items !state toc {:class "font-medium"}]]]))
+
+(defn pin-button [!state content & [opts]]
+  [:div
+   (merge {:on-click #(swap! !state update :pinned? not)} opts)
+   content])
+
+(defn slide-over-content [!state content]
+  (let [{:keys [pinned? mobile? width theme]} @!state]
+    [:div.flex-shrink-0.sidebar-content
+     (assoc {:style {:width width}}
+       :class (str (theme-class theme :slide-over)
+                   (if mobile?
+                     " fixed left-0 top-0 bottom-0 z-10 "
+                     " relative ")
+                   (when-not pinned?
+                     (theme-class theme :slide-over-unpinned))))
+     [pin-button !state
+      (if pinned?
+        (if mobile? "Hide" "Unpin")
+        (if mobile? "Show" "Pin"))
+      {:class (theme-class theme :pin-toggle)}]
+     content]))
+
+(defn pinnable-slide-over [!state content]
+  (r/with-let [resize #(if (< js/innerWidth 640)
+                         (swap! !state assoc :pinned? false :mobile? true)
+                         (swap! !state assoc :pinned? true :mobile? false))
+               ref-fn #(when %
+                         (js/addEventListener "resize" resize)
+                         (resize))]
+    (let [{:keys [pinned? mobile?]} @!state]
+      [:div.flex.h-screen
+       {:ref ref-fn}
+       (if pinned?
+         [slide-over-content !state content]
+         [:div.fixed.left-0.top-0.flex.items-center.z-10.cursor-pointer
+          [:div.fixed.top-0.left-0.bottom-0.z-20.p-4.collapsed-sidebar
+           {:class (if mobile? (str "mobile-sidebar " (if pinned? "flex" "hidden")) "flex")}
+           [:div.-ml-4.-mt-4.flex
+            [slide-over-content !state content]]]])])))
 
 (dc/when-enabled
   (def toc-pendulum

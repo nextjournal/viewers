@@ -5,6 +5,7 @@
             [nextjournal.commands.command-bar :as command-bar]
             [nextjournal.devcards :as dc]
             [nextjournal.log :as log]
+            [nextjournal.ui.components.navbar :as navbar]
             [nextjournal.ui.components.icon :as icon]
             [nextjournal.ui.components.promises :as promises]
             [nextjournal.view :as v]
@@ -47,65 +48,17 @@
                               :cards (vals cards)}))) [])
        (sort-by (juxt :ns-parent :ns))))
 
-(v/defview toc [{:keys [current-ns]}]
-  (reagent/with-let [label "Component Library"
-                     pinned? (reagent/atom true)]
-    [:div.toc.fixed.top-0.left-0.bottom-0.z-10.sans-serif
-     {:class (when @pinned? "pinned")
-      :style (cond-> {:top 0
-                      :width 50}
-               @pinned?
-               (assoc :position "relative"
-                      :width "auto"
-                      :top 0))}
-     [:div.absolute.left-0.opacity-100.w-0.h-0.transition-all.duration-300
-      {:class "top-1/2"
-       :style {:transform "rotate(-90deg)"
-               :transform-origin "right top 0"}}
-      [:div.text-center.uppercase.tracking-wide.white-space-nowrap.left-0.top-0.opacity-30
-       {:style {:font-size 13
-                :width 200
-                :margin-left -100
-                :margin-top 15}}
-       label]]
-     [:div.toc-content.absolute.left-0.top-0.border-r.border-black-10.text-sm.transition-all.duration-300.max-h-screen.overflow-y-auto.bg-white.px-4.h-screen.max-h-screen
-      {:style (cond-> {:width 315}
-                @pinned?
-                (assoc :position "relative"
-                       :top "auto"
-                       :transform "none")
-                (not @pinned?)
-                (assoc :box-shadow "0 3px 20px rgba(0,0,0,.2)"))}
-      [:div.flex.items-center.pl-3.pt-4.justify-between
-       [:a.font-bold.text-xs.uppercase.tracking-wide.hover:underline
-        {:href (rfe/href :devcards/root)}
-        label]
-       [:div.cursor-pointer.rounded-sm.border.border-gray-300.leading-none.px-2.py-1.text-gray-500.hover:text-gray-700.hover:border-gray-300
-        {:on-click #(swap! pinned? not)
-         :style {:font-size 11}}
-        (if @pinned? "Unpin" "Pin")]]
-      (doall
-       (for [{:keys [ns
-                     ns-parent
-                     ns-name
-                     ns-count
-                     ns-first-child?]} (ns-listing)]
-         ^{:key ns}
-         [:<>
-          (when ns-first-child?
-            [:div.px-3.pt-5.font-medium.text-xs.mb-2
-             (shorten-ns ns-parent)])
-          [:a.flex-auto.flex.items-center.px-3.py-1.rounded-sm.text-gray-600.hover:bg-indigo-50.mt-1
-           {:href (rfe/href :devcards/by-namespace {:ns ns})
-            :style {:font-size 15}
-            :class (when (= ns current-ns) "bg-indigo-100 text-indigo-600")}
-           [:span ns-name]
-           [:span.rounded-full.leading-none.border.px-2.ml-2
-            {:style {:font-size 12 :padding-top 2 :padding-bottom 2}
-             :class (if (= ns current-ns)
-                      "border-indigo-300 text-indigo-600"
-                      "border-gray-300")}
-            ns-count]]]))]]))
+(defn navbar-state []
+  (->> (ns-listing)
+       (reduce (fn [{:keys [i items]} {:keys [ns-name ns ns-parent ns-first-child?]}]
+                 (let [item {:title ns-name :path (rfe/href :devcards/by-namespace {:ns ns})}]
+                   (if ns-first-child?
+                     {:items (vec (conj items {:title (shorten-ns ns-parent)
+                                               :expanded? true
+                                               :items [item]}))
+                      :i (if i (inc i) 0)}
+                     {:items (update-in items [i :items] #(vec (conj % item)))
+                      :i i}))) {:items []})))
 
 (v/defview inspector [{:keys [ratom initial-value label label-aligned?]}]
   [:div.monospace.relative.flex
@@ -236,10 +189,11 @@
                    (merge (get-in @dc/registry [ns name])))]]])
 
 (v/defview layout [{:keys [::v/props view ns]}]
-  [:div.flex.h-screen.bg-white
-   [toc {:current-ns ns}]
-   [:div.h-screen.overflow-y-auto.flex-auto.devcards-content.bg-gray-50
-    [view props]]])
+  (reagent/with-let [!state (reagent/atom (assoc (navbar-state) :pinned? true :width 210))]
+    [:div.flex.h-screen.bg-white
+     [navbar/pinnable-slide-over !state [navbar/navbar !state]]
+     [:div.h-screen.overflow-y-auto.flex-auto.devcards-content.bg-gray-50
+      [view props]]]))
 
 (dc/when-enabled
  (commands/register! :dev/devcards
