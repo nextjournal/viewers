@@ -128,7 +128,7 @@
         [:div.px-3.mb-1
          {:class (theme-class theme :heading)}
          "TOC"])
-      [toc-items !state toc {:class "font-medium"}]]]))
+      [toc-items !state toc (when (< (count toc) 2) {:class "font-medium"})]]]))
 
 (defn pin-button [!state content & [opts]]
   [:div
