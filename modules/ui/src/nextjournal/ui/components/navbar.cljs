@@ -158,7 +158,7 @@
       [:div.flex.h-screen
        {:ref ref-fn}
        [:<>
-        [:div.fixed.top-0.left-0.bottom-0.z-10.collapsed-sidebar
+        [:div.fixed.top-0.left-0.bottom-0.z-5
          {:class (when (and (not pinned?) (not mobile?)) "p-4")
           :on-mouse-enter #(when-not pinned?
                              (swap! !state assoc
