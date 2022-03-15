@@ -149,21 +149,19 @@
            [show-card* (merge card (format-data data) (extract-opts data))])]))]))
 
 (defn breadcrumb [{:keys [ns !navbar-state]}]
-  (let [{:keys [pinned?]} @!navbar-state]
-    [:div.py-4.border-b
-     [:ol.flex.items-center.space-x-3
-      (when-not pinned?
-        [:li
-         [navbar/pin-button !navbar-state
-          [icon/menu {:size 24}]
-          {:class "flex items-center pt-[2px] mr-2 text-gray-400 hover:text-gray-500 cursor-pointer"}]])
-      [:li
-       [:div.flex.items-center
-        (cards-link)]]
-      [:li
-       [:div.flex.items-center
-        icon/divider
-        [:span.ml-3 (ns-link ns)]]]]]))
+  [:div.py-4.border-b
+   [:ol.flex.items-center.space-x-3
+    [:li
+     [navbar/pin-button !navbar-state
+      [icon/menu {:size 24}]
+      {:class "flex items-center pt-[2px] mr-2 text-gray-400 hover:text-gray-500 cursor-pointer"}]]
+    [:li
+     [:div.flex.items-center
+      (cards-link)]]
+    [:li
+     [:div.flex.items-center
+      icon/divider
+      [:span.ml-3 (ns-link ns)]]]]])
 
 (v/defview show-namespace [{:keys [cards ns ::v/props]}]
   (when ns

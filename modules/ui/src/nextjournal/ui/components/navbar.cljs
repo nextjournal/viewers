@@ -3,6 +3,7 @@
             [nextjournal.viewer :as v]
             [nextjournal.ui.components.icon :as icon]
             [nextjournal.ui.components.localstorage :as ls]
+            [nextjournal.ui.components.motion :as motion]
             [clojure.string :as str]
             [reagent.core :as r]
             ["emoji-regex" :as emoji-regex]))
@@ -131,32 +132,19 @@
       [toc-items !state toc (when (< (count toc) 2) {:class "font-medium"})]]]))
 
 (defn pin-button [!state content & [opts]]
-  [:div
-   (merge {:on-click #(swap! !state update :pinned? not)} opts)
-   content])
-
-(defn slide-over-content [!state content]
-  (let [{:keys [pinned? mobile? width theme]} @!state]
-    [:div.flex-shrink-0.sidebar-content
-     (assoc {:style {:width width}}
-       :class (str (theme-class theme :slide-over)
-                   (if mobile?
-                     " fixed left-0 top-0 bottom-0 z-10 "
-                     " relative ")
-                   (when-not pinned?
-                     (theme-class theme :slide-over-unpinned))))
-     [pin-button !state
-      (if pinned?
-        (if mobile? "Hide" "Unpin")
-        (if mobile? "Show" "Pin"))
-      {:class (theme-class theme :pin-toggle)}]
+  (let [{:keys [mobile? visible? pinned?]} @!state]
+    [:div
+     (merge {:on-click #(swap! !state assoc
+                               (if mobile? :visible? :pinned?) (if mobile? (not visible?) (not pinned?))
+                               :animation-mode (if (or mobile? visible?) :slide-over :push-in))} opts)
      content]))
 
 (defn pinnable-slide-over [!state content]
   (r/with-let [{:keys [local-storage-key pinned?]} @!state
+               component-key (or local-storage-key (gensym))
                resize #(if (< js/innerWidth 640)
-                         (swap! !state assoc :pinned? false :mobile? true)
-                         (swap! !state assoc :pinned? pinned? :mobile? false))
+                         (swap! !state assoc :pinned? false :visible? false :mobile? true)
+                         (swap! !state assoc :pinned? pinned? :visible false :mobile? false))
                ref-fn #(when %
                          (when local-storage-key
                            (add-watch !state ::persist
@@ -164,17 +152,52 @@
                                         (when (not= (:pinned? old) pinned?)
                                           (ls/set-item! local-storage-key pinned?)))))
                          (js/addEventListener "resize" resize)
-                         (resize))]
-    (let [{:keys [pinned? mobile?]} @!state]
+                         (resize))
+               spring {:type :spring :duration 0.5 :bounce 0.1}]
+    (let [{:keys [animating? animation-mode pinned? mobile? theme visible? width]} @!state]
       [:div.flex.h-screen
        {:ref ref-fn}
-       (if pinned?
-         [slide-over-content !state content]
-         [:div.fixed.left-0.top-0.flex.items-center.z-10.cursor-pointer
-          [:div.fixed.top-0.left-0.bottom-0.z-20.p-4.collapsed-sidebar
-           {:class (if mobile? (str "mobile-sidebar " (if pinned? "flex" "hidden")) "flex")}
-           [:div.-ml-4.-mt-4.flex
-            [slide-over-content !state content]]]])])))
+       [:<>
+        [:div.fixed.top-0.left-0.bottom-0.z-10.collapsed-sidebar
+         {:class (when (and (not pinned?) (not mobile?)) "p-4")
+          :on-mouse-enter #(when-not pinned?
+                             (swap! !state assoc
+                                    :visible? true
+                                    :animation-mode :slide-over))}]
+        [:> motion/animate-presence
+         {:initial false}
+         (when (and mobile? visible?)
+           [:> motion/div
+            {:key (str component-key "-backdrop")
+             :class "fixed z-10 bg-gray-500 bg-opacity-75 left-0 top-0 bottom-0 right-0"
+             :initial {:opacity 0}
+             :animate {:opacity 1}
+             :exit {:opacity 0}
+             :on-click #(swap! !state assoc :visible? false)
+             :transition spring}])
+         (when (or visible? pinned?)
+           [:> motion/div
+            {:key (str component-key "-nav")
+             :style {:width width}
+             :class (str "top-0 left-0 h-screen z-10 "
+                         (if animating?
+                              (if (= animation-mode :slide-over) "fixed " "relative ")
+                              (if pinned? "relative " "fixed "))
+                         (theme-class theme :slide-over) " "
+                         (when-not pinned?
+                           (theme-class theme :slide-over-unpinned)))
+             :initial (if (= animation-mode :slide-over) {:x (* width -1)} {:margin-left (* width -1)})
+             :animate (if (= animation-mode :slide-over) {:x 0} {:margin-left 0})
+             :exit (if (= animation-mode :slide-over) {:x (* width -1)} {:margin-left (* width -1)})
+             :transition spring
+             :on-mouse-leave #(when (and (not pinned?) (not mobile?))
+                                (swap! !state assoc :visible? false))
+             :on-animation-start #(swap! !state assoc :animating? true)
+             :on-animation-complete #(swap! !state assoc :animating? false)}
+            [pin-button !state
+             (if mobile? "Hide" (if pinned? "Unpin" "Pin"))
+             {:class (theme-class theme :pin-toggle)}]
+            content])]]])))
 
 (dc/when-enabled
   (def toc-pendulum
