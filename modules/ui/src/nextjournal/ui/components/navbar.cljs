@@ -4,6 +4,7 @@
             [nextjournal.ui.components.icon :as icon]
             [nextjournal.ui.components.localstorage :as ls]
             [nextjournal.ui.components.motion :as motion]
+            [applied-science.js-interop :as j]
             [clojure.string :as str]
             [reagent.core :as r]
             ["emoji-regex" :as emoji-regex]))
@@ -14,8 +15,27 @@
   (.preventDefault event)
   (.stopPropagation event))
 
-(defn scroll-to-anchor! [anchor]
-  (.. (js/document.getElementById (subs anchor 1)) scrollIntoView))
+(defn scroll-to-anchor!
+  "Uses framer-motion to animate scrolling to a section.
+  `offset` here is just a visual offset. It looks way nicer to stop
+  just before a section instead of having it glued to the top of
+  the viewport."
+  [!state anchor]
+  (let [{:keys [mobile? scroll-animation scroll-el visible?]} @!state
+        scroll-top (.-scrollTop scroll-el)
+        offset 40]
+    (when scroll-animation
+      (.stop scroll-animation))
+    (when scroll-el
+      (swap! !state assoc
+             :scroll-animation (motion/animate
+                                 scroll-top
+                                 (+ scroll-top (.. (js/document.getElementById (subs anchor 1)) getBoundingClientRect -top))
+                                 {:onUpdate #(j/assoc! scroll-el :scrollTop (- % offset))
+                                  :type :spring
+                                  :duration 0.7
+                                  :bounce 0.15})
+             :visible? (if mobile? false visible?)))))
 
 (defn theme-class [theme key]
   (-> {:project "py-3"
@@ -44,7 +64,7 @@
              :class (theme-class theme :item)
              :on-click (fn [event]
                          (stop-event! event)
-                         (scroll-to-anchor! path))}
+                         (scroll-to-anchor! !state path))}
             [:div (merge {} options) title]]
            (when (seq items)
              [:div.ml-3
