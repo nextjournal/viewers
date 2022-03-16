@@ -174,8 +174,19 @@
              ^{:key name} [show-card card]))]]))
 
 (v/defview root []
-  [:div.sans-serif.flex.h-screen.justify-center.py-18
-   "TODO: Render welcome devcard"])
+  [:div.w-full.max-w-prose.mx-auto.font-sans.pt-8
+   {:class "pb-[80px]"}
+   [:div.text-xl.font-bold "Devcards by namespace"]
+   (into
+     [:div]
+     (map
+       (fn [{:keys [ns-name ns ns-parent ns-first-child? ns-count]}]
+         [:div
+          (when ns-first-child?
+            [:div.font-bold.mt-6 (shorten-ns ns-parent)])
+          [:a.text-indigo-600.inline-block.-ml-1.px-1.rounded.hover:bg-indigo-100 {:href (rfe/href :devcards/by-namespace {:ns ns})}
+           ns-name]])
+       (ns-listing)))])
 
 (v/defview by-namespace [{:keys [ns ::v/props]}]
   [show-namespace (-> props
