@@ -174,7 +174,8 @@
                          (js/addEventListener "resize" resize)
                          (resize))
                spring {:type :spring :duration 0.5 :bounce 0.1}]
-    (let [{:keys [animating? animation-mode pinned? mobile? theme visible? width]} @!state]
+    (let [{:keys [animating? animation-mode pinned? mobile? theme visible? width]} @!state
+          slide-over-classes "fixed top-0 left-0 "]
       [:div.flex.h-screen
        {:ref ref-fn}
        [:<>
@@ -199,10 +200,10 @@
            [:> motion/div
             {:key (str component-key "-nav")
              :style {:width width}
-             :class (str "top-0 left-0 h-screen z-10 "
+             :class (str "h-screen z-10 "
                          (if animating?
-                              (if (= animation-mode :slide-over) "fixed " "relative ")
-                              (if pinned? "relative " "fixed "))
+                              (if (= animation-mode :slide-over) slide-over-classes "relative ")
+                              (if pinned? "relative " slide-over-classes))
                          (theme-class theme :slide-over) " "
                          (when-not pinned?
                            (theme-class theme :slide-over-unpinned)))
