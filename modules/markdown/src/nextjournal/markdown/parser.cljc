@@ -347,6 +347,8 @@ some par with #tag and #another one"
 (defmethod apply-token "s_close" [doc _token] (close-node doc))
 (defmethod apply-token "link_open" [doc token] (open-node doc :link (:attrs token)))
 (defmethod apply-token "link_close" [doc _token] (close-node doc))
+
+(defmethod apply-token "internal_link" [doc {text :content}] (push-node doc {:type :internal-link :text text}))
 (defmethod apply-token "code_inline" [doc {text :content}] (-> doc (open-node :monospace) (push-node (text-node text)) close-node))
 
 ;; html (ignored)

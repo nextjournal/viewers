@@ -78,6 +78,15 @@ formulas")]])
 1. Consectetur adipiscing elit
 1. Integer molestie lorem at massa")]])
 
+(dc/defcard internal-links
+  "Non-sequential numbered test, e.g. using the same counter over and over again, should result in sequentially numbered lists."
+  [:div.viewer-markdown
+   [inspect* (viewer "# Internal Links
+- [x] play well with our todo list plugin
+- [x] an internal link looks like this [[wikistyle]]
+- [x] play well with [[TOC]] marker
+- [ ] inline plugin code in markdown.js (?)")]])
+
 (dc/defcard default-markdown
   [:div.viewer-markdown
    [inspect* (viewer "# Markdown Default Rendering

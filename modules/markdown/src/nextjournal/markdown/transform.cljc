@@ -121,6 +121,7 @@ a paragraph
    :monospace (partial into-markup [:code])
    :strikethrough (partial into-markup [:s])
    :link (fn [ctx {:as node :keys [attrs]}] (into-markup [:a {:href (:href attrs)}] ctx node))
+   :internal-link (fn [_ {:keys [text]}] [:a.internal {:href (str "#" text)} text])
 
    ;; default convenience fn to wrap extra markup around the default one from within the overriding function
    :default (fn [ctx {:as node t :type}] (when-some [d (get default-hiccup-renderers t)] (d ctx node)))

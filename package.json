@@ -29,6 +29,7 @@
     "markdown-it-sidenote": "github:gerwitz/markdown-it-sidenote",
     "markdown-it-texmath": "^0.9.1",
     "markdown-it-toc-done-right": "^4.2.0",
+    "markdown-it-internal-link": "1.0.4",
     "postcss": "^8.3.4",
     "punycode": "^2.1.1",
     "react": "16.9.0",

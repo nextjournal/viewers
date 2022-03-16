@@ -55,6 +55,9 @@ function todoListPlugin(md, opts) {
 
 MD.use(todoListPlugin)
 
+const markdownItInternalLink = require("markdown-it-internal-link");
+MD.use(markdownItInternalLink, {})
+
 function parse(text)  { return MD.parse(text, {}) }
 function parseJ(text) { return JSON.stringify(MD.parse(text, {})) }
 
