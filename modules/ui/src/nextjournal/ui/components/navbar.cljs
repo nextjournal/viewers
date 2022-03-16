@@ -200,7 +200,7 @@
            [:> motion/div
             {:key (str component-key "-nav")
              :style {:width width}
-             :class (str "h-screen z-10 "
+             :class (str "h-screen z-10 flex-shrink-0 "
                          (if animating?
                               (if (= animation-mode :slide-over) slide-over-classes "relative ")
                               (if pinned? "relative " slide-over-classes))
