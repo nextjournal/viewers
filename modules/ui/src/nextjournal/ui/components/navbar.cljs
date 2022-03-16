@@ -33,7 +33,7 @@
                                  (+ scroll-top (.. (js/document.getElementById (subs anchor 1)) getBoundingClientRect -top))
                                  {:onUpdate #(j/assoc! scroll-el :scrollTop (- % offset))
                                   :type :spring
-                                  :duration 0.7
+                                  :duration 0.4
                                   :bounce 0.15})
              :visible? (if mobile? false visible?)))))
 
