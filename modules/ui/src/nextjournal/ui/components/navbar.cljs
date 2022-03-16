@@ -173,7 +173,7 @@
                                           (ls/set-item! local-storage-key pinned?)))))
                          (js/addEventListener "resize" resize)
                          (resize))
-               spring {:type :spring :duration 0.5 :bounce 0.1}]
+               spring {:type :spring :duration 0.35 :bounce 0.1}]
     (let [{:keys [animating? animation-mode pinned? mobile? theme visible? width]} @!state
           slide-over-classes "fixed top-0 left-0 "]
       [:div.flex.h-screen
