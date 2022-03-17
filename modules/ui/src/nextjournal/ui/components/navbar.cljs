@@ -1,6 +1,10 @@
 (ns nextjournal.ui.components.navbar
   (:require [nextjournal.devcards :as dc]
             [nextjournal.viewer :as v]
+            [nextjournal.ui.components.icon :as icon]
+            [nextjournal.ui.components.localstorage :as ls]
+            [nextjournal.ui.components.motion :as motion]
+            [applied-science.js-interop :as j]
             [clojure.string :as str]
             [reagent.core :as r]
             ["emoji-regex" :as emoji-regex]))
@@ -11,18 +15,40 @@
   (.preventDefault event)
   (.stopPropagation event))
 
-(defn scroll-to-anchor! [anchor]
-  (.. (js/document.getElementById (subs anchor 1)) scrollIntoView))
+(defn scroll-to-anchor!
+  "Uses framer-motion to animate scrolling to a section.
+  `offset` here is just a visual offset. It looks way nicer to stop
+  just before a section instead of having it glued to the top of
+  the viewport."
+  [!state anchor]
+  (let [{:keys [mobile? scroll-animation scroll-el visible?]} @!state
+        scroll-top (.-scrollTop scroll-el)
+        offset 40]
+    (when scroll-animation
+      (.stop scroll-animation))
+    (when scroll-el
+      (swap! !state assoc
+             :scroll-animation (motion/animate
+                                 scroll-top
+                                 (+ scroll-top (.. (js/document.getElementById (subs anchor 1)) getBoundingClientRect -top))
+                                 {:onUpdate #(j/assoc! scroll-el :scrollTop (- % offset))
+                                  :type :spring
+                                  :duration 0.4
+                                  :bounce 0.15})
+             :visible? (if mobile? false visible?)))))
 
 (defn theme-class [theme key]
   (-> {:project "py-3"
        :toc "pt-2 pb-3"
-       :heading "text-[12px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-medium px-3 mb-1"
-       :back "text-[12px] text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 font-normal px-3 py-1"
-       :expandable "text-[14px] hover:bg-slate-200 dark:hover:bg-slate-700 dark:text-white px-3 py-1"
+       :heading "mt-1 md:mt-0 text-xs md:text-[12px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-medium px-3 mb-1"
+       :back "text-xs md:text-[12px] leading-normal text-slate-500 dark:text-slate-400 md:hover:bg-slate-200 md:dark:hover:bg-slate-700 font-normal px-3 py-1"
+       :expandable "text-base md:text-[14px] leading-normal md:hover:bg-slate-200 md:dark:hover:bg-slate-700 dark:text-white px-3 py-2 md:py-1"
        :triangle "text-slate-500 dark:text-slate-400"
-       :item "text-[14px] hover:bg-slate-200 dark:hover:bg-slate-700 dark:text-white px-3 py-1"
-       :icon "text-slate-500 dark:text-slate-400"}
+       :item "text-base md:text-[14px] md:hover:bg-slate-200 md:dark:hover:bg-slate-700 dark:text-white px-3 py-2 md:py-1 leading-normal"
+       :icon "text-slate-500 dark:text-slate-400"
+       :slide-over "font-sans bg-white border-r"
+       :slide-over-unpinned "shadow-xl"
+       :pin-toggle "text-[11px] text-slate-500 text-right absolute right-4 top-3 cursor-pointer hover:underline z-10"}
       (merge theme)
       (get key)))
 
@@ -38,7 +64,7 @@
              :class (theme-class theme :item)
              :on-click (fn [event]
                          (stop-event! event)
-                         (scroll-to-anchor! path))}
+                         (scroll-to-anchor! !state path))}
             [:div (merge {} options) title]]
            (when (seq items)
              [:div.ml-3
@@ -73,8 +99,7 @@
                [:a.flex
                 {:href path
                  :class (theme-class theme :item)
-                 :on-click (fn [event]
-                             (stop-event! event)
+                 :on-click (fn []
                              (when toc
                                (swap! !state assoc-in (vec (conj update-at i :loading?)) true)
                                (js/setTimeout
@@ -105,7 +130,7 @@
         items))))
 
 (defn navbar [!state]
-  (let [{:keys [theme toc]} @!state]
+  (let [{:keys [items theme toc]} @!state]
     [:div.relative.overflow-x-hidden.h-full
      [:div.absolute.left-0.top-0.w-full.h-full.overflow-y-auto.transition.transform
       {:class (str (theme-class theme :project) " "
@@ -116,11 +141,88 @@
       [navbar-items !state (:items @!state) [:items]]]
      [:div.absolute.left-0.top-0.w-full.h-full.overflow-y-auto.transition.transform
       {:class (str (theme-class theme :toc) " " (if toc "translate-x-0" "translate-x-full"))}
-      [:div.px-3.py-1.cursor-pointer
-       {:class (theme-class theme :back)
-        :on-click #(swap! !state dissoc :toc)}
-       "← Back to project"]
-      [toc-items !state toc {:class "font-medium"}]]]))
+      (if (and (seq items) (seq toc))
+        [:div.px-3.py-1.cursor-pointer
+         {:class (theme-class theme :back)
+          :on-click #(swap! !state dissoc :toc)}
+         "← Back to project"]
+        [:div.px-3.mb-1
+         {:class (theme-class theme :heading)}
+         "TOC"])
+      [toc-items !state toc (when (< (count toc) 2) {:class "font-medium"})]]]))
+
+(defn pin-button [!state content & [opts]]
+  (let [{:keys [mobile? visible? pinned?]} @!state]
+    [:div
+     (merge {:on-click #(swap! !state assoc
+                               (if mobile? :visible? :pinned?) (if mobile? (not visible?) (not pinned?))
+                               :animation-mode (if (or mobile? visible?) :slide-over :push-in))} opts)
+     content]))
+
+(defn pinnable-slide-over [!state content]
+  (r/with-let [{:keys [local-storage-key pinned?]} @!state
+               component-key (or local-storage-key (gensym))
+               resize #(if (< js/innerWidth 640)
+                         (swap! !state assoc :pinned? false :visible? false :mobile? true)
+                         (swap! !state assoc :pinned? pinned? :visible false :mobile? false))
+               ref-fn #(when %
+                         (when local-storage-key
+                           (add-watch !state ::persist
+                                      (fn [_ _ old {:keys [pinned?]}]
+                                        (when (not= (:pinned? old) pinned?)
+                                          (ls/set-item! local-storage-key pinned?)))))
+                         (js/addEventListener "resize" resize)
+                         (resize))
+               spring {:type :spring :duration 0.35 :bounce 0.1}]
+    (let [{:keys [animating? animation-mode pinned? mobile? mobile-width theme visible? width]} @!state
+          slide-over-classes "fixed top-0 left-0 "
+          w (if mobile? mobile-width width)]
+      [:div.flex.h-screen
+       {:ref ref-fn}
+       [:<>
+        [:div.fixed.top-0.left-0.bottom-0.z-5
+         {:class (when (and (not pinned?) (not mobile?)) "p-4")
+          :on-mouse-enter #(when-not pinned?
+                             (swap! !state assoc
+                                    :visible? true
+                                    :animation-mode :slide-over))}]
+        [:> motion/animate-presence
+         {:initial false}
+         (when (and mobile? visible?)
+           [:> motion/div
+            {:key (str component-key "-backdrop")
+             :class "fixed z-10 bg-gray-500 bg-opacity-75 left-0 top-0 bottom-0 right-0"
+             :initial {:opacity 0}
+             :animate {:opacity 1}
+             :exit {:opacity 0}
+             :on-click #(swap! !state assoc :visible? false)
+             :transition spring}])
+         (when (or visible? pinned?)
+           [:> motion/div
+            {:key (str component-key "-nav")
+             :style {:width w}
+             :class (str "h-screen z-10 flex-shrink-0 "
+                         (if animating?
+                              (if (= animation-mode :slide-over) slide-over-classes "relative ")
+                              (if pinned? "relative " slide-over-classes))
+                         (theme-class theme :slide-over) " "
+                         (when-not pinned?
+                           (theme-class theme :slide-over-unpinned)))
+             :initial (if (= animation-mode :slide-over) {:x (* w -1)} {:margin-left (* w -1)})
+             :animate (if (= animation-mode :slide-over) {:x 0} {:margin-left 0})
+             :exit (if (= animation-mode :slide-over) {:x (* w -1)} {:margin-left (* w -1)})
+             :transition spring
+             :on-mouse-leave #(when (and (not pinned?) (not mobile?))
+                                (swap! !state assoc :visible? false))
+             :on-animation-start #(swap! !state assoc :animating? true)
+             :on-animation-complete #(swap! !state assoc :animating? false)}
+            [pin-button !state
+             (if mobile?
+               [:svg.h-6.w-6 {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor" :stroke-width "2"}
+                [:path {:stroke-linecap "round" :stroke-linejoin "round" :d "M6 18L18 6M6 6l12 12"}]]
+               (if pinned? "Unpin" "Pin"))
+             {:class (theme-class theme :pin-toggle)}]
+            content])]]])))
 
 (dc/when-enabled
   (def toc-pendulum
