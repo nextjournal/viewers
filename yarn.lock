@@ -1064,11 +1064,6 @@ markdown-it-block-image@^0.0.3:
   resolved "https://registry.yarnpkg.com/markdown-it-block-image/-/markdown-it-block-image-0.0.3.tgz#d3fe650ebf2215ea2c7afb577b394e5f7ffc12ca"
   integrity sha1-0/5lDr8iFeosevtXezlOX3/8Eso=
 
-markdown-it-internal-link@1.0.4:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/markdown-it-internal-link/-/markdown-it-internal-link-1.0.4.tgz#ac13b9dbdefbeab9ab272917ba939704df46bb06"
-  integrity sha512-N1QO2rREf95yu19ABuO4PgLWlE+EZ4ZA27uBk6v8VM/RlNJ+9qK+R9Z/vNAgMFhiInt8tV0C3z0zHXg3F8W5wQ==
-
 "markdown-it-sidenote@github:gerwitz/markdown-it-sidenote":
   version "0.2.0"
   resolved "https://codeload.github.com/gerwitz/markdown-it-sidenote/tar.gz/aa5de8ce3168b7d41cb33c3aed071a5f41ce0083"
