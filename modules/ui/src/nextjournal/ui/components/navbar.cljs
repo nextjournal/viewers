@@ -40,11 +40,11 @@
 (defn theme-class [theme key]
   (-> {:project "py-3"
        :toc "pt-2 pb-3"
-       :heading "text-[12px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-medium px-3 mb-1"
-       :back "text-[12px] text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 font-normal px-3 py-1"
-       :expandable "text-[14px] hover:bg-slate-200 dark:hover:bg-slate-700 dark:text-white px-3 py-1"
+       :heading "mt-1 md:mt-0 text-xs md:text-[12px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-medium px-3 mb-1"
+       :back "text-xs md:text-[12px] leading-normal text-slate-500 dark:text-slate-400 md:hover:bg-slate-200 md:dark:hover:bg-slate-700 font-normal px-3 py-1"
+       :expandable "text-base md:text-[14px] leading-normal md:hover:bg-slate-200 md:dark:hover:bg-slate-700 dark:text-white px-3 py-2 md:py-1"
        :triangle "text-slate-500 dark:text-slate-400"
-       :item "text-[14px] hover:bg-slate-200 dark:hover:bg-slate-700 dark:text-white px-3 py-1"
+       :item "text-base md:text-[14px] md:hover:bg-slate-200 md:dark:hover:bg-slate-700 dark:text-white px-3 py-2 md:py-1 leading-normal"
        :icon "text-slate-500 dark:text-slate-400"
        :slide-over "font-sans bg-white border-r"
        :slide-over-unpinned "shadow-xl"
@@ -174,8 +174,9 @@
                          (js/addEventListener "resize" resize)
                          (resize))
                spring {:type :spring :duration 0.35 :bounce 0.1}]
-    (let [{:keys [animating? animation-mode pinned? mobile? theme visible? width]} @!state
-          slide-over-classes "fixed top-0 left-0 "]
+    (let [{:keys [animating? animation-mode pinned? mobile? mobile-width theme visible? width]} @!state
+          slide-over-classes "fixed top-0 left-0 "
+          w (if mobile? mobile-width width)]
       [:div.flex.h-screen
        {:ref ref-fn}
        [:<>
@@ -199,7 +200,7 @@
          (when (or visible? pinned?)
            [:> motion/div
             {:key (str component-key "-nav")
-             :style {:width width}
+             :style {:width w}
              :class (str "h-screen z-10 flex-shrink-0 "
                          (if animating?
                               (if (= animation-mode :slide-over) slide-over-classes "relative ")
@@ -207,16 +208,19 @@
                          (theme-class theme :slide-over) " "
                          (when-not pinned?
                            (theme-class theme :slide-over-unpinned)))
-             :initial (if (= animation-mode :slide-over) {:x (* width -1)} {:margin-left (* width -1)})
+             :initial (if (= animation-mode :slide-over) {:x (* w -1)} {:margin-left (* w -1)})
              :animate (if (= animation-mode :slide-over) {:x 0} {:margin-left 0})
-             :exit (if (= animation-mode :slide-over) {:x (* width -1)} {:margin-left (* width -1)})
+             :exit (if (= animation-mode :slide-over) {:x (* w -1)} {:margin-left (* w -1)})
              :transition spring
              :on-mouse-leave #(when (and (not pinned?) (not mobile?))
                                 (swap! !state assoc :visible? false))
              :on-animation-start #(swap! !state assoc :animating? true)
              :on-animation-complete #(swap! !state assoc :animating? false)}
             [pin-button !state
-             (if mobile? "Hide" (if pinned? "Unpin" "Pin"))
+             (if mobile?
+               [:svg.h-6.w-6 {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor" :stroke-width "2"}
+                [:path {:stroke-linecap "round" :stroke-linejoin "round" :d "M6 18L18 6M6 6l12 12"}]]
+               (if pinned? "Unpin" "Pin"))
              {:class (theme-class theme :pin-toggle)}]
             content])]]])))
 

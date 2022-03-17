@@ -203,7 +203,8 @@
                      !state (reagent/atom (assoc (navbar-state)
                                             :local-storage-key local-storage-key
                                             :pinned? (ls/get-item local-storage-key)
-                                            :width 210))]
+                                            :width 210
+                                            :mobile-width 300))]
     [:div.flex.h-screen.bg-white
      [navbar/pinnable-slide-over !state [navbar/navbar !state]]
      [:div.h-screen.overflow-y-auto.flex-auto.devcards-content.bg-gray-50
