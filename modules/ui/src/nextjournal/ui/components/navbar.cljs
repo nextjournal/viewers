@@ -48,7 +48,8 @@
        :icon "text-slate-500 dark:text-slate-400"
        :slide-over "font-sans bg-white border-r"
        :slide-over-unpinned "shadow-xl"
-       :pin-toggle "text-[11px] text-slate-500 text-right absolute right-4 top-3 cursor-pointer hover:underline z-10"}
+       :pin-toggle "text-[11px] text-slate-500 text-right absolute right-4 top-3 cursor-pointer hover:underline z-10"
+       :hover-control "z-5"}
       (merge theme)
       (get key)))
 
@@ -180,8 +181,9 @@
       [:div.flex.h-screen
        {:ref ref-fn}
        [:<>
-        [:div.fixed.top-0.left-0.bottom-0.z-5
-         {:class (when (and (not pinned?) (not mobile?)) "p-4")
+        [:div.fixed.top-0.left-0.bottom-0
+         {:class (str (theme-class theme :hover-control) " "
+                      (when (and (not pinned?) (not mobile?)) "p-4"))
           :on-mouse-enter #(when-not pinned?
                              (swap! !state assoc
                                     :visible? true

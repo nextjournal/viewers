@@ -147,30 +147,9 @@
 (declare collection-inner-view)
 
 (defn collection-view [collection]
-  (reagent/with-let [local-storage-key "devdocs-navbar"
-                     !state (reagent/atom {:items (:items collection)
-                                           :theme {:slide-over "bg-slate-100 font-sans border-r"
-                                                   :pin-toggle "text-[11px] text-slate-500 text-right absolute right-4 top-[10px] cursor-pointer hover:underline z-10"}
-                                           :width 220
-                                           :mobile-width 300
-                                           :local-storage-key local-storage-key
-                                           :pinned? (ls/get-item local-storage-key)})]
-    [:div.flex.h-screen.devdocs-body
-     [navbar/pin-button !state
-      [:<>
-       [icon/menu {:size 20}]
-       [:span.uppercase.tracking-wider.ml-1.font-bold
-        {:class "text-[12px]"} "Nav"]]
-      {:class "z-10 fixed right-2 top-2 md:right-auto md:left-3 md:top-3 text-slate-400 font-sans text-xs hover:underline cursor-pointer flex items-center bg-white py-1 px-3 md:p-0 rounded-full md:rounded-none border md:border-0 border-slate-200 shadow md:shadow-none"}]
-     [navbar/pinnable-slide-over !state [navbar/navbar !state]]
-     #_[sidebar {:title title
-                 :footer [:a.hover:text-gray-400
-                          {:href (rfe/href :devdocs/show {:path (or (:path parent-collection) "")})}
-                          "← Back"]}
-        [devdocs-toc collection]]
-     [:div.overflow-y-auto.px-12.bg-white.flex-auto
-      {:style {:padding-top 80 :padding-bottom 70}}
-      [collection-inner-view collection]]]))
+  [:div.overflow-y-auto.px-12.bg-white.flex-auto
+   {:style {:padding-top 80 :padding-bottom 70}}
+   [collection-inner-view collection]])
 
 (defn collection-inner-view [{:keys [path title devdocs collections level] :or {level 1}}]
   [:div
@@ -190,34 +169,52 @@
      (for! [coll collections :into [:div.mt-4]]
        [collection-inner-view (assoc coll :level (inc level))]))])
 
-(defn devdoc-view [{:as doc :keys [parent-collection edn-doc fragment]}]
-  (let [{:keys [path title]} parent-collection]
-    [:div.flex.h-screen.devdocs-body
-     [sidebar {:title [:a.hover:text-white {:href (rfe/href :devdocs/show {:path path})} title]
-               :footer [:a.hover:text-white {:href (rfe/href :devdocs/show {:path path})} "← Back"]}
-      [devdocs-toc parent-collection]]
-     [:div.overflow-y-auto.bg-white.flex-auto.relative
-      (cond-> {:style {:padding-top 45 :padding-bottom 70}}
-        fragment (assoc :ref #(scroll-to-fragment fragment)))
-      [:div.absolute.right-0.top-0.p-4
-       [:div.text-gray-400.text-xs.font-mono.float-right (:path doc)]]
-      [sci-viewer/inspect (try
-                            (sci-viewer/read-string edn-doc)
-                            (catch :default e
-                              (js/console.error :clerk.sci-viewer/read-error e)
-                              "Parse error..."))]]]))
+(defn devdoc-view [{:as doc :keys [edn-doc fragment]}]
+  [:div.overflow-y-auto.bg-white.flex-auto.relative
+   (cond-> {:style {:padding-top 45 :padding-bottom 70}}
+           fragment (assoc :ref #(scroll-to-fragment fragment)))
+   [:div.absolute.right-0.top-0.p-4
+    [:div.text-gray-400.text-xs.font-mono.float-right (:path doc)]]
+   [sci-viewer/inspect (try
+                         (sci-viewer/read-string edn-doc)
+                         (catch :default e
+                           (js/console.error :clerk.sci-viewer/read-error e)
+                           "Parse error..."))]])
+
+(defn navbar-items [items]
+  (mapv (fn [{:as item :keys [items path]}]
+          (assoc item :expanded? true
+                      :path (rfe/href :devdocs/show {:path path})
+                      :items (navbar-items items))) items))
 
 (defn view [{:as data :keys [path]}]
-  (if (or (nil? path) (contains? #{"" "/"} path))
-    [collection-view @registry]
-    (let [{:as node :keys [devdocs edn-doc]} (lookup @registry path)]
-      (js/console.log :data data :node node
-                      :coll? (some? devdocs)
-                      :doc? (some? edn-doc)
-                      :parent (:parent-collection node))
-      (cond
-        devdocs [collection-view node]
-        edn-doc [devdoc-view node]))))
+  (reagent/with-let [local-storage-key "devdocs-navbar"
+                     !state (reagent/atom {:items (navbar-items (:items @registry))
+                                           :theme {:slide-over "bg-slate-100 font-sans border-r"
+                                                   :pin-toggle "text-[11px] text-slate-500 text-right absolute right-4 top-[10px] cursor-pointer hover:underline z-10"
+                                                   :hover-control "z-10"}
+                                           :width 220
+                                           :mobile-width 300
+                                           :local-storage-key local-storage-key
+                                           :pinned? (ls/get-item local-storage-key)})]
+    [:div.flex.h-screen
+     [navbar/pin-button !state
+      [:<>
+       [icon/menu {:size 20}]
+       [:span.uppercase.tracking-wider.ml-1.font-bold
+        {:class "text-[12px]"} "Nav"]]
+      {:class "z-10 fixed right-2 top-2 md:right-auto md:left-3 md:top-3 text-slate-400 font-sans text-xs hover:underline cursor-pointer flex items-center bg-white py-1 px-3 md:p-0 rounded-full md:rounded-none border md:border-0 border-slate-200 shadow md:shadow-none"}]
+     [navbar/pinnable-slide-over !state [navbar/navbar !state]]
+     (if (or (nil? path) (contains? #{"" "/"} path))
+       [collection-view @registry]
+       (let [{:as node :keys [devdocs edn-doc]} (lookup @registry path)]
+         (js/console.log :data data :node node
+                         :coll? (some? devdocs)
+                         :doc? (some? edn-doc)
+                         :parent (:parent-collection node))
+         (cond
+           devdocs [collection-view node]
+           edn-doc [devdoc-view node])))]))
 
 (defn devdoc-commands
   "For use with the commands/command-bar API"
