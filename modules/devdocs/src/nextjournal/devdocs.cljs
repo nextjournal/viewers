@@ -173,7 +173,7 @@
   [:div.overflow-y-auto.bg-white.flex-auto.relative
    (cond-> {:style {:padding-top 45 :padding-bottom 70}}
            fragment (assoc :ref #(scroll-to-fragment fragment)))
-   [:div.absolute.right-0.top-0.p-4
+   [:div.absolute.left-4.md:right-0.md:left-auto.top-0.p-4
     [:div.text-gray-400.text-xs.font-mono.float-right (:path doc)]]
    [sci-viewer/inspect (try
                          (sci-viewer/read-string edn-doc)
@@ -191,7 +191,7 @@
   (reagent/with-let [local-storage-key "devdocs-navbar"
                      !state (reagent/atom {:items (navbar-items (:items @registry))
                                            :theme {:slide-over "bg-slate-100 font-sans border-r"
-                                                   :pin-toggle "text-[11px] text-slate-500 text-right absolute right-4 top-[10px] cursor-pointer hover:underline z-10"
+                                                   :pin-toggle "text-[11px] text-slate-500 text-right absolute right-4 top-[15px] cursor-pointer hover:underline z-10"
                                                    :hover-control "z-10"}
                                            :width 220
                                            :mobile-width 300
