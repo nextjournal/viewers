@@ -73,7 +73,7 @@
         items))))
 
 (defn navbar-items [!state items update-at]
-  (let [{:keys [theme]} @!state]
+  (let [{:keys [mobile? theme]} @!state]
     (into
       [:div]
       (map-indexed
@@ -107,7 +107,9 @@
                                  (fn []
                                    (swap! !state #(-> (assoc-in % (vec (conj update-at i :loading?)) false)
                                                       (assoc :toc toc))))
-                                 500)))}
+                                 500))
+                             (when mobile?
+                               (swap! !state assoc :visible? false)))}
                 [:div.flex.items-center.justify-center.flex-shrink-0
                  {:class "w-[20px] h-[20px] mr-[4px]"}
                  (if loading?
