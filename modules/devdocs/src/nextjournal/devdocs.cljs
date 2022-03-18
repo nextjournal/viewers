@@ -191,7 +191,7 @@
   (reagent/with-let [local-storage-key "devdocs-navbar"
                      !state (reagent/atom {:items (navbar-items (:items @registry))
                                            :theme {:slide-over "bg-slate-100 font-sans border-r"
-                                                   :pin-toggle "text-[11px] text-slate-500 text-right absolute right-4 top-[15px] cursor-pointer hover:underline z-10"
+                                                   :pin-toggle "text-[11px] text-slate-500 text-right absolute right-4 top-[8px] cursor-pointer hover:underline z-10"
                                                    :hover-control "z-10"}
                                            :width 220
                                            :mobile-width 300
