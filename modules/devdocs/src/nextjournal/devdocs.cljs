@@ -21,19 +21,19 @@
 
 ;; TODO: maybe compile into reitit router
 (defn find-coll [reg path]
-  (when-some [{:as coll p :path} (some #(and (str/starts-with? path (:path %)) %) (:collections reg))]
+  (when-some [{:as coll p :path} (some #(and (str/starts-with? path (:path %)) %) (:items reg))]
     [(= path p) coll]))
-(defn find-doc [{:keys [devdocs]} path] (some #(and (= path (:path %)) %) devdocs))
+(defn find-doc [{:keys [items]} path] (some #(and (= path (:path %)) %) items))
 (defn lookup [registry path]
   (or (when-some [doc (find-doc registry path)]
         (assoc doc :parent-collection registry))
       (loop [r registry]
-        (when-some [[exact-match? {:as coll :keys [collections]}] (find-coll r path)]
+        (when-some [[exact-match? {:as coll :keys [items]}] (find-coll r path)]
           (if exact-match?
             (assoc coll :parent-collection r)
             (or (when-some [doc (find-doc coll path)]
                   (assoc doc :parent-collection coll))
-                (when collections
+                (when items
                   (recur coll))))))))
 
 #_(lookup @registry "README.md")
