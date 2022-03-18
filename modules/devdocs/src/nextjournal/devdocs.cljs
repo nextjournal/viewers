@@ -8,6 +8,8 @@
   * `:collections` a sequence of sub-collections."
   (:require [clojure.string :as str]
             [nextjournal.ui.components.icon :as icon]
+            [nextjournal.ui.components.navbar :as navbar]
+            [nextjournal.ui.components.localstorage :as ls]
             [lambdaisland.deja-fu :as deja-fu]
             [nextjournal.clerk.sci-viewer :as sci-viewer]
             [reagent.core :as reagent]
@@ -144,16 +146,31 @@
 
 (declare collection-inner-view)
 
-(defn collection-view [{:as collection :keys [title parent-collection]}]
-  [:div.flex.h-screen.devdocs-body
-   [sidebar {:title title
-             :footer [:a.hover:text-gray-400
-                      {:href (rfe/href :devdocs/show {:path (or (:path parent-collection) "")})}
-                      "← Back"]}
-    [devdocs-toc collection]]
-   [:div.overflow-y-auto.px-12.bg-white.flex-auto
-    {:style {:padding-top 80 :padding-bottom 70}}
-    [collection-inner-view collection]]])
+(defn collection-view [collection]
+  (reagent/with-let [local-storage-key "devdocs-navbar"
+                     !state (reagent/atom {:items (:items collection)
+                                           :theme {:slide-over "bg-slate-100 font-sans border-r"
+                                                   :pin-toggle "text-[11px] text-slate-500 text-right absolute right-4 top-[10px] cursor-pointer hover:underline z-10"}
+                                           :width 220
+                                           :mobile-width 300
+                                           :local-storage-key local-storage-key
+                                           :pinned? (ls/get-item local-storage-key)})]
+    [:div.flex.h-screen.devdocs-body
+     [navbar/pin-button !state
+      [:<>
+       [icon/menu {:size 20}]
+       [:span.uppercase.tracking-wider.ml-1.font-bold
+        {:class "text-[12px]"} "Nav"]]
+      {:class "z-10 fixed right-2 top-2 md:right-auto md:left-3 md:top-3 text-slate-400 font-sans text-xs hover:underline cursor-pointer flex items-center bg-white py-1 px-3 md:p-0 rounded-full md:rounded-none border md:border-0 border-slate-200 shadow md:shadow-none"}]
+     [navbar/pinnable-slide-over !state [navbar/navbar !state]]
+     #_[sidebar {:title title
+                 :footer [:a.hover:text-gray-400
+                          {:href (rfe/href :devdocs/show {:path (or (:path parent-collection) "")})}
+                          "← Back"]}
+        [devdocs-toc collection]]
+     [:div.overflow-y-auto.px-12.bg-white.flex-auto
+      {:style {:padding-top 80 :padding-bottom 70}}
+      [collection-inner-view collection]]]))
 
 (defn collection-inner-view [{:keys [path title devdocs collections level] :or {level 1}}]
   [:div

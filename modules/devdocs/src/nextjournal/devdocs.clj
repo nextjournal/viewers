@@ -70,6 +70,7 @@
                (doc-path->path-in-registry registry path)
                (fnil conj []) {:title (path->title path)
                                :path path
+                               :expanded? true
                                :items coll})))
 
 (comment
