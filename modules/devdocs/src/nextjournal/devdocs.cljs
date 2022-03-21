@@ -219,18 +219,13 @@
 (defn devdoc-commands
   "For use with the commands/command-bar API"
   ([] (devdoc-commands @registry))
-  ([{:keys [devdocs collections]}]
-   (letfn [(doc->command [{:keys [title path]}] {:title title :dispatch [:router/push [:devdocs/show {:path path}]]})
-           (collection->commands [{:keys [title path devdocs collections]}]
-             {:title title
-              :subcommands (-> [{:title (str "-" (str/upper-case title) "-")
-                                 :dispatch [:router/push [:devdocs/show {:path path}]]}]
-                               (into (map doc->command) devdocs)
-                               (into (map collection->commands) collections))})]
-     {:subcommands (-> [{:title "Index"
-                         :dispatch [:router/push [:devdocs/show {:path ""}]]}]
-                       (into (map doc->command) devdocs)
-                       (into (map collection->commands) collections))})))
+  ([{:keys [items]}]
+   (letfn [(item->command [{:keys [title path items]}]
+             (cond-> {:title title}
+               (not items) (assoc :dispatch [:router/push [:devdocs/show {:path path}]])
+               items (assoc :subcommands (mapv item->command items))))]
+     {:subcommands (-> [{:title "Index" :dispatch [:router/push [:devdocs/show {:path ""}]]}]
+                       (into (map item->command) items))})))
 
 (defn view-data
   "Get the view and and path-params data from a reitit match. Pass this to the
