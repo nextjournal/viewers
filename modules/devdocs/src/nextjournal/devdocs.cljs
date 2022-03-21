@@ -187,16 +187,20 @@
                       :path (rfe/href :devdocs/show {:path path})
                       :items (navbar-items items))) items))
 
-(defn view [{:as data :keys [path]}]
-  (reagent/with-let [local-storage-key "devdocs-navbar"
-                     !state (reagent/atom {:items (navbar-items (:items @registry))
-                                           :theme {:slide-over "bg-slate-100 font-sans border-r"
-                                                   :pin-toggle "text-[11px] text-slate-500 text-right absolute right-4 top-[8px] cursor-pointer hover:underline z-10"
-                                                   :hover-control "z-10"}
-                                           :width 220
-                                           :mobile-width 300
-                                           :local-storage-key local-storage-key
-                                           :pinned? (ls/get-item local-storage-key)})]
+(def local-storage-key "devdocs-navbar")
+(defn navbar-state [{:as _registry :keys [items] :navbar/keys [theme]}]
+  {:items (navbar-items items)
+   :theme (merge {:slide-over "bg-slate-100 font-sans border-r"
+                  :pin-toggle "text-[11px] text-slate-500 text-right absolute right-4 top-[8px] cursor-pointer hover:underline z-10"
+                  :hover-control "z-10"}
+                 theme)
+   :width 220
+   :mobile-width 300
+   :local-storage-key local-storage-key
+   :pinned? (ls/get-item local-storage-key)})
+
+(defn view [{:as data :keys [path] }]
+  (reagent/with-let [!state (reagent/atom (navbar-state @registry))]
     [:div.flex.h-screen
      [navbar/pin-button !state
       [:<>
