@@ -381,7 +381,7 @@ Lagrangian with the familiar form of `T - V`.")]]
        [:div.text-slate-400.mb-1
         {:class "text-[11px]"}
         [:strong "Long Example"]]
-       [:div.bg-slate-100.dark:bg-slate-800.border
+       [:div.bg-slate-100.dark:bg-gray-800.border
         {:class "h-[600px]"}
         [navbar !state-long]]
        [:div.text-slate-400.mt-1
@@ -392,7 +392,7 @@ Lagrangian with the familiar form of `T - V`.")]]
        [:div.text-slate-400.mb-1
         {:class "text-[11px]"}
         [:strong "TOC Example"]]
-       [:div.bg-slate-100.dark:bg-slate-800.border
+       [:div.bg-slate-100.dark:bg-gray-800.border
         {:class "h-[600px]"}
         [navbar !state-toc]]
        [:div.text-slate-400.mt-1
@@ -403,7 +403,7 @@ Lagrangian with the familiar form of `T - V`.")]]
        [:div.text-slate-400.mb-1
         {:class "text-[11px]"}
         [:strong "Nested Example"]]
-       [:div.bg-slate-100.dark:bg-slate-800.border
+       [:div.bg-slate-100.dark:bg-gray-800.border
         {:class "h-[600px]"}
         [navbar !state-nested]]
        [:div.text-slate-400.mt-1
@@ -417,7 +417,7 @@ Lagrangian with the familiar form of `T - V`.")]]
         [:div.text-slate-400.mb-1
          {:class "text-[11px]"}
          [:strong "Dark Mode Example"]]
-        [:div.bg-slate-100.dark:bg-slate-800.border
+        [:div.bg-slate-100.dark:bg-gray-800.border
          {:class "h-[600px]"}
          [navbar !state-nested]]
         [:div.text-slate-400.mt-1
