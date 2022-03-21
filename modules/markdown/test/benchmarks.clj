@@ -12,7 +12,7 @@
       :time-ms (/ (double (- (. System (nanoTime)) start#)) 1000000.0)}))
 
 (defn parse+ [extra-tokenizers text]
-  (md.parser/parse (update md.parser/empty-doc :regex-tokenizers concat extra-tokenizers)
+  (md.parser/parse (update md.parser/empty-doc :text-tokenizers concat extra-tokenizers)
                    (md/tokenize text)))
 
 ;; TODO: add to github workflow

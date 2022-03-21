@@ -323,19 +323,19 @@ end"
             (cons (text-node remaining-text))))
         [(text-node text)]))))
 
-(defmethod apply-token "text" [{:as doc :keys [regex-tokenizers]} {:keys [content]}]
+(defmethod apply-token "text" [{:as doc :keys [text-tokenizers]} {:keys [content]}]
   (push-nodes doc
               (reduce (fn [list-of-nodes regex-tokenizer] ;; [Node] -> (Re, Fn) -> [Node]
                         (mapcat (fn [{:as node :keys [type text]}] (if (= :text type) (re-split regex-tokenizer text) [node]))
                                 list-of-nodes))
                       [{:type :text :text content}]
-                      regex-tokenizers)))
+                      text-tokenizers)))
 
 (comment
   (apply-token empty-doc {:type "text" :content "foo"} )
   (apply-token empty-doc {:type "text" :content "foo [[bar]] dang #hashy taggy [[what]] #dangy foo [[great]]"})
   (def brace {:regexp #"\{\{([^\{]+)\}\}" :handler (fn [m] {:type :eval :text (m 1)})})
-  (apply-token (update empty-doc :regex-tokenizers conj brace)
+  (apply-token (update empty-doc :text-tokenizers conj brace)
                {:type "text" :content "foo [[bar]] dang #hashy taggy [[what]] #dangy foo [[great]] and {{eval}} me"})
 
   (nextjournal.markdown/parse "foo [[bar]] dang #hashy taggy [[what]] #dangy foo [[great]]" )
@@ -374,7 +374,7 @@ end"
   (let [mapify-attrs-xf (map (fn [x] (update* x :attrs pairs->kmap)))]
     (reduce (mapify-attrs-xf apply-token) doc tokens)))
 
-(def default-regex-tokenizers
+(def text-tokenizers
   "handler :: Match -> Node"
   [{:regexp #"(^|\B)#[\w-]+"
     :handler (fn [match] {:type :hashtag :text (subs (match 0) 1)})}
@@ -385,14 +385,14 @@ end"
                 :content []
                 :toc {:type :toc}
                 ::path [:content -1] ;; private
-                :regex-tokenizers default-regex-tokenizers})
+                :text-tokenizers text-tokenizers})
 
 (defn parse
   "Takes a doc and a collection of markdown-it tokens, applies tokens to doc. Uses an emtpy doc in arity 1."
   ([tokens] (parse empty-doc tokens))
   ([doc tokens] (-> doc
                     (apply-tokens tokens)
-                    (dissoc ::path :regex-tokenizers))))
+                    (dissoc ::path :text-tokenizers))))
 
 (comment
 
