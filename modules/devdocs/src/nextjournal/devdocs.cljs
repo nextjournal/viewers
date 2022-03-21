@@ -47,127 +47,33 @@
   (when-let [el (js/document.getElementById el-id)]
     (.scrollIntoView el)))
 
-(defn inner-toc [coll-id devdoc-id entries]
-  (for! [{:keys [title children]} entries  [:div]]
-    [:div
-     (when title
-       (let [el-id (-> title
-                       (str/replace #"`" "")
-                       (str/replace #" " "-")
-                       str/lower-case
-                       js/encodeURIComponent)]
-         ;; TODO: implement fragment nav based on Clerk's toc
-         [:a.mb-1 {:href (rfe/href :devdocs/show {:collection coll-id
-                                                        :devdoc devdoc-id
-                                                        :fragment el-id})}
-          title]
-         (when (seq children)
-           [inner-toc coll-id devdoc-id children])))]))
-
-(defn collection-toc [{:keys [title path collections nested?]}]
-  [:<>
-   [:a.block.hover:text-gray-400
-    {:href (rfe/href :devdocs/show {:path path})
-     :class (when-not nested? "mt-2")}
-    title]
-   (when (seq collections)
-     (for! [c collections :into [:div.mt-1 {:class "text-[0.8em]"}]]
-       [collection-toc (assoc c :nested? true)]))])
-
-(defn devdocs-toc [{:keys [devdocs collections]} & [{:keys [inner?]}]]
-  [:<>
-   (for! [{:keys [title path toc]} devdocs
-          :into [:<>]]
-     [:div
-      [:a.hover:text-gray-400.mt-2.block
-       {:href (rfe/href :devdocs/show {:path path})} title]
-      (when inner?                                          ;; TODO: conform into Clerk's toc
-        [inner-toc path path (:children toc)])])
-   (when (seq collections)
-     (for! [c collections :into [:div.mt-2]]
-       [collection-toc c]))])
-
-(defn sidebar-content [{:keys [title footer collapsed? mobile?]} & content]
-  [:div.px-12.py-6.overflow-y-auto.flex-shrink-0.sidebar-content.text-white
-   (if @mobile?
-     {:class "fixed left-0 top-0 right-0 bottom-0 z-10" :style {:background-color "rgba(31, 41, 55, 1.000)"}}
-     {:style {:width 330 :background-color "rgba(31, 41, 55, 1.000)"}
-      :class (str "relative " (when @collapsed? "rounded"))})
-   [:div.absolute.left-0.top-0.w-full.p-4.cursor-pointer.flex.items-center.group.hover:text-gray-400.hover:bg-black.hover:bg-opacity-25.transition-all
-    {:on-click #(swap! collapsed? not)}
-    (if @collapsed?
-      [icon/chevron-double-right {:size 14}]
-      [icon/chevron-double-left {:size 14}])
-    [:span.text-xs.font-light.opacity-0.group-hover:opacity-100.transition-all
-     {:style {:margin-left 13}}
-     (str (if @collapsed?
-            (if @mobile? "Show" "Pin")
-            (if @mobile? "Hide" "Unpin"))
-          " sidebar")]]
-   [:a.block.mt-12.logo
-    {:href (rfe/href :devdocs/show {:path ""})}
-    [:img {:src logoImage :width "100%" :style {:max-width 235}}]]
-   [:div.mt-12.pb-2.border-b.mb-2.uppercase.tracking-wide.text-base.md:text-sm
-    {:style {:border-color "rgba(255,255,255,.2)"}}
-    title]
-   (into [:div.border-b.pb-2.text-base.md:text-sm.font-light
-          {:style {:border-color "rgba(255,255,255,.2)"}}]
-         content)
-   (when footer
-     [:div.mt-2.font-light.text-xs
-      footer])])
-
-(defn sidebar [options & content]
-  (reagent/with-let [collapsed? (reagent/atom false)
-                     mobile? (reagent/atom false)
-                     resize #(if (< js/innerWidth 640)
-                               (do
-                                 (reset! mobile? true)
-                                 (reset! collapsed? true))
-                               (do
-                                 (reset! mobile? false)
-                                 (reset! collapsed? false)))
-                     ref-fn #(when %
-                               (js/addEventListener "resize" resize)
-                               (resize))]
-    (let [options (assoc options :collapsed? collapsed? :mobile? mobile?)]
-      [:div.flex.h-screen
-       {:ref ref-fn}
-       (if @collapsed?
-         [:div.fixed.left-0.top-0.p-4.text-indigo-900.flex.items-center.z-10.cursor-pointer.group
-          {:on-click #(reset! collapsed? false)}
-          [icon/menu]
-          [:div.fixed.top-0.left-0.bottom-0.z-20.p-4.collapsed-sidebar
-           {:class (if @mobile?
-                     (str "mobile-sidebar " (if @collapsed? "hidden" "flex"))
-                     "flex")}
-           (into [sidebar-content options] content)]]
-         (into [sidebar-content options] content))])))
-
 (declare collection-inner-view)
+
+(defn item-view [{:as item :keys [title edn-doc path last-modified items]}]
+  [:div.ml-2
+   (cond
+     edn-doc                                                ;; doc
+     [:div.mb-2
+      [:a.hover:underline.font-bold
+       {:href (when edn-doc (rfe/href :devdocs/show {:path path})) :title path}
+       title]
+      (when last-modified
+        [:p.text-xs.text-gray-500.mt-1
+         (-> last-modified
+             deja-fu/local-date-time
+             (deja-fu/format "MMM dd yyyy, HH:mm"))])]
+     (seq items)                                            ;; collection
+     [collection-inner-view item])])
+
+(defn collection-inner-view [{:keys [title items level]}]
+  [:div
+   [:h2 title]
+   (for! [item items] [item-view item])])
 
 (defn collection-view [collection]
   [:div.overflow-y-auto.px-12.bg-white.flex-auto
    {:style {:padding-top 80 :padding-bottom 70}}
    [collection-inner-view collection]])
-
-(defn collection-inner-view [{:keys [path title devdocs collections level] :or {level 1}}]
-  [:div
-   [(str "h" level ".font-semibold.mb-2")
-    (when (< 1 level) {:style {:margin-top "2rem"}})
-    [:a.hover:underline {:href (rfe/href :devdocs/show {:path path})} title]]
-   (for! [{:keys [title path last-modified]} devdocs :into [:div]]
-     [:div.mb-2
-      [:a.hover:underline.font-bold
-       {:href (rfe/href :devdocs/show {:path path}) :title path} title]
-      (when last-modified
-        [:p.text-xs.text-gray-500.mt-1
-         (-> last-modified
-             deja-fu/local-date-time
-             (deja-fu/format "MMM dd yyyy, HH:mm"))])])
-   (when (seq collections)
-     (for! [coll collections :into [:div.mt-4]]
-       [collection-inner-view (assoc coll :level (inc level))]))])
 
 (defn devdoc-view [{:as doc :keys [edn-doc fragment]}]
   [:div.overflow-y-auto.bg-white.flex-auto.relative
@@ -211,14 +117,8 @@
      [navbar/pinnable-slide-over !state [navbar/navbar !state]]
      (if (or (nil? path) (contains? #{"" "/"} path))
        [collection-view @registry]
-       (let [{:as node :keys [devdocs edn-doc]} (lookup @registry path)]
-         (js/console.log :data data :node node
-                         :coll? (some? devdocs)
-                         :doc? (some? edn-doc)
-                         :parent (:parent-collection node))
-         (cond
-           devdocs [collection-view node]
-           edn-doc [devdoc-view node])))]))
+       (let [{:as node :keys [edn-doc]} (lookup @registry path)]
+         (when edn-doc [devdoc-view node])))]))
 
 (defn devdoc-commands
   "For use with the commands/command-bar API"
