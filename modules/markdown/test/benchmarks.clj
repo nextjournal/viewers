@@ -3,6 +3,8 @@
             [nextjournal.markdown :as md]
             [nextjournal.markdown.parser :as md.parser]))
 
+(def reference-text (slurp "modules/markdown/test/reference.md"))
+
 (defmacro time-ms
   "Pure version of `clojure.core/time`. Returns a map with `:result` and `:time-ms` keys."
   [expr]
@@ -17,28 +19,18 @@
 
 ;; TODO: add to github workflow
 (defn run [_]
-  (let [text (slurp "modules/markdown/test/reference.md")]
-    (time
-     (dotimes [_ 100] (md/parse text)))))
+  (time (dotimes [_ 100] (md/parse reference-text))))
 
 ;; with internal link plugin                                      => 5348.398521 msecs
 ;; with handling hashtags _and_ internal-links in n.m.parser.cljc => 5439.111559 msecs
 
 (comment
+  (md/parse reference-text)
   (run {})
 
   ;; test timing of parsing 3 regexes => 5462.372797 msecs
-  (let [text (slurp "modules/markdown/test/reference.md")]
-    (time
-     (dotimes [_ 100]
-       (parse+ [{:regexp #"\{\{([^\{]+)\}\}"
-                 :handler (fn [m] {:type :var :text (m 1)})}]
-               text))))
-
-
-  (parse+ [{:regexp #"\{\{([^\{]+)\}\}"
-            :handler (fn [m] {:type :var :text (m 1)})}]
-          (slurp "modules/markdown/test/reference.md"))
-
-  (time-ms (md/parse (slurp "modules/markdown/test/reference.md")))
-  (md/parse (slurp "modules/markdown/test/reference.md")))
+  (time
+   (dotimes [_ 100]
+     (parse+ [{:regexp #"\{\{([^\{]+)\}\}"
+               :handler (fn [m] {:type :var :text (m 1)})}]
+             reference-text))))

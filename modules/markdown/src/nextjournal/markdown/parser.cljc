@@ -303,30 +303,30 @@ end"
     ))
 
 ;; text
-(defn re-split [{:keys [regexp handler]} text]
-  ;; (Re, Match -> Node) -> String -> [Node]
-  (when (and (string? text) (seq text))
-    (let [idx-seq (re-idx-seq regexp text)]
-      (if (seq idx-seq)
-        (let [{:keys [nodes remaining-text]}
-              (reduce (fn [{:as acc :keys [remaining-text]} [match start end]]
-                        (-> acc
-                            (update :remaining-text subs 0 start)
-                            (cond->
-                              (<= end (dec (count remaining-text)))
-                              (update :nodes conj (text-node (subs remaining-text end))))
-                            (update :nodes conj (handler match))))
-                      {:remaining-text text :nodes []}
-                      (reverse idx-seq))]
-          (cond->> (reverse nodes)
-            (seq remaining-text)
-            (cons (text-node remaining-text))))
-        [(text-node text)]))))
+(defn tokenize-text [{:keys [regexp handler]} text]
+  ;; (Regexp, Match -> Node) -> String -> [Node]
+  (assert (string? text))
+  (let [idx-seq (re-idx-seq regexp text)]
+    (if (seq idx-seq)
+      (let [{:keys [nodes remaining-text]}
+            (reduce (fn [{:as acc :keys [remaining-text]} [match start end]]
+                      (-> acc
+                          (update :remaining-text subs 0 start)
+                          (cond->
+                            (< end (count remaining-text))
+                            (update :nodes conj (text-node (subs remaining-text end))))
+                          (update :nodes conj (handler match))))
+                    {:remaining-text text :nodes ()}
+                    (reverse idx-seq))]
+        (cond-> nodes
+          (seq remaining-text)
+          (conj (text-node remaining-text))))
+      [(text-node text)])))
 
 (defmethod apply-token "text" [{:as doc :keys [text-tokenizers]} {:keys [content]}]
   (push-nodes doc
-              (reduce (fn [list-of-nodes regex-tokenizer] ;; [Node] -> (Re, Fn) -> [Node]
-                        (mapcat (fn [{:as node :keys [type text]}] (if (= :text type) (re-split regex-tokenizer text) [node]))
+              (reduce (fn [list-of-nodes tokenizer] ;; [Node] -> Tokenizer -> [Node]
+                        (mapcat (fn [{:as node :keys [type text]}] (if (= :text type) (tokenize-text tokenizer text) [node]))
                                 list-of-nodes))
                       [{:type :text :text content}]
                       text-tokenizers)))
@@ -334,8 +334,9 @@ end"
 (comment
   (apply-token empty-doc {:type "text" :content "foo"} )
   (apply-token empty-doc {:type "text" :content "foo [[bar]] dang #hashy taggy [[what]] #dangy foo [[great]]"})
-  (def brace {:regexp #"\{\{([^\{]+)\}\}" :handler (fn [m] {:type :eval :text (m 1)})})
-  (apply-token (update empty-doc :text-tokenizers conj brace)
+  (def mustache {:regexp #"\{\{([^\{]+)\}\}" :handler (fn [m] {:type :eval :text (m 1)})})
+  (tokenize-text mustache "{{what}} the {{hellow}}")
+  (apply-token (update empty-doc :text-tokenizers conj mustache)
                {:type "text" :content "foo [[bar]] dang #hashy taggy [[what]] #dangy foo [[great]] and {{eval}} me"})
 
   (nextjournal.markdown/parse "foo [[bar]] dang #hashy taggy [[what]] #dangy foo [[great]]" )
