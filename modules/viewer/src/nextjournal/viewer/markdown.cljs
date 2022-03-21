@@ -84,8 +84,7 @@ formulas")]])
    [inspect* (viewer "# Internal Links
 - [x] play well with our todo list plugin
 - [x] an internal link looks like this [[wikistyle]]
-- [x] play well with [[TOC]] marker
-- [ ] inline plugin code in markdown.js (?)")]])
+- [x] play well with [[TOC]] marker")]])
 
 (dc/defcard default-markdown
   [:div.viewer-markdown
