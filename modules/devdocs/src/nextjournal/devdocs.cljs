@@ -22,21 +22,14 @@
 (defonce registry (reagent/atom []))
 
 ;; TODO: maybe compile into reitit router
-(defn find-coll [reg path]
-  (when-some [{:as coll p :path} (some #(and (str/starts-with? path (:path %)) %) (:items reg))]
-    [(= path p) coll]))
+(defn find-coll [reg path] (some #(and (str/starts-with? path (:path %)) %) (:items reg)))
 (defn find-doc [{:keys [items]} path] (some #(and (= path (:path %)) %) items))
 (defn lookup [registry path]
-  (or (when-some [doc (find-doc registry path)]
-        (assoc doc :parent-collection registry))
+  (or (find-doc registry path)
       (loop [r registry]
-        (when-some [[exact-match? {:as coll :keys [items]}] (find-coll r path)]
-          (if exact-match?
-            (assoc coll :parent-collection r)
-            (or (when-some [doc (find-doc coll path)]
-                  (assoc doc :parent-collection coll))
-                (when items
-                  (recur coll))))))))
+        (when-some [{:as coll :keys [items]} (find-coll r path)]
+          (or (find-doc coll path)
+              (when items (recur coll)))))))
 
 #_(lookup @registry "README.md")
 #_(lookup @registry "docs/reference.md")
