@@ -43,7 +43,7 @@
 (declare collection-inner-view)
 
 (defn item-view [{:as item :keys [title edn-doc path last-modified items]}]
-  [:div.ml-2
+  [:div
    (cond
      edn-doc                                                ;; doc
      [:div.mb-2
@@ -60,13 +60,14 @@
 
 (defn collection-inner-view [{:keys [title items level]}]
   [:div
-   [:h2 title]
+   (when title
+     [:h3 {:style {:margin-top "2rem" :margin-bottom "1rem"}} title])
    (for! [item items] [item-view item])])
 
 (defn collection-view [collection]
-  [:div.overflow-y-auto.px-12.bg-white.flex-auto
-   {:style {:padding-top 80 :padding-bottom 70}}
-   [collection-inner-view collection]])
+  [:div.overflow-y-auto.bg-white.flex-auto.pb-12
+   [:div.w-full.max-w-prose.px-8.mx-auto
+    [collection-inner-view collection]]])
 
 (defn devdoc-view [{:as doc :keys [edn-doc fragment]}]
   [:div.overflow-y-auto.bg-white.flex-auto.relative
