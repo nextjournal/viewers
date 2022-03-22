@@ -11,7 +11,7 @@ jobs:
           fetch_depth: 0
 
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0
         with:
           project_id: "nextjournal"
           service_account_key: ${{ secrets.GCLOUD_SERVICE_KEY }}
