@@ -4,7 +4,10 @@
             [reitit.frontend :as rf])
   (:require-macros [nextjournal.devdocs :as devdocs]))
 
-(reset! devdocs/registry (devdocs/build-registry {:paths ["docs/**.{clj,md}" "README.md"]}))
+(reset! devdocs/registry (assoc (devdocs/build-registry {:paths ["docs/**.{clj,md}" "README.md"]})
+                                :navbar/theme
+                                {:back "text-[12px] text-slate-300 hover:bg-white/10 font-normal px-5 py-1"
+                                 :icon "text-slate-400"}))
 
 (defonce router (rf/router ["/docs" ["/*path" {:name :devdocs/show}]]))
 
