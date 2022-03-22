@@ -6,9 +6,7 @@
 
 (reset! devdocs/registry (assoc (devdocs/build-registry {:paths ["docs/**.{clj,md}" "README.md"]})
                                 :navbar/theme
-                                {:toc "pt-10 pb-3"
-                                 :back "text-[12px] text-slate-300 hover:bg-white/10 font-normal px-5 py-1"
-                                 :triangle "text-slate-800"
+                                {:back "text-[12px] text-slate-300 hover:bg-white/10 font-normal px-5 py-1"
                                  :icon "text-slate-400"}))
 
 (defonce router (rf/router ["/docs" ["/*path" {:name :devdocs/show}]]))
