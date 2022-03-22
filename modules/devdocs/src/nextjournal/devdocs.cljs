@@ -62,7 +62,8 @@
   [:div
    (when title
      [:h3 {:style {:margin-top "2rem" :margin-bottom "1rem"}} title])
-   (for! [item items] [item-view item])])
+   (into [:div]
+         (for! [item items] [item-view item]))])
 
 (defn collection-view [collection]
   [:div.overflow-y-auto.bg-white.flex-auto.pb-12
