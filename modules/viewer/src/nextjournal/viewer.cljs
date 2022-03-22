@@ -622,7 +622,7 @@
                             [code/viewer example]])
                          @state))]
      [:div.dark
-      [:div.dark:bg-slate-900
+      [:div.dark:bg-gray-900
        [:div.flex.flex-col.items-center.viewer-notebook
         (into [:div]
               (map-indexed (fn [i example]

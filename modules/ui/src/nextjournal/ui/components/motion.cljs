@@ -6,6 +6,10 @@
 (def img (.-img motion))
 (def span (.-span motion))
 (def button (.-button motion))
+(def svg (.-svg motion))
+(def g (.-svg motion))
+(def circle (.-circle motion))
+(def path (.-path motion))
 
 (def animate-presence AnimatePresence)
 
