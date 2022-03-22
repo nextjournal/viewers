@@ -41,20 +41,37 @@
       (->> (clerk.view/doc->viewer {:inline-results? true}))
       clerk.view/->edn))
 
-(defn guard [p? val] (when (p? val) val))
+(defn guard [p?] #(when (p? %) %))
+(defn doc->ns [{:keys [blocks]}]
+  (when-some [ns-block (some (guard :ns?) blocks)]
+    (try (some-> ns-block :text read-string second name) (catch Exception _ nil))))
+
+(defn ns->title [s] (some-> s (str/split #"\.") last (str/split #"-") (->> (map str/capitalize) (str/join " "))))
+#_ (ns->title 'foo)
+#_ (ns->title 'foo.bar)
+#_ (ns->title 'foo.bar.no-op)
+
+(defn assoc-when-some [m k v] (cond-> m (some? v) (assoc k v)))
+(defn set-title-when-missing [{:as doc :keys [title ns]}]
+  (cond-> doc (and (not title) ns) (assoc :title (ns->title ns))))
+
 (defn file->doc-info [path]
-  (-> (clerk/parse-file (fs/file path))
-      (select-keys [:title :doc])
-      (assoc :path (str path)
-             :last-modified (when-some [ts (-> (sh/sh "git" "log" "-1" "--format=%ct" (str path)) :out str/trim not-empty)]
-                              (* (Long/parseLong ts) 1000))
-             :edn-doc
-             (if-some [edn-path (guard fs/exists? (doc-path->edn-path path))]
-               (do (println "Found cached EDN doc at" edn-path (str "(size: " (fs/size edn-path) ")"))
-                   (slurp edn-path))
-               (doc-info->edn {:path path :eval? false})))))
+  (let [doc (clerk/parse-file (fs/file path))]
+    (-> doc
+        (select-keys [:title :doc])
+        (assoc-when-some :ns (doc->ns doc))
+        set-title-when-missing
+        (assoc :path (str path)
+               :last-modified (when-some [ts (-> (sh/sh "git" "log" "-1" "--format=%ct" (str path)) :out str/trim not-empty)]
+                                (* (Long/parseLong ts) 1000))
+               :edn-doc
+               (if-some [edn-path ((guard fs/exists?) (doc-path->edn-path path))]
+                 (do (println "Found cached EDN doc at" edn-path (str "(size: " (fs/size edn-path) ")"))
+                     (slurp edn-path))
+                 (doc-info->edn {:path path :eval? false}))))))
 
 #_(file->doc-info "docs/clerk/clerk.clj")
+#_(file->doc-info "docs/clerk/no_title.clj")
 
 (defn doc-path->path-in-registry [registry folder-path]
   (let [index-of-matching (fn [r] (first (keep-indexed #(when (str/starts-with? folder-path (:path %2)) %1) (:items r))))]
@@ -128,4 +145,4 @@
 
 (comment
   (build! {:paths ["docs/**/*.{clj,md}" "README.md"]})
-  (fs/delete-tree ".clerk/devdocs"))
+  (fs/delete-tree "build/devdocs"))
