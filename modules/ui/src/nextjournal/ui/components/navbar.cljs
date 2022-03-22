@@ -135,7 +135,7 @@
 (defn navbar [!state]
   (let [{:keys [items theme toc]} @!state]
     [:div.relative.overflow-x-hidden.h-full
-     [:div.absolute.left-0.top-0.w-full.h-full.overflow-y-auto.transition.transform
+     [:div.absolute.left-0.top-0.w-full.h-full.overflow-y-auto.transition.transform.pb-10
       {:class (str (theme-class theme :project) " "
                    (if toc "-translate-x-full" "translate-x-0"))}
       [:div.px-3.mb-1
