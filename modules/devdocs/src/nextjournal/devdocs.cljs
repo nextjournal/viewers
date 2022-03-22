@@ -60,14 +60,16 @@
 
 (defn collection-inner-view [{:keys [title items level]}]
   [:div
+   {:class (when-not title "pt-8")}
    (when title
      [:h3 {:style {:margin-top "2rem" :margin-bottom "1rem"}} title])
    (into [:div]
          (for! [item items] [item-view item]))])
 
 (defn collection-view [collection]
-  [:div.overflow-y-auto.bg-white.flex-auto.pb-12
+  [:div.overflow-y-auto.bg-white.flex-auto.pb-12.font-sans
    [:div.w-full.max-w-prose.px-8.mx-auto
+    [:h1.pt-8 "Devdocs"]
     [collection-inner-view collection]]])
 
 (defn devdoc-view [{:as doc :keys [edn-doc fragment]}]
