@@ -48,7 +48,8 @@
        :icon "text-slate-500 dark:text-slate-400"
        :slide-over "font-sans bg-white border-r"
        :slide-over-unpinned "shadow-xl"
-       :pin-toggle "text-[11px] text-slate-500 text-right absolute right-4 top-3 cursor-pointer hover:underline z-10"}
+       :pin-toggle "text-[11px] text-slate-500 text-right absolute right-4 top-3 cursor-pointer hover:underline z-10"
+       :hover-control "z-5"}
       (merge theme)
       (get key)))
 
@@ -72,7 +73,7 @@
         items))))
 
 (defn navbar-items [!state items update-at]
-  (let [{:keys [theme]} @!state]
+  (let [{:keys [mobile? theme]} @!state]
     (into
       [:div]
       (map-indexed
@@ -106,7 +107,9 @@
                                  (fn []
                                    (swap! !state #(-> (assoc-in % (vec (conj update-at i :loading?)) false)
                                                       (assoc :toc toc))))
-                                 500)))}
+                                 500))
+                             (when mobile?
+                               (swap! !state assoc :visible? false)))}
                 [:div.flex.items-center.justify-center.flex-shrink-0
                  {:class "w-[20px] h-[20px] mr-[4px]"}
                  (if loading?
@@ -132,7 +135,7 @@
 (defn navbar [!state]
   (let [{:keys [items theme toc]} @!state]
     [:div.relative.overflow-x-hidden.h-full
-     [:div.absolute.left-0.top-0.w-full.h-full.overflow-y-auto.transition.transform
+     [:div.absolute.left-0.top-0.w-full.h-full.overflow-y-auto.transition.transform.pb-10
       {:class (str (theme-class theme :project) " "
                    (if toc "-translate-x-full" "translate-x-0"))}
       [:div.px-3.mb-1
@@ -180,8 +183,9 @@
       [:div.flex.h-screen
        {:ref ref-fn}
        [:<>
-        [:div.fixed.top-0.left-0.bottom-0.z-5
-         {:class (when (and (not pinned?) (not mobile?)) "p-4")
+        [:div.fixed.top-0.left-0.bottom-0
+         {:class (str (theme-class theme :hover-control) " "
+                      (when (and (not pinned?) (not mobile?)) "p-4"))
           :on-mouse-enter #(when-not pinned?
                              (swap! !state assoc
                                     :visible? true
@@ -381,7 +385,7 @@ Lagrangian with the familiar form of `T - V`.")]]
        [:div.text-slate-400.mb-1
         {:class "text-[11px]"}
         [:strong "Long Example"]]
-       [:div.bg-slate-100.dark:bg-slate-800.border
+       [:div.bg-slate-100.dark:bg-gray-800.border
         {:class "h-[600px]"}
         [navbar !state-long]]
        [:div.text-slate-400.mt-1
@@ -392,7 +396,7 @@ Lagrangian with the familiar form of `T - V`.")]]
        [:div.text-slate-400.mb-1
         {:class "text-[11px]"}
         [:strong "TOC Example"]]
-       [:div.bg-slate-100.dark:bg-slate-800.border
+       [:div.bg-slate-100.dark:bg-gray-800.border
         {:class "h-[600px]"}
         [navbar !state-toc]]
        [:div.text-slate-400.mt-1
@@ -403,7 +407,7 @@ Lagrangian with the familiar form of `T - V`.")]]
        [:div.text-slate-400.mb-1
         {:class "text-[11px]"}
         [:strong "Nested Example"]]
-       [:div.bg-slate-100.dark:bg-slate-800.border
+       [:div.bg-slate-100.dark:bg-gray-800.border
         {:class "h-[600px]"}
         [navbar !state-nested]]
        [:div.text-slate-400.mt-1
@@ -417,7 +421,7 @@ Lagrangian with the familiar form of `T - V`.")]]
         [:div.text-slate-400.mb-1
          {:class "text-[11px]"}
          [:strong "Dark Mode Example"]]
-        [:div.bg-slate-100.dark:bg-slate-800.border
+        [:div.bg-slate-100.dark:bg-gray-800.border
          {:class "h-[600px]"}
          [navbar !state-nested]]
         [:div.text-slate-400.mt-1

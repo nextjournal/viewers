@@ -57,26 +57,27 @@
 #_(file->doc-info "docs/clerk/clerk.clj")
 
 (defn doc-path->path-in-registry [registry folder-path]
-  (let [index-of-matching (fn [r] (first (keep-indexed #(when (str/starts-with? folder-path (:path %2)) %1) (:collections r))))]
-    (loop [r registry nav-path [:collections]]
+  (let [index-of-matching (fn [r] (first (keep-indexed #(when (str/starts-with? folder-path (:path %2)) %1) (:items r))))]
+    (loop [r registry nav-path [:items]]
       (if-some [idx (index-of-matching r)]
-        (recur (get-in r (conj nav-path idx)) (conj nav-path idx :collections))
+        (recur (get-in r (conj nav-path idx)) (conj nav-path idx :items))
         nav-path))))
 
 (defn add-collection [registry [path coll]]
   (if (str/blank? path)
-    (assoc registry :devdocs coll)
+    (assoc registry :items coll)
     (update-in registry
                (doc-path->path-in-registry registry path)
                (fnil conj []) {:title (path->title path)
                                :path path
-                               :devdocs coll})))
+                               :items coll})))
 
-#_(-> {:collections [{:title "x" :path "x"}]}
-      (add-collection ["foo" [:a]])
-      (add-collection ["foo/bar" [:b]])
-      (add-collection ["foo/bar/dang" [:c]])
-      (add-collection ["foo/caz" [:d]]))
+(comment
+  (-> {:items [{:title "x" :path "x"}]}
+      (add-collection ["foo" [{:title "xxx" :path "foo/x.clj"} {:title "xx" :path "foo/xx.clj"}]])
+      (add-collection ["foo/bar" [{:title "yyy" :path "foo/bar/y.clj"}]])
+      (add-collection ["foo/bar/dang" [{:path "foo/bar/dang/z.clj" :title "z"}]])
+      (add-collection ["foo/caz" [{:title "w" :path "foo/caz/w.clj"}]])))
 
 (defn expand-paths [paths]
   (mapcat (partial fs/glob ".")
@@ -97,7 +98,7 @@
        (map file->doc-info)
        (group-by (comp str fs/parent :path))
        (sort-by first)
-       (reduce add-collection {:title "DevDocs"})))
+       (reduce add-collection {})))
 
 #_(letfn [(strip-edn [coll] (-> coll
                                 (update :devdocs (partial into [] (map #(dissoc % :edn-doc))))
