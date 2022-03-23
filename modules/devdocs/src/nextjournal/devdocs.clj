@@ -16,9 +16,14 @@
 #_(doc-path->edn-path "docs/clerk/clerk.clj")
 
 (defn path->title [path]
-  (-> path fs/file-name (str/split #"_")
+  (-> path fs/file-name (str/replace #"\.(clj(c?)|md)$" "") (str/split #"_")
       (->> (map str/capitalize)
            (str/join " "))))
+
+#_(path->title "foo/bar")
+#_(path->title "foo/bar.cljc")
+#_(path->title "foo/bar_besque.md")
+#_(path->title "foo/bar.md")
 
 ;; FIXME: visibility is only assigned when blocks are evaluated
 (defn assign-visibility [{:as doc :keys [visibility]}]
@@ -42,9 +47,12 @@
       clerk.view/->edn))
 
 (defn guard [p? val] (when (p? val) val))
+(defn assoc-when-missing [m k v] (cond-> m (not (contains? m k)) (assoc k v)))
+
 (defn file->doc-info [path]
   (-> (clerk/parse-file (fs/file path))
       (select-keys [:title :doc])
+      (assoc-when-missing :title (path->title path))
       (assoc :path (str path)
              :last-modified (when-some [ts (-> (sh/sh "git" "log" "-1" "--format=%ct" (str path)) :out str/trim not-empty)]
                               (* (Long/parseLong ts) 1000))
@@ -55,6 +63,7 @@
                (doc-info->edn {:path path :eval? false})))))
 
 #_(file->doc-info "docs/clerk/clerk.clj")
+#_(file->doc-info "docs/clerk/missing_title.clj")
 
 (defn doc-path->path-in-registry [registry folder-path]
   (let [index-of-matching (fn [r] (first (keep-indexed #(when (str/starts-with? folder-path (:path %2)) %1) (:items r))))]
@@ -128,4 +137,4 @@
 
 (comment
   (build! {:paths ["docs/**/*.{clj,md}" "README.md"]})
-  (fs/delete-tree ".clerk/devdocs"))
+  (fs/delete-tree "build/devdocs"))
