@@ -163,19 +163,19 @@
      content]))
 
 (defn pinnable-slide-over [!state content]
-  (r/with-let [{:keys [local-storage-key pinned?]} @!state
+  (r/with-let [{:keys [local-storage-key]} @!state
                component-key (or local-storage-key (gensym))
-               resize #(if (< js/innerWidth 640)
-                         (swap! !state assoc :pinned? false :visible? false :mobile? true)
-                         (swap! !state assoc :pinned? pinned? :visible false :mobile? false))
-               ref-fn #(when %
-                         (when local-storage-key
-                           (add-watch !state ::persist
-                                      (fn [_ _ old {:keys [pinned?]}]
-                                        (when (not= (:pinned? old) pinned?)
-                                          (ls/set-item! local-storage-key pinned?)))))
-                         (js/addEventListener "resize" resize)
-                         (resize))
+               resize #(swap! !state assoc :mobile? (< js/innerWidth 640) :visible? false)
+               ref-fn #(if %
+                         (do
+                           (when local-storage-key
+                             (add-watch !state ::persist
+                                        (fn [_ _ old {:keys [pinned?]}]
+                                          (when (not= (:pinned? old) pinned?)
+                                            (ls/set-item! local-storage-key pinned?)))))
+                           (js/addEventListener "resize" resize)
+                           (resize))
+                         (js/removeEventListener "resize" resize))
                spring {:type :spring :duration 0.35 :bounce 0.1}]
     (let [{:keys [animating? animation-mode pinned? mobile? mobile-width theme visible? width]} @!state
           slide-over-classes "fixed top-0 left-0 "
@@ -201,16 +201,16 @@
              :exit {:opacity 0}
              :on-click #(swap! !state assoc :visible? false)
              :transition spring}])
-         (when (or visible? pinned?)
+         (when (or visible? (and (not mobile?) pinned?))
            [:> motion/div
             {:key (str component-key "-nav")
              :style {:width w}
              :class (str "h-screen z-10 flex-shrink-0 "
                          (if animating?
-                              (if (= animation-mode :slide-over) slide-over-classes "relative ")
-                              (if pinned? "relative " slide-over-classes))
+                           (if (= animation-mode :slide-over) slide-over-classes "relative ")
+                           (if (and pinned? (not mobile?)) "relative " slide-over-classes))
                          (theme-class theme :slide-over) " "
-                         (when-not pinned?
+                         (when (or mobile? (not pinned?))
                            (theme-class theme :slide-over-unpinned)))
              :initial (if (= animation-mode :slide-over) {:x (* w -1)} {:margin-left (* w -1)})
              :animate (if (= animation-mode :slide-over) {:x 0} {:margin-left 0})
