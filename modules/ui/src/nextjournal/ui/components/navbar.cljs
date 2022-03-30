@@ -39,8 +39,8 @@
 
 (defn theme-class [theme key]
   (-> {:project "py-3"
-       :toc "pt-2 pb-3"
-       :heading "mt-1 md:mt-0 text-xs md:text-[12px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-medium px-3 mb-1"
+       :toc "py-3"
+       :heading "mt-1 md:mt-0 text-xs md:text-[12px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-medium px-3 mb-1 leading-none"
        :back "text-xs md:text-[12px] leading-normal text-slate-500 dark:text-slate-400 md:hover:bg-slate-200 md:dark:hover:bg-slate-700 font-normal px-3 py-1"
        :expandable "text-base md:text-[14px] leading-normal md:hover:bg-slate-200 md:dark:hover:bg-slate-700 dark:text-white px-3 py-2 md:py-1"
        :triangle "text-slate-500 dark:text-slate-400"
@@ -48,8 +48,7 @@
        :icon "text-slate-500 dark:text-slate-400"
        :slide-over "font-sans bg-white border-r"
        :slide-over-unpinned "shadow-xl"
-       :pin-toggle "text-[11px] text-slate-500 text-right absolute right-4 top-3 cursor-pointer hover:underline z-10"
-       :hover-control "z-5"}
+       :toggle "text-slate-500 absolute right-2 top-[11px] cursor-pointer z-10"}
       (merge theme)
       (get key)))
 
@@ -154,79 +153,71 @@
          "TOC"])
       [toc-items !state toc (when (< (count toc) 2) {:class "font-medium"})]]]))
 
-(defn pin-button [!state content & [opts]]
-  (let [{:keys [mobile? visible? pinned?]} @!state]
+(defn toggle-button [!state content & [opts]]
+  (let [{:keys [mobile? mobile-open? open?]} @!state]
     [:div
      (merge {:on-click #(swap! !state assoc
-                               (if mobile? :visible? :pinned?) (if mobile? (not visible?) (not pinned?))
-                               :animation-mode (if (or mobile? visible?) :slide-over :push-in))} opts)
+                               (if mobile? :mobile-open? :open?) (if mobile? (not mobile-open?) (not open?))
+                               :animation-mode (if mobile? :slide-over :push-in))} opts)
      content]))
 
-(defn pinnable-slide-over [!state content]
+(defn panel [!state content]
   (r/with-let [{:keys [local-storage-key]} @!state
                component-key (or local-storage-key (gensym))
-               resize #(swap! !state assoc :mobile? (< js/innerWidth 640) :visible? false)
+               resize #(swap! !state assoc :mobile? (< js/innerWidth 640) :mobile-open? false)
                ref-fn #(if %
                          (do
                            (when local-storage-key
                              (add-watch !state ::persist
-                                        (fn [_ _ old {:keys [pinned?]}]
-                                          (when (not= (:pinned? old) pinned?)
-                                            (ls/set-item! local-storage-key pinned?)))))
+                                        (fn [_ _ old {:keys [open?]}]
+                                          (when (not= (:open? old) open?)
+                                            (ls/set-item! local-storage-key open?)))))
                            (js/addEventListener "resize" resize)
                            (resize))
                          (js/removeEventListener "resize" resize))
                spring {:type :spring :duration 0.35 :bounce 0.1}]
-    (let [{:keys [animating? animation-mode pinned? mobile? mobile-width theme visible? width]} @!state
+    (let [{:keys [animating? animation-mode hide-toggle? open? mobile-open? mobile? mobile-width theme width]} @!state
           slide-over-classes "fixed top-0 left-0 "
           w (if mobile? mobile-width width)]
       [:div.flex.h-screen
        {:ref ref-fn}
-       [:<>
-        [:div.fixed.top-0.left-0.bottom-0
-         {:class (str (theme-class theme :hover-control) " "
-                      (when (and (not pinned?) (not mobile?)) "p-4"))
-          :on-mouse-enter #(when-not pinned?
-                             (swap! !state assoc
-                                    :visible? true
-                                    :animation-mode :slide-over))}]
-        [:> motion/animate-presence
-         {:initial false}
-         (when (and mobile? visible?)
-           [:> motion/div
-            {:key (str component-key "-backdrop")
-             :class "fixed z-10 bg-gray-500 bg-opacity-75 left-0 top-0 bottom-0 right-0"
-             :initial {:opacity 0}
-             :animate {:opacity 1}
-             :exit {:opacity 0}
-             :on-click #(swap! !state assoc :visible? false)
-             :transition spring}])
-         (when (or visible? (and (not mobile?) pinned?))
-           [:> motion/div
-            {:key (str component-key "-nav")
-             :style {:width w}
-             :class (str "h-screen z-10 flex-shrink-0 "
-                         (if animating?
-                           (if (= animation-mode :slide-over) slide-over-classes "relative ")
-                           (if (and pinned? (not mobile?)) "relative " slide-over-classes))
-                         (theme-class theme :slide-over) " "
-                         (when (or mobile? (not pinned?))
-                           (theme-class theme :slide-over-unpinned)))
-             :initial (if (= animation-mode :slide-over) {:x (* w -1)} {:margin-left (* w -1)})
-             :animate (if (= animation-mode :slide-over) {:x 0} {:margin-left 0})
-             :exit (if (= animation-mode :slide-over) {:x (* w -1)} {:margin-left (* w -1)})
-             :transition spring
-             :on-mouse-leave #(when (and (not pinned?) (not mobile?))
-                                (swap! !state assoc :visible? false))
-             :on-animation-start #(swap! !state assoc :animating? true)
-             :on-animation-complete #(swap! !state assoc :animating? false)}
-            [pin-button !state
-             (if mobile?
-               [:svg.h-6.w-6 {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor" :stroke-width "2"}
-                [:path {:stroke-linecap "round" :stroke-linejoin "round" :d "M6 18L18 6M6 6l12 12"}]]
-               (if pinned? "Unpin" "Pin"))
-             {:class (theme-class theme :pin-toggle)}]
-            content])]]])))
+       [:> motion/animate-presence
+        {:initial false}
+        (when (and mobile? mobile-open?)
+          [:> motion/div
+           {:key (str component-key "-backdrop")
+            :class "fixed z-10 bg-gray-500 bg-opacity-75 left-0 top-0 bottom-0 right-0"
+            :initial {:opacity 0}
+            :animate {:opacity 1}
+            :exit {:opacity 0}
+            :on-click #(swap! !state assoc :mobile-open? false)
+            :transition spring}])
+        (when (or mobile-open? (and (not mobile?) open?))
+          [:> motion/div
+           {:key (str component-key "-nav")
+            :style {:width w}
+            :class (str "h-screen z-10 flex-shrink-0 "
+                        (if animating?
+                          (if (= animation-mode :slide-over) slide-over-classes "relative ")
+                          (if (and open? (not mobile?)) "relative " slide-over-classes))
+                        (theme-class theme :slide-over) " "
+                        (when mobile?
+                          (theme-class theme :slide-over-unpinned)))
+            :initial (if (= animation-mode :slide-over) {:x (* w -1)} {:margin-left (* w -1)})
+            :animate (if (= animation-mode :slide-over) {:x 0} {:margin-left 0})
+            :exit (if (= animation-mode :slide-over) {:x (* w -1)} {:margin-left (* w -1)})
+            :transition spring
+            :on-animation-start #(swap! !state assoc :animating? true)
+            :on-animation-complete #(swap! !state assoc :animating? false)}
+           (when-not hide-toggle?
+             [toggle-button !state
+              (if mobile?
+                [:svg.h-5.w-5 {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor" :stroke-width "2"}
+                 [:path {:stroke-linecap "round" :stroke-linejoin "round" :d "M6 18L18 6M6 6l12 12"}]]
+                [:svg.w-4.w-4 {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor" :stroke-width "2"}
+                 [:path {:stroke-linecap "round" :stroke-linejoin "round" :d "M15 19l-7-7 7-7"}]])
+              {:class (theme-class theme :toggle)}])
+           content])]])))
 
 (dc/when-enabled
   (def toc-pendulum
