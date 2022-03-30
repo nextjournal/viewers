@@ -73,7 +73,7 @@
     [collection-inner-view collection]]])
 
 (defn devdoc-view [{:as doc :keys [edn-doc fragment]}]
-  [:div.overflow-y-auto.bg-white.flex-auto.relative
+  [:div.overflow-y-auto.bg-white.flex-auto.relative.font-sans
    (cond-> {:style {:padding-top 45 :padding-bottom 70}}
            fragment (assoc :ref #(scroll-to-fragment fragment)))
    [:div.absolute.left-4.md:right-0.md:left-auto.top-0.p-4
