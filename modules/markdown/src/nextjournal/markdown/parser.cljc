@@ -303,10 +303,10 @@ end"
     ))
 
 ;; text
-(defn tokenize-text [{:keys [regexp handler]} text]
-  ;; (Regexp, Match -> Node) -> String -> [Node]
+(defn tokenize-text [{:keys [regex handler]} text]
+  ;; (Regex, Match -> Node) -> String -> [Node]
   (assert (string? text))
-  (let [idx-seq (re-idx-seq regexp text)]
+  (let [idx-seq (re-idx-seq regex text)]
     (if (seq idx-seq)
       (let [{:keys [nodes remaining-text]}
             (reduce (fn [{:as acc :keys [remaining-text]} [match start end]]
@@ -334,7 +334,7 @@ end"
 (comment
   (apply-token empty-doc {:type "text" :content "foo"} )
   (apply-token empty-doc {:type "text" :content "foo [[bar]] dang #hashy taggy [[what]] #dangy foo [[great]]"})
-  (def mustache {:regexp #"\{\{([^\{]+)\}\}" :handler (fn [m] {:type :eval :text (m 1)})})
+  (def mustache {:regex #"\{\{([^\{]+)\}\}" :handler (fn [m] {:type :eval :text (m 1)})})
   (tokenize-text mustache "{{what}} the {{hellow}}")
   (apply-token (update empty-doc :text-tokenizers conj mustache)
                {:type "text" :content "foo [[bar]] dang #hashy taggy [[what]] #dangy foo [[great]] and {{eval}} me"})
@@ -375,9 +375,9 @@ end"
 
 (def text-tokenizers
   "handler :: Match -> Node"
-  [{:regexp #"(^|\B)#[\w-]+"
+  [{:regex #"(^|\B)#[\w-]+"
     :handler (fn [match] {:type :hashtag :text (subs (match 0) 1)})}
-   {:regexp #"\[\[([^\]]+)\]\]"
+   {:regex #"\[\[([^\]]+)\]\]"
     :handler (fn [match] {:type :internal-link :text (match 1)})}])
 
 (def empty-doc {:type :doc

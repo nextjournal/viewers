@@ -31,6 +31,6 @@
   ;; test timing of parsing 3 regexes => 5462.372797 msecs
   (time
    (dotimes [_ 100]
-     (parse+ [{:regexp #"\{\{([^\{]+)\}\}"
+     (parse+ [{:regex #"\{\{([^\{]+)\}\}"
                :handler (fn [m] {:type :var :text (m 1)})}]
              reference-text))))
