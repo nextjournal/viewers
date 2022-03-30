@@ -176,7 +176,7 @@
                            (resize))
                          (js/removeEventListener "resize" resize))
                spring {:type :spring :duration 0.35 :bounce 0.1}]
-    (let [{:keys [animating? animation-mode open? mobile-open? mobile? mobile-width theme width]} @!state
+    (let [{:keys [animating? animation-mode hide-toggle? open? mobile-open? mobile? mobile-width theme width]} @!state
           slide-over-classes "fixed top-0 left-0 "
           w (if mobile? mobile-width width)]
       [:div.flex.h-screen
@@ -209,12 +209,13 @@
             :transition spring
             :on-animation-start #(swap! !state assoc :animating? true)
             :on-animation-complete #(swap! !state assoc :animating? false)}
-           [toggle-button !state
-            (if mobile?
-              [:svg.h-6.w-6 {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor" :stroke-width "2"}
-               [:path {:stroke-linecap "round" :stroke-linejoin "round" :d "M6 18L18 6M6 6l12 12"}]]
-              "Hide")
-            {:class (theme-class theme :toggle)}]
+           (when-not hide-toggle?
+             [toggle-button !state
+              (if mobile?
+                [:svg.h-6.w-6 {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor" :stroke-width "2"}
+                 [:path {:stroke-linecap "round" :stroke-linejoin "round" :d "M6 18L18 6M6 6l12 12"}]]
+                "Hide")
+              {:class (theme-class theme :toggle)}])
            content])]])))
 
 (dc/when-enabled
