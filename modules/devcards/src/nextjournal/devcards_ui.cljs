@@ -152,16 +152,17 @@
   [:div.py-4.border-b
    [:ol.flex.items-center.space-x-3
     [:li
-     [navbar/pin-button !navbar-state
+     [navbar/toggle-button !navbar-state
       [icon/menu {:size 24}]
       {:class "flex items-center pt-[2px] mr-2 text-gray-400 hover:text-gray-500 cursor-pointer"}]]
     [:li
      [:div.flex.items-center
       (cards-link)]]
-    [:li
-     [:div.flex.items-center
-      icon/divider
-      [:span.ml-3 (ns-link ns)]]]]])
+    (when ns
+      [:li
+       [:div.flex.items-center
+        icon/divider
+        [:span.ml-3 (ns-link ns)]]])]])
 
 (v/defview show-namespace [{:keys [cards ns ::v/props]}]
   (when ns
@@ -173,20 +174,22 @@
         (for [[name card] cards]
              ^{:key name} [show-card card]))]]))
 
-(v/defview root []
-  [:div.w-full.max-w-prose.mx-auto.font-sans.pt-8
-   {:class "pb-[80px]"}
-   [:div.text-xl.font-bold "Devcards by namespace"]
-   (into
-     [:div]
-     (map
-       (fn [{:keys [ns-name ns ns-parent ns-first-child? ns-count]}]
-         [:div
-          (when ns-first-child?
-            [:div.font-bold.mt-6 (shorten-ns ns-parent)])
-          [:a.text-indigo-600.inline-block.-ml-1.px-1.rounded.hover:bg-indigo-100 {:href (rfe/href :devcards/by-namespace {:ns ns})}
-           ns-name]])
-       (ns-listing)))])
+(v/defview root [{:keys [::v/props]}]
+  [:div.px-12.sans-serif
+   [breadcrumb props]
+   [:div.w-full.max-w-prose.mx-auto.font-sans.pt-8
+    {:class "pb-[80px]"}
+    [:div.text-xl.font-bold "Devcards by namespace"]
+    (into
+      [:div]
+      (map
+        (fn [{:keys [ns-name ns ns-parent ns-first-child?]}]
+          [:div
+           (when ns-first-child?
+             [:div.font-bold.mt-6 (shorten-ns ns-parent)])
+           [:a.text-indigo-600.inline-block.-ml-1.px-1.rounded.hover:bg-indigo-100 {:href (rfe/href :devcards/by-namespace {:ns ns})}
+            ns-name]])
+        (ns-listing)))]])
 
 (v/defview by-namespace [{:keys [ns ::v/props]}]
   [show-namespace (-> props
@@ -202,11 +205,11 @@
   (reagent/with-let [local-storage-key "devcards-nav"
                      !state (reagent/atom (assoc (navbar-state)
                                             :local-storage-key local-storage-key
-                                            :pinned? (ls/get-item local-storage-key)
+                                            :open? (ls/get-item local-storage-key)
                                             :width 210
                                             :mobile-width 300))]
     [:div.flex.h-screen.bg-white
-     [navbar/pinnable-slide-over !state [navbar/navbar !state]]
+     [navbar/panel !state [navbar/navbar !state]]
      [:div.h-screen.overflow-y-auto.flex-auto.devcards-content.bg-gray-50
       [view (assoc props :!navbar-state !state)]]]))
 
