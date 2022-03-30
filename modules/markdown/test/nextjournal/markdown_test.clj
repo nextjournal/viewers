@@ -72,7 +72,69 @@ $$\\int_a^bf(t)dt$$
                               :path [:content 0]
                               :type :toc}]
                   :type :toc}}
-           (md/parse markdown-text)))))
+           (md/parse markdown-text))))
+
+
+  (testing "parses internal links / plays well with todo lists"
+    (is (= {:toc {:type :toc}
+            :type :doc
+            :content [{:type :paragraph
+                       :content [{:text "a "
+                                  :type :text}
+                                 {:text "wikistyle"
+                                  :type :internal-link}
+                                 {:text " link"
+                                  :type :text}]}]}
+           (md/parse "a [[wikistyle]] link")))
+
+    (is (= {:type :doc
+            :title "a wikistyle link in title"
+            :content [{:heading-level 1
+                       :type :heading
+                       :content [{:text "a "
+                                  :type :text}
+                                 {:text "wikistyle"
+                                  :type :internal-link}
+                                 {:text " link in title"
+                                  :type :text}]}]
+            :toc {:type :toc
+                  :children [{:type :toc
+                              :content [{:text "a "
+                                         :type :text}
+                                        {:text "wikistyle"
+                                         :type :internal-link}
+                                        {:text " link in title"
+                                         :type :text}]
+                              :heading-level 1
+                              :path [:content 0]}]}}
+           (md/parse "# a [[wikistyle]] link in title")))
+
+    (is (= {:type :doc
+            :toc {:type :toc}
+            :content [{:type :todo-list
+                       :attrs {:has-todos true}
+                       :content [{:type :todo-item
+                                  :attrs {:checked true :todo true}
+                                  :content [{:content [{:text "done "
+                                                        :type :text}
+                                                       {:text "linkme"
+                                                        :type :internal-link}
+                                                       {:text " to"
+                                                        :type :text}]
+                                             :type :paragraph}]}
+                                 {:type :todo-item
+                                  :attrs {:checked false :todo true}
+                                  :content [{:type :paragraph
+                                             :content [{:text "pending"
+                                                        :type :text}]}]}
+                                 {:type :todo-item
+                                  :attrs {:checked false :todo true}
+                                  :content [{:type :paragraph
+                                             :content [{:text "pending"
+                                                        :type :text}]}]}]}]}
+           (md/parse "- [x] done [[linkme]] to
+- [ ] pending
+- [ ] pending")))))
 
 (deftest ->hiccup-test
   "ingests markdown returns hiccup"

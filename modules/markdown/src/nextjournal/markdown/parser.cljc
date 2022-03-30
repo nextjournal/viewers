@@ -20,14 +20,19 @@
 ;; clj common accessors
 (def get-in* #?(:clj get-in :cljs j/get-in))
 (def update* #?(:clj update :cljs j/update!))
+
+#?(:clj (defn re-groups* [m] (let [g (re-groups m)] (cond-> g (not (vector? g)) vector))))
 (defn re-idx-seq
-  "Takes a regex and a string, returns a seq of pairs of indices delimiting each match."
+  "Takes a regex and a string, returns a seq of triplets comprised of match groups followed by indices delimiting each match."
   [re text]
   #?(:clj (let [m (re-matcher re text)]
-            (take-while some? (repeatedly #(when (.find m) [(.start m) (.end m)]))))
+            (take-while some? (repeatedly #(when (.find m) [(re-groups* m) (.start m) (.end m)]))))
      :cljs (let [rex (js/RegExp. (.-source re) "g")]
-             (take-while some? (repeatedly #(when-some [m (.exec rex text)] [(.-index m) (.-lastIndex rex)]))))))
+             (take-while some? (repeatedly #(when-some [m (.exec rex text)] [(vec m) (.-index m) (.-lastIndex rex)]))))))
 
+
+(comment (re-idx-seq #"\{\{([^{]+)\}\}" "foo {{hello}} bar"))
+(comment (re-idx-seq #"\{\{[^{]+\}\}" "foo {{hello}} bar"))
 ;; region node operations
 ;; helpers
 (defn inc-last [path] (update path (dec (count path)) inc))
@@ -104,6 +109,7 @@
     (-> #_doc
         (update ::path inc-last)
         (update-in (pop path) conj node))))
+(def push-nodes (partial reduce push-node))
 
 (defn open-node
   ([doc type] (open-node doc type {}))
@@ -297,37 +303,44 @@ end"
     ))
 
 ;; text
+(defn tokenize-text [{:keys [regex handler]} text]
+  ;; (Regex, Match -> Node) -> String -> [Node]
+  (assert (string? text))
+  (let [idx-seq (re-idx-seq regex text)]
+    (if (seq idx-seq)
+      (let [{:keys [nodes remaining-text]}
+            (reduce (fn [{:as acc :keys [remaining-text]} [match start end]]
+                      (-> acc
+                          (update :remaining-text subs 0 start)
+                          (cond->
+                            (< end (count remaining-text))
+                            (update :nodes conj (text-node (subs remaining-text end))))
+                          (update :nodes conj (handler match))))
+                    {:remaining-text text :nodes ()}
+                    (reverse idx-seq))]
+        (cond-> nodes
+          (seq remaining-text)
+          (conj (text-node remaining-text))))
+      [(text-node text)])))
+
+(defmethod apply-token "text" [{:as doc :keys [text-tokenizers]} {:keys [content]}]
+  (push-nodes doc
+              (reduce (fn [list-of-nodes tokenizer] ;; [Node] -> Tokenizer -> [Node]
+                        (mapcat (fn [{:as node :keys [type text]}] (if (= :text type) (tokenize-text tokenizer text) [node]))
+                                list-of-nodes))
+                      [{:type :text :text content}]
+                      text-tokenizers)))
+
 (comment
-  (split-by-tags "some #Nice_tag123 and what #not for")
-  (split-by-tags "some nicetag and what not for")
-  (split-by-tags "#some nicetag and what not #for")
-  (-> "# Hello
-some par with #tag and #another one"
-      nextjournal.markdown/tokenize
-      parse))
+  (apply-token empty-doc {:type "text" :content "foo"} )
+  (apply-token empty-doc {:type "text" :content "foo [[bar]] dang #hashy taggy [[what]] #dangy foo [[great]]"})
+  (def mustache {:regex #"\{\{([^\{]+)\}\}" :handler (fn [m] {:type :eval :text (m 1)})})
+  (tokenize-text mustache "{{what}} the {{hellow}}")
+  (apply-token (update empty-doc :text-tokenizers conj mustache)
+               {:type "text" :content "foo [[bar]] dang #hashy taggy [[what]] #dangy foo [[great]] and {{eval}} me"})
 
-(defn split-by-tags [text]
-  (when (and (string? text) (seq text))
-    (let [idx-seq (re-idx-seq #"(^|\B)#[\w-]+" text)]
-      (when (seq idx-seq)
-        (let [{:keys [nodes remaining-text]}
-              (reduce (fn [{:as acc :keys [remaining-text]} [start end]]
-                        (-> acc
-                            (update :remaining-text subs 0 start)
-                            (cond->
-                              (<= end (dec (count remaining-text)))
-                              (update :nodes conj (text-node (subs remaining-text end))))
-                            (update :nodes conj (tag-node (subs remaining-text (inc start) end))))) ;; ⬅ remove "#"
-                      {:remaining-text text :nodes []}
-                      (reverse idx-seq))]
-          (cond->> (reverse nodes)
-            (seq remaining-text)
-            (cons (text-node remaining-text))))))))
-
-(defmethod apply-token "text" [doc {text :content}]
-  (if-some [nodes (split-by-tags text)]
-    (reduce push-node doc nodes)
-    (push-node doc (text-node text))))
+  (nextjournal.markdown/parse "foo [[bar]] dang #hashy taggy [[what]] #dangy foo [[great]]" )
+  (nextjournal.markdown/parse "foo"))
 
 ;; inlines
 (defmethod apply-token "inline" [doc {:as _token ts :children}] (apply-tokens doc ts))
@@ -360,18 +373,25 @@ some par with #tag and #another one"
   (let [mapify-attrs-xf (map (fn [x] (update* x :attrs pairs->kmap)))]
     (reduce (mapify-attrs-xf apply-token) doc tokens)))
 
+(def text-tokenizers
+  "handler :: Match -> Node"
+  [{:regex #"(^|\B)#[\w-]+"
+    :handler (fn [match] {:type :hashtag :text (subs (match 0) 1)})}
+   {:regex #"\[\[([^\]]+)\]\]"
+    :handler (fn [match] {:type :internal-link :text (match 1)})}])
+
 (def empty-doc {:type :doc
                 :content []
                 :toc {:type :toc}
-                ;; private
-                ::path [:content -1]})
+                ::path [:content -1] ;; private
+                :text-tokenizers text-tokenizers})
 
 (defn parse
   "Takes a doc and a collection of markdown-it tokens, applies tokens to doc. Uses an emtpy doc in arity 1."
   ([tokens] (parse empty-doc tokens))
   ([doc tokens] (-> doc
                     (apply-tokens tokens)
-                    (dissoc ::path))))
+                    (dissoc ::path :text-tokenizers))))
 
 (comment
 
@@ -412,7 +432,7 @@ print(\"this is some python\")
 Hline Section
 -------------
 
-### but also indented code
+### but also [[indented code]]
 
     import os
     os.listdir('/')
