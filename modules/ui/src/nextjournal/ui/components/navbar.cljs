@@ -39,8 +39,8 @@
 
 (defn theme-class [theme key]
   (-> {:project "py-3"
-       :toc "pt-2 pb-3"
-       :heading "mt-1 md:mt-0 text-xs md:text-[12px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-medium px-3 mb-1"
+       :toc "py-3"
+       :heading "mt-1 md:mt-0 text-xs md:text-[12px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-medium px-3 mb-1 leading-none"
        :back "text-xs md:text-[12px] leading-normal text-slate-500 dark:text-slate-400 md:hover:bg-slate-200 md:dark:hover:bg-slate-700 font-normal px-3 py-1"
        :expandable "text-base md:text-[14px] leading-normal md:hover:bg-slate-200 md:dark:hover:bg-slate-700 dark:text-white px-3 py-2 md:py-1"
        :triangle "text-slate-500 dark:text-slate-400"
@@ -48,7 +48,7 @@
        :icon "text-slate-500 dark:text-slate-400"
        :slide-over "font-sans bg-white border-r"
        :slide-over-unpinned "shadow-xl"
-       :toggle "text-[11px] text-slate-500 text-right absolute right-4 top-3 cursor-pointer hover:underline z-10"}
+       :toggle "text-slate-500 absolute right-2 top-[11px] cursor-pointer z-10"}
       (merge theme)
       (get key)))
 
@@ -212,9 +212,10 @@
            (when-not hide-toggle?
              [toggle-button !state
               (if mobile?
-                [:svg.h-6.w-6 {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor" :stroke-width "2"}
+                [:svg.h-5.w-5 {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor" :stroke-width "2"}
                  [:path {:stroke-linecap "round" :stroke-linejoin "round" :d "M6 18L18 6M6 6l12 12"}]]
-                "Hide")
+                [:svg.w-4.w-4 {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor" :stroke-width "2"}
+                 [:path {:stroke-linecap "round" :stroke-linejoin "round" :d "M15 19l-7-7 7-7"}]])
               {:class (theme-class theme :toggle)}])
            content])]])))
 

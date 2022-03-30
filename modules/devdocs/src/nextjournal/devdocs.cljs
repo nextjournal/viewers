@@ -93,9 +93,7 @@
 (def local-storage-key "devdocs-navbar")
 (defn navbar-state [{:as _registry :keys [items] :navbar/keys [theme]}]
   {:items (navbar-items items)
-   :theme (merge {:slide-over "bg-slate-100 font-sans border-r"
-                  :toggle "text-[11px] text-slate-500 text-right absolute right-4 top-[8px] cursor-pointer hover:underline z-10"}
-                 theme)
+   :theme (merge {:slide-over "bg-slate-100 font-sans border-r"} theme)
    :width 220
    :mobile-width 300
    :local-storage-key local-storage-key
