@@ -16,7 +16,14 @@
                 org.babashka/sci {:mvn/version "0.2.9"}}}
 
   :nextjournal/devdocs
-  {:extra-deps {borkdude/edamame {:mvn/version "0.0.19"}}
+  {:extra-deps {;; used in notebooks
+                borkdude/edamame {:mvn/version "0.0.19"}
+
+                ;; clerk dev deps for compiling js
+                org.babashka/sci {:mvn/version "0.3.2"}
+                io.github.babashka/sci-configs {:git/sha "fd6a3332f358e56b96b5a791f75f97573e018580"}
+                applied-science/js-interop {:mvn/version "0.3.3"}
+                reagent/reagent {:mvn/version "1.1.0"}}
    :exec-fn nextjournal.devdocs/build!
    :exec-args {:paths ["docs/**.{clj,md}" "README.md"]}}
 
