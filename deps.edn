@@ -16,7 +16,8 @@
                 org.babashka/sci {:mvn/version "0.2.9"}}}
 
   :nextjournal/devdocs
-  {:exec-fn nextjournal.devdocs/build!
+  {:extra-deps {borkdude/edamame {:mvn/version "0.0.19"}}
+   :exec-fn nextjournal.devdocs/build!
    :exec-args {:paths ["docs/**.{clj,md}" "README.md"]}}
 
   :test/markdown

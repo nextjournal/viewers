@@ -303,10 +303,30 @@ end"
     ))
 
 ;; text
-(defn tokenize-text [{:keys [regex handler]} text]
-  ;; (Regex, Match -> Node) -> String -> [Node]
-  (assert (string? text))
-  (let [idx-seq (re-idx-seq regex text)]
+(def text-tokenizers
+  "
+   Match :: Any
+   Handler :: Match -> Node
+   IndexedMatch :: (Match, Int, Int)
+   TokenizerFn :: String -> [IndexedMatch]
+   Tokenizer :: {:tokenizer-fn :: TokenizerFn,
+                 :handler :: Handler}
+  "
+  [{:regex #"(^|\B)#[\w-]+"
+    :handler (fn [match] {:type :hashtag :text (subs (match 0) 1)})}
+   {:regex #"\[\[([^\]]+)\]\]"
+    :handler (fn [match] {:type :internal-link :text (match 1)})}])
+
+(defn ->tokenizer
+  "Normalizes a map of regex and handler into a Tokenizer"
+  [{:as t :keys [handler regex tokenizer-fn]}]
+  (assert (and handler (or regex tokenizer-fn)))
+  (cond-> t (not tokenizer-fn) (assoc :tokenizer-fn (partial re-idx-seq regex))))
+
+(defn tokenize-text [{:keys [tokenizer-fn handler]} text]
+  ;; TokenizerFn -> String -> [Node]
+  (assert (and (fn? tokenizer-fn) (string? text)))
+  (let [idx-seq (tokenizer-fn text)]
     (if (seq idx-seq)
       (let [{:keys [nodes remaining-text]}
             (reduce (fn [{:as acc :keys [remaining-text]} [match start end]]
@@ -373,13 +393,6 @@ end"
   (let [mapify-attrs-xf (map (fn [x] (update* x :attrs pairs->kmap)))]
     (reduce (mapify-attrs-xf apply-token) doc tokens)))
 
-(def text-tokenizers
-  "handler :: Match -> Node"
-  [{:regex #"(^|\B)#[\w-]+"
-    :handler (fn [match] {:type :hashtag :text (subs (match 0) 1)})}
-   {:regex #"\[\[([^\]]+)\]\]"
-    :handler (fn [match] {:type :internal-link :text (match 1)})}])
-
 (def empty-doc {:type :doc
                 :content []
                 :toc {:type :toc}
@@ -390,6 +403,7 @@ end"
   "Takes a doc and a collection of markdown-it tokens, applies tokens to doc. Uses an emtpy doc in arity 1."
   ([tokens] (parse empty-doc tokens))
   ([doc tokens] (-> doc
+                    (update :text-tokenizers (partial map ->tokenizer))
                     (apply-tokens tokens)
                     (dissoc ::path :text-tokenizers))))
 
