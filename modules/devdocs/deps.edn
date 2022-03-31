@@ -1,5 +1,5 @@
 {:path ["src"]
- :deps {io.github.nextjournal/clerk {:git/sha "f911e662e28e4f34919b1dd58b119624952cdab5"}
+ :deps {io.github.nextjournal/clerk {:git/sha "7ad95648d545d5087b16dc3d02c8900fab2a3564"}
         ;; clerk dev deps for compiling js
         org.babashka/sci {:mvn/version "0.3.2"}
         io.github.babashka/sci-configs {:git/sha "fd6a3332f358e56b96b5a791f75f97573e018580"}
