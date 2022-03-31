@@ -29,7 +29,7 @@
                  :task (clojure "-X:test/markdown")}
 
   release:cljs {:doc "Builds a cljs release artifact of the example app"
-                :task (clojure "-M:examples:shadow release browser")}
+                :task (clojure "-M:nextjournal/devdocs:examples:shadow release browser")}
 
   cljs:deps:install {:doc "writes to package dependencies from "
                      :task (clojure "-m cljs.main -v --install-deps")}}
