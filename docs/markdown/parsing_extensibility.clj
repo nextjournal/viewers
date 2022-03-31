@@ -1,17 +1,15 @@
 ;; # 🏗 Extending Markdown Parsing
 
-^{:nextjournal.clerk/visibility :hide-ns}
+^{:nextjournal.clerk/visibility :hide-ns :nextjournal.clerk/toc :collapsed}
 (ns ^:nextjournal.clerk/no-cache markdown.parsing-extensibility
   (:require [nextjournal.clerk :as clerk]
             [nextjournal.markdown :as md]
             [nextjournal.markdown.parser :as md.parser]
             [edamame.core :as edamame]))
 
-;; With recent additions to our `nextjournal.markdown/parser` we're able to add a parsing layer on top of the original
-;; tokenization provided by markdownit (see [[n.markdown/tokenize]]).
+;; With recent additions to our `nextjournal.markdown/parser` we're able to add a parsing layer on top of the original tokenization provided by `markdown-it` (see [[n.markdown/tokenize]]).
 ;;
-;; We're acting on the text leafs from the markdownit tokenization, splitting each of those into a collection of [[n.m.parser/Node]]s
-;; according to the following handling of the extracted token.
+;; We're acting on the text leafs obtained from markdown-it tokenization, splitting each of those into a collection of [[n.m.parser/Node]]s according to the following strategy.
 
 ;; ## Types
 ;; let's describe our problem in terms of types:
@@ -22,6 +20,9 @@
 ;;    TokenizerFn :: String -> [IndexedMatch]
 ;;    Tokenizer :: {:tokenizer-fn :: TokenizerFn,
 ;;                  :handler :: Handler}
+;;    DocOpts :: {:text-tokenizers [Tokenizer]}
+;;
+;;    parse : DocOpts -> String -> [Node]
 ;;
 ;; ## Regex-based tokenization
 ;; filling in a `:tokenizer-fn`:
@@ -52,12 +53,10 @@ existing [[links]] or #tags")
      (clojure.repl/source re-seq)))])
 
 (defn match->data+indexes [m text]
-  (let [start (.start m)
-        end (.end m)
+  (let [start (.start m) end (.end m)
         s (subs text end)
         p (edamame/parse-string s)
         {:keys [end-col]} (meta p)]
-
     [p start (+ end (dec end-col))]))
 
 (defn losange-tokenizer-fn [text]
@@ -79,14 +78,12 @@ existing [[links]] or #tags")
 
 (md.parser/tokenize-text losange-tokenizer text)
 
-;; putting it all together
-(md.parser/parse (update md.parser/empty-doc :text-tokenizers #(cons losange-tokenizer %))
+;; putting it all together and giving losange topmost priority wrt other tokens
+(md.parser/parse (update md.parser/empty-doc
+                         :text-tokenizers
+                         #(cons losange-tokenizer %))
                  (md/tokenize text))
 
 ^{::clerk/visibility :hide ::clerk/viewer :hide-result}
 (comment
-  (clerk/serve! {:port 8888})
-
-
-
-  )
+  (clerk/serve! {:port 8888}))
