@@ -317,7 +317,7 @@ end"
    {:regex #"\[\[([^\]]+)\]\]"
     :handler (fn [match] {:type :internal-link :text (match 1)})}])
 
-(defn ->tokenizer
+(defn normalize-tokenizer
   "Normalizes a map of regex and handler into a Tokenizer"
   [{:as t :keys [handler regex tokenizer-fn]}]
   (assert (and handler (or regex tokenizer-fn)))
@@ -403,7 +403,7 @@ end"
   "Takes a doc and a collection of markdown-it tokens, applies tokens to doc. Uses an emtpy doc in arity 1."
   ([tokens] (parse empty-doc tokens))
   ([doc tokens] (-> doc
-                    (update :text-tokenizers (partial map ->tokenizer))
+                    (update :text-tokenizers (partial map normalize-tokenizer))
                     (apply-tokens tokens)
                     (dissoc ::path :text-tokenizers))))
 

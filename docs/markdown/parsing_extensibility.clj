@@ -25,11 +25,14 @@
 ;;    parse : DocOpts -> String -> [Node]
 ;;
 ;; ## Regex-based tokenization
-;; filling in a `:tokenizer-fn`:
+;; According to the types above, a `Tokenizer` requires both keys `:handler` and `:tokenizer-fn`. We might nevertheless provide a map
+;; with a `:handler` and a `:regex` key and invoke `md.parser/normalize-tokenizer`
+
 (def regex-tokenizer
-  (md.parser/->tokenizer
+  (md.parser/normalize-tokenizer
    {:regex #"\[\[([^\]]+)\]\]"
-    :handler (fn [match] {:type :internal-link :text (match 1)})}))
+    :handler (fn [match] {:type :internal-link
+                          :text (match 1)})}))
 
 ((:tokenizer-fn regex-tokenizer) "some [[set]] of [[wiki]] link")
 
