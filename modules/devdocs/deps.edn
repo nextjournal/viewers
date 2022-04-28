@@ -1,5 +1,11 @@
 {:path ["src"]
- :deps {io.github.nextjournal/clerk {:git/sha "8cbb055078eddc2a20a6c9ea5d78155b262a7988"}
+ :deps {io.github.nextjournal/clerk {:git/sha "14ee7c78cdb9a032a024da6712605c0f7c25a59d"}
+
+        ;; clerk sci/cljs deps
+        applied-science/js-interop {:mvn/version "0.3.3"}
+        org.babashka/sci {:mvn/version "0.3.2"}
+        reagent/reagent {:mvn/version "1.1.0"}
+        io.github.babashka/sci-configs {:git/sha "fd6a3332f358e56b96b5a791f75f97573e018580"}
 
         ;; devdocs views deps
         re-frame/re-frame {:git/url "https://github.com/nextjournal/freerange"
