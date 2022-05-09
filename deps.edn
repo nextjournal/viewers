@@ -1,9 +1,7 @@
 {:paths ["src" "resources"]
  :deps {io.github.nextjournal/viewer {:local/root "modules/viewer"}
         io.github.nextjournal/inspector {:local/root "modules/inspector"}
-        io.github.nextjournal/devcards {:local/root "modules/devcards"}
-        io.github.nextjournal/markdown {:local/root "modules/markdown"}
-        io.github.nextjournal/devdocs {:local/root "modules/devdocs"}}
+        io.github.nextjournal/devcards {:local/root "modules/devcards"}}
 
  :aliases
  {:shadow {:extra-deps {thheller/shadow-cljs {:mvn/version "2.15.3"}
@@ -13,12 +11,10 @@
   :examples
   {:extra-paths ["examples"]
    :extra-deps {metosin/reitit-frontend {:mvn/version "0.5.15"}
-                org.babashka/sci {:mvn/version "0.2.9"}}}
+                org.babashka/sci {:mvn/version "0.2.9"}
+                io.github.nextjournal/devdocs {:local/root "modules/devdocs"}}}
 
   :nextjournal/devdocs
-  {:exec-fn nextjournal.devdocs/build!
-   :exec-args {:paths ["docs/**.{clj,md}" "README.md"]}}
-
-  :test/markdown
-  {:extra-paths ["modules/markdown/test"]
-   :exec-fn test-runner/run}}}
+  {:extra-deps {io.github.nextjournal/devdocs {:local/root "modules/devdocs"}}
+   :exec-fn nextjournal.devdocs/build!
+   :exec-args {:paths ["docs/**.{clj,md}" "README.md"]}}}}

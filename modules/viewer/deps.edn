@@ -1,7 +1,8 @@
 {:paths ["src"]
  :deps  {io.github.nextjournal/clojure-mode {:git/sha "699a445ebf2767f41fd0b6eeed5a008511702be6"}
          io.github.nextjournal/cljs-extensions {:local/root "../cljs-extensions"}
-         io.github.nextjournal/markdown        {:local/root "../markdown"}
+         io.github.nextjournal/markdown        {:git/url "git@github.com:nextjournal/markdown.git"
+                                                :git/sha "bbcebf41a6d1f863dbc0a7db32d309c293e19f08"}
          io.github.nextjournal/log             {:local/root "../log"}
          io.github.nextjournal/devcards        {:local/root "../devcards"}
 
