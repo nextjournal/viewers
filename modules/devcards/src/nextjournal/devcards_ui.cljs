@@ -70,8 +70,7 @@
      {:style {:font-size 10
               :height 20
               :line-height "20px"
-              :background-color "rgba(5, 118, 179, 0.1)"}
-      }
+              :background-color "rgba(5, 118, 179, 0.1)"}}
      label]]
    [:div.flex-auto.overflow-x-auto
     [data/inspect @ratom]]
@@ -79,8 +78,28 @@
     {:on-click #(reset! ratom initial-value)}
     [icon/view "Refresh" {:size 18 :class "fill-current"}]]])
 
+(defn notch []
+  [:div {:class "w-[219px] h-[23px] bg-center bg-no-repeat"}
+   [:svg.mx-auto {:xmlns "http://www.w3.org/2000/svg" :viewBox "0 0 219 31" :height 23}
+    [:path {:fill "#000" :d "M0 1V0h219v1a5 5 0 0 0-5 5v3c0 12.15-9.85 22-22 22H27C14.85 31 5 21.15 5 9V6a5 5 0 0 0-5-5z" :fill-rule "evenodd"}]]])
+
+(defn strip []
+  [:div {:class "w-[120px] h-1 bg-[#999] rounded-full"}])
+
+(def screen-radius "rounded-[38px] ")
+(def screen-radius-t "rounded-t-[38px] ")
+
+(defn iphone-portrait [src]
+  [:div {:class "rounded-[54px] w-[320px] overflow-hidden box-content p-3 bg-black relative"}
+   [:iframe {:src src
+             :class (str "w-[320px] h-[680px] overflow-hidden bg-white " screen-radius)}]
+   [:div {:class "absolute left-1/2 -translate-x-1/2 top-[13px] pointer-events-none z-50"}
+    [notch]]
+   [:div {:class "absolute left-1/2 -translate-x-1/2 bottom-[27px] pointer-events-none z-50"}
+    [strip]]])
+
 (v/defview show-main [{::v/keys [state props]
-                       :keys [main initial-db initial-state ::dc/class]}]
+                       :keys [main name ns initial-db initial-state ::dc/class ::dc/device]}]
   (when main
     ;; reset app-db once (using with-let) when the component mounts
     ;; (further actions should not reset the db again)
@@ -92,7 +111,10 @@
                    main)]
         [:div
          [nextjournal.devcards/error-boundary
-          [:div {:class (or class "p-3")} main]]
+          (if (= device :iphone)
+            [:div {:class "p-3"}
+             [iphone-portrait (rfe/href :devcards/iframe-by-name {:ns ns :name name})]]
+            [:div {:class (or class "p-3")} main])]
          (when initial-state
            [inspector {:ratom state :label "state" :initial-value initial-state :label-aligned? initial-state}])
          (when (seq initial-db)
@@ -115,7 +137,7 @@
         [:div.p-4 "Loading data..."]
         [show-main (assoc card ::v/initial-state initial-state)])]]))
 
-(def dc-opts [::dc/state ::dc/title? ::dc/description? ::dc/class])
+(def dc-opts [::dc/state ::dc/title? ::dc/description? ::dc/class ::dc/device])
 
 (defn format-data [{:as db ::dc/keys [state]}]
   {:initial-state state
@@ -123,6 +145,44 @@
 
 (defn extract-opts [data]
   (select-keys data dc-opts))
+
+(v/defview show-iframe* [{card ::v/props ::v/keys [state] :keys [main initial-db initial-state loading-data?]}]
+  (when card
+    (if loading-data?
+      "Loading data..."
+      (when main
+        (reagent/with-let [_ (when (seq initial-db)
+                               (reset! (:app-db (rf/current-frame)) initial-db))]
+          (let [main (main)
+                main (if (fn? main)
+                       [main state]
+                       main)]
+            [nextjournal.devcards/error-boundary
+             [:div main]]))))))
+
+(v/defview show-iframe [{card ::v/props :keys [data compile-key]}]
+  (reagent/with-let [frame (rf.frame/make-frame
+                             {:registry (:registry (rf/current-frame))
+                              :app-db (reagent/atom {})})]
+    [rf/provide-frame frame
+     (rf/bind-frame
+       frame
+       (let [data (when data (data))]
+         (log/trace :devcards/show-iframe {:card card :frame-id (:frame-id (rf/current-frame))})
+         [:div
+          (if (fn? data)
+            ;; `compile-key` is used to force a re-mount of show-card*
+            ;; when the _literal code_ for the card's data has changed.
+            ;; (a macro sets compile-key's value to the hash of the code)
+            ^{:key compile-key}
+            [promises/view
+             {:promise (data)
+              :on-value (fn [data]
+                          [show-iframe* (merge card (format-data data) (extract-opts data))])
+              :on-error (fn [error] [:div "Error loading data: " (str error)])
+              :on-loading (fn [] [show-card* (merge card {:loading-data? true} (extract-opts data))])}]
+            ^{:key compile-key}
+            [show-iframe* (merge card (format-data data) (extract-opts data))])]))]))
 
 (v/defview show-card [{card ::v/props :keys [data compile-key]}]
   (reagent/with-let [frame (rf.frame/make-frame
@@ -200,6 +260,9 @@
    [breadcrumb props]
    [:div.py-8
     [show-card (-> props (merge (get-in @dc/registry [ns name])))]]])
+
+(v/defview iframe-by-name [{:keys [ns name ::v/props]}]
+  [show-iframe (-> props (merge (get-in @dc/registry [ns name])))])
 
 (v/defview layout [{:keys [::v/props view ns]}]
   (reagent/with-let [local-storage-key "devcards-nav"
