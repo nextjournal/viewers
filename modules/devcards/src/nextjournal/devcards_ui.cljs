@@ -146,7 +146,7 @@
 (defn extract-opts [data]
   (select-keys data dc-opts))
 
-(v/defview show-iframe* [{card ::v/props ::v/keys [state] :keys [main initial-db initial-state loading-data?]}]
+(v/defview show-iframe* [{card ::v/props :keys [main initial-db initial-state loading-data?]}]
   (when card
     (if loading-data?
       "Loading data..."
@@ -155,7 +155,7 @@
                                (reset! (:app-db (rf/current-frame)) initial-db))]
           (let [main (main)
                 main (if (fn? main)
-                       [main state]
+                       [main (reagent/atom initial-state)]
                        main)]
             [nextjournal.devcards/error-boundary
              [:div main]]))))))
