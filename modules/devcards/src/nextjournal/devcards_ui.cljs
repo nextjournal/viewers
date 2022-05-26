@@ -140,7 +140,6 @@
 (def dc-opts [::dc/state ::dc/title? ::dc/description? ::dc/class ::dc/device])
 
 (defn format-data [{:as db ::dc/keys [state]}]
-  (js/console.log :format-data state)
   {:initial-state state
    :initial-db (apply dissoc db dc-opts)})
 
