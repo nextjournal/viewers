@@ -44,7 +44,7 @@
         eval? clerk/eval-doc
         (not eval?) assign-visibility)
       (->> (clerk.view/doc->viewer {:inline-results? true}))
-      clerk.view/->edn))
+      clerk.viewer/->edn))
 
 (defn guard [p? val] (when (p? val) val))
 (defn assoc-when-missing [m k v] (cond-> m (not (contains? m k)) (assoc k v)))
@@ -136,5 +136,8 @@
             (stacktrace/print-stack-trace e) {}))))))
 
 (comment
-  (build! {:paths ["docs/**/*.{clj,md}" "README.md"]})
-  (fs/delete-tree "build/devdocs"))
+  (shadow.cljs.devtools.api/repl :browser)
+  (do
+   (clerk/clear-cache!)
+   (fs/delete-tree "build/devdocs")
+   (build! {:paths ["docs/**/*.{clj,md}" "README.md"]})))
