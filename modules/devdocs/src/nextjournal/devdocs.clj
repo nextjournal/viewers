@@ -117,31 +117,21 @@
                               "README.md"
                               "modules/devdocs/src/nextjournal/devdocs.clj"]})))
 
+(defn write-edn-results [_opts docs]
+  (doseq [{:as _doc :keys [viewer file]} docs]
+    (let [edn-path (doc-path->edn-path file)]
+      (when-not (fs/exists? (fs/parent edn-path)) (fs/create-dirs (fs/parent edn-path)))
+      (spit edn-path (clerk.viewer/->edn viewer)))))
+
 (defn build!
   "Expand paths and evals resulting notebooks with clerk. Persists EDN results to fs at conventional path (see `doc-path->cached-edn-path`)."
   [{:keys [paths ignore-cache? throw-exceptions?] :or {throw-exceptions? true}}]
-  (doseq [path (expand-paths paths)]
-    (println "started building notebook" (str path))
-    (let [edn-path (doc-path->edn-path path)]
-      (if (and (fs/exists? edn-path) (not ignore-cache?))
-        (println "Found cached EDN doc at" edn-path)
-        (try
-          (let [{edn-str :result :keys [time-ms]} (clerk/time-ms (doc-info->edn {:path path :eval? true}))]
-            (println "finished building notebook" (str path) "in" time-ms "ms, writing" (count edn-str) "chars EDN to" edn-path)
-            (when-not (fs/exists? (fs/parent edn-path)) (fs/create-dirs (fs/parent edn-path)))
-            (spit edn-path edn-str))
-          (catch Exception e
-            (when (not throw-exceptions?)
-              (println "failed building notebook" (str path) "with" (ex-message e) "continuing...")
-              (println "caused by " (ex-cause e))
-              (stacktrace/print-stack-trace e))
-            (when throw-exceptions?
-              (throw (ex-info (str "Notebook at '" path "' failed to build.")
-                              {:path (str path)}
-                              e))) {}))))))
+  (with-redefs [clerk/write-static-app! write-edn-results]
+    (clerk/build-static-app! {:paths (expand-paths paths)})))
 
 (comment
   (shadow.cljs.devtools.api/repl :browser)
+  (fs/delete-tree "build/devdocs")
   (do
    (clerk/clear-cache!)
    (fs/delete-tree "build/devdocs")
