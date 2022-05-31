@@ -18,7 +18,10 @@
   :nextjournal/devdocs
   {:extra-deps {io.github.nextjournal/devdocs {:local/root "modules/devdocs"}}
    :exec-fn nextjournal.devdocs/build!
-   :exec-args {:paths ["docs/**.{clj,md}" "README.md"]}}
+   :exec-args {:paths ["README.md"
+                       "docs/reference.md"
+                       "docs/clerk/*.{clj,md}"
+                       "docs/devcards/*.md"]}}
 
   :test/markdown
   {:extra-paths ["modules/markdown/test"]

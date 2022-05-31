@@ -119,7 +119,7 @@
 
 (defn build!
   "Expand paths and evals resulting notebooks with clerk. Persists EDN results to fs at conventional path (see `doc-path->cached-edn-path`)."
-  [{:keys [paths ignore-cache?]}]
+  [{:keys [paths ignore-cache? throw-exceptions?] :or {throw-exceptions? true}}]
   (doseq [path (expand-paths paths)]
     (println "started building notebook" (str path))
     (let [edn-path (doc-path->edn-path path)]
@@ -131,13 +131,21 @@
             (when-not (fs/exists? (fs/parent edn-path)) (fs/create-dirs (fs/parent edn-path)))
             (spit edn-path edn-str))
           (catch Exception e
-            (println "failed building notebook" (str path) "with" (ex-message e) "continuing...")
-            (println "caused by " (ex-cause e))
-            (stacktrace/print-stack-trace e) {}))))))
+            (when (not throw-exceptions?)
+              (println "failed building notebook" (str path) "with" (ex-message e) "continuing...")
+              (println "caused by " (ex-cause e))
+              (stacktrace/print-stack-trace e))
+            (when throw-exceptions?
+              (throw (ex-info (str "Notebook at '" path "' failed to build.")
+                              {:path (str path)}
+                              e))) {}))))))
 
 (comment
   (shadow.cljs.devtools.api/repl :browser)
   (do
    (clerk/clear-cache!)
    (fs/delete-tree "build/devdocs")
-   (build! {:paths ["docs/**/*.{clj,md}" "README.md"]})))
+   (build! {:paths ["README.md"
+                    "docs/reference.md"
+                    "docs/clerk/*.{clj,md}"
+                    "docs/devcards/*.md"]})))
