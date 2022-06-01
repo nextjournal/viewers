@@ -88,12 +88,19 @@
       (add-collection ["foo/bar/dang" [{:path "foo/bar/dang/z.clj" :title "z"}]])
       (add-collection ["foo/caz" [{:title "w" :path "foo/caz/w.clj"}]])))
 
+(defn excluded? [path]
+  (when (str/ends-with? (str path) ".clj")
+    (-> path fs/file slurp
+        clojure.edn/read-string meta
+        :nextjournal.devdocs/exclude?)))
+
 (defn expand-paths [paths]
-  (mapcat (partial fs/glob ".")
-          (if (symbol? paths)
-            (when-some [ps (some-> paths requiring-resolve deref)]
-              (cond-> ps (fn? ps) (apply [])))
-            paths)))
+  (->> (if (symbol? paths)
+         (when-some [ps (some-> paths requiring-resolve deref)]
+           (cond-> ps (fn? ps) (apply [])))
+         paths)
+       (mapcat (partial fs/glob "."))
+       (remove excluded?)))
 
 #_(expand-paths ["docs/**.{clj,md}"
                  "README.md"
@@ -136,6 +143,4 @@
    (clerk/clear-cache!)
    (fs/delete-tree "build/devdocs")
    (build! {:paths ["README.md"
-                    "docs/reference.md"
-                    "docs/clerk/*.{clj,md}"
-                    "docs/devcards/*.md"]})))
+                    "docs/**.{clj,md}"]})))
