@@ -44,7 +44,7 @@
         eval? clerk/eval-doc
         (not eval?) assign-visibility)
       (->> (clerk.view/doc->viewer {:inline-results? true}))
-      clerk.view/->edn))
+      clerk.viewer/->edn))
 
 (defn guard [p? val] (when (p? val) val))
 (defn assoc-when-missing [m k v] (cond-> m (not (contains? m k)) (assoc k v)))
@@ -88,12 +88,19 @@
       (add-collection ["foo/bar/dang" [{:path "foo/bar/dang/z.clj" :title "z"}]])
       (add-collection ["foo/caz" [{:title "w" :path "foo/caz/w.clj"}]])))
 
+(defn excluded? [path]
+  (when (str/ends-with? (str path) ".clj")
+    (-> path fs/file slurp
+        clojure.edn/read-string meta
+        :nextjournal.devdocs/exclude?)))
+
 (defn expand-paths [paths]
-  (mapcat (partial fs/glob ".")
-          (if (symbol? paths)
-            (when-some [ps (some-> paths requiring-resolve deref)]
-              (cond-> ps (fn? ps) (apply [])))
-            paths)))
+  (->> (if (symbol? paths)
+         (when-some [ps (some-> paths requiring-resolve deref)]
+           (cond-> ps (fn? ps) (apply [])))
+         paths)
+       (mapcat (partial fs/glob "."))
+       (remove excluded?)))
 
 #_(expand-paths ["docs/**.{clj,md}"
                  "README.md"
@@ -117,24 +124,23 @@
                               "README.md"
                               "modules/devdocs/src/nextjournal/devdocs.clj"]})))
 
+(defn write-edn-results [_opts docs]
+  (doseq [{:as _doc :keys [viewer file]} docs]
+    (let [edn-path (doc-path->edn-path file)]
+      (when-not (fs/exists? (fs/parent edn-path)) (fs/create-dirs (fs/parent edn-path)))
+      (spit edn-path (clerk.viewer/->edn viewer)))))
+
 (defn build!
   "Expand paths and evals resulting notebooks with clerk. Persists EDN results to fs at conventional path (see `doc-path->cached-edn-path`)."
-  [{:keys [paths ignore-cache?]}]
-  (doseq [path (expand-paths paths)]
-    (println "started building notebook" (str path))
-    (let [edn-path (doc-path->edn-path path)]
-      (if (and (fs/exists? edn-path) (not ignore-cache?))
-        (println "Found cached EDN doc at" edn-path)
-        (try
-          (let [{edn-str :result :keys [time-ms]} (clerk/time-ms (doc-info->edn {:path path :eval? true}))]
-            (println "finished building notebook" (str path) "in" time-ms "ms, writing" (count edn-str) "chars EDN to" edn-path)
-            (when-not (fs/exists? (fs/parent edn-path)) (fs/create-dirs (fs/parent edn-path)))
-            (spit edn-path edn-str))
-          (catch Exception e
-            (println "failed building notebook" (str path) "with" (ex-message e) "continuing...")
-            (println "caused by " (ex-cause e))
-            (stacktrace/print-stack-trace e) {}))))))
+  [{:keys [paths ignore-cache? throw-exceptions?] :or {throw-exceptions? true}}]
+  (with-redefs [clerk/write-static-app! write-edn-results]
+    (clerk/build-static-app! {:paths (expand-paths paths)})))
 
 (comment
-  (build! {:paths ["docs/**/*.{clj,md}" "README.md"]})
-  (fs/delete-tree "build/devdocs"))
+  (shadow.cljs.devtools.api/repl :browser)
+  (fs/delete-tree "build/devdocs")
+  (do
+   (clerk/clear-cache!)
+   (fs/delete-tree "build/devdocs")
+   (build! {:paths ["README.md"
+                    "docs/**.{clj,md}"]})))
