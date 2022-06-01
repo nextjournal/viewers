@@ -102,3 +102,13 @@
              (rf/bind-frame frame
                             [frame-display])])
          (range 2))))
+
+(dc/defcard device-frame
+  "Renders inside an iframe with a device frame, currently limited to :iphone"
+  []
+  [:div.font-sans
+   [:div.p-8.text-2xl.fixed.left-0.top-0.right-0.bg-red-500 "Fixed on top"]
+   [:div.p-8.text-2xl.fixed.left-0.right-0.bg-blue-500
+    {:class "bottom-[78px]"}
+    "Fixed on bottom"]]
+  {::dc/device :iphone})
