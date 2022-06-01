@@ -22,7 +22,8 @@
 (def routes
   [["/" {:name :devcards/root :view devcards-ui/root}]
    ["/:ns" {:name :devcards/by-namespace :view devcards-ui/by-namespace}]
-   ["/:ns/:name" {:name :devcards/by-name :view devcards-ui/by-name}]])
+   ["/:ns/:name" {:name :devcards/by-name :view devcards-ui/by-name}]
+   ["/_iframe/:ns/:name" {:name :devcards/iframe-by-name :view devcards-ui/iframe-by-name}]])
 
 (defn navigate-to
   "Navigate to the given path, then trigger routing."
