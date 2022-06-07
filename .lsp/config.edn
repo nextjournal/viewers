@@ -1,7 +1,6 @@
 {;; temporary workaround for loop problem in 2022.02.01-20.02.32
  :source-paths ["modules/viewers/src"
                 "modules/cljs-extensions/src"
-                "modules/markdown/src"
                 "modules/log/src"
                 "modules/devcards/src"
                 "modules/inspector/src"

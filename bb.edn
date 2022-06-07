@@ -6,15 +6,11 @@
 
   watch:cljs {:doc "Starts shadow-cljs server"
               :task (clojure "-M:examples:shadow watch browser")
-              :depends [yarn-install build:markdown:esm]}
+              :depends [yarn-install]}
 
   watch:css {:doc "Starts a watcher for css files tailwindcss"
              :task (shell (str tailwind-build-cmd " --watch"))
              :depends [yarn-install]}
-
-  build:markdown:esm {:doc "Builds the ESM JS module file for the markdown module"
-                      :task (shell "./node_modules/.bin/esbuild modules/markdown/src/js/markdown.js --bundle --minify --outfile=./modules/markdown/resources/js/markdown.mjs --format=esm")
-                      :depends [yarn-install]}
 
   build:css {:doc "Builds the css files with tailwindcss"
              :task (shell tailwind-build-cmd)
@@ -23,10 +19,6 @@
   -dev {:depends [watch:cljs watch:css]}
   dev {:doc "Start app in dev mode, compiles cljs and css, starts an nrepl "
        :task (run '-dev {:parallel true})}
-
-  test:markdown {:doc "runs tests in the markdown module"
-                 :depends [build:markdown:esm]
-                 :task (clojure "-X:test/markdown")}
 
   release:cljs {:doc "Builds a cljs release artifact of the example app"
                 :task (clojure "-M:examples:shadow release browser")}
