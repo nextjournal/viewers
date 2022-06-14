@@ -17,5 +17,4 @@
   :nextjournal/devdocs
   {:extra-deps {io.github.nextjournal/devdocs {:local/root "modules/devdocs"}}
    :exec-fn nextjournal.devdocs/build!
-   :exec-args {:paths ["README.md"
-                       "docs/**.{clj,md}"]}}}}
+   :exec-args {:paths ["docs/**.{clj,md}"]}}}}
