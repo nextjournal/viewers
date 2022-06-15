@@ -1,5 +1,5 @@
 {:path ["src"]
- :deps {io.github.nextjournal/clerk {:git/sha "88b1df4607d9612678012cde4fea98cfbc0871fe"}
+ :deps {io.github.nextjournal/clerk {:git/sha "cdf79a8b49cc66b58adc6a27f1d402f7350d8a8a"}
 
         ;; clerk cljs deps
         applied-science/js-interop {:mvn/version "0.3.3"}
