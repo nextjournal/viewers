@@ -139,6 +139,8 @@
 (comment
   (shadow.cljs.devtools.api/repl :browser)
   (fs/delete-tree "build/devdocs")
+
+  ;; build devdocs for results to appear in notebooks
   (do
    (clerk/clear-cache!)
    (fs/delete-tree "build/devdocs")
