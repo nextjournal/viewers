@@ -1,5 +1,15 @@
 # Referenz
 
+```clojure
+(ns reference
+  (:require [nextjournal.clerk.viewer :as v]))
+
+;; built-in in future versions of Clerk
+
+(v/add-viewers! [{:name :nextjournal.markdown/plain
+                  :transform-fn (v/into-markup [:<>])}])
+```
+
 ## Absätze
 
 Normaler Text wird als Absatz interpretiert. Ein doppelter Zeilenabstand beginnt
