@@ -101,14 +101,14 @@
 /* --------------------------------------------------------------- */
 
 .task-list-item + .task-list-item,
-.viewer-markdown ul .task-list-item ul {
-  @apply mt-1;
+.viewer-markdown ul ul {
+  @apply mt-1 mb-0;
 }
 
 /* compact TOC */
 .viewer-markdown .toc ul {
   list-style: none;
-  @apply my-0;
+  @apply my-1;
 }
 
 /* Code Viewer */
@@ -278,7 +278,7 @@ p img.inline {
 
 .viewer-notebook { @apply py-16; }
 #clerk-static-app .viewer-notebook { @apply pt-[0.8rem] pb-16; }
-.viewer-markdown *:first-child:not(.viewer-code) { @apply mt-0; }
+.viewer-markdown *:first-child:not(.viewer-code):not(li) { @apply mt-0; }
 .viewer + .viewer { @apply mt-6; }
 .viewer-markdown + .viewer { @apply mt-3; }
 .viewer-markdown + .viewer-markdown { @apply mt-0; }

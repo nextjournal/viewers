@@ -453,3 +453,24 @@ wird zu
  | Cell 1     | **Cell 2**
  | `Cell\\|3` | _Cell 4_
 "})
+
+(dc/defcard tight-lists
+  [md]
+  [:div.viewer-markdown
+   {:style {:max-width 500}}
+   [inspect* (viewer @md)]]
+  {::dc/state "### Lists with a single level are rendered without paragraphs
+- List Item 1
+
+  with a paragraph inside that should have proper paragraph-like margins around it
+
+  and another paragraph inside that should have proper paragraph-like margins around it
+- List Item 2
+
+### Nested lists that contain more than 1 item are rendered
+
+- List Item 1
+  - List Item 1.1
+- List Item 2
+  - List item 2.1
+  - List item 2.2"})
