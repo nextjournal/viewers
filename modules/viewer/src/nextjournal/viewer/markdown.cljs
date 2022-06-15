@@ -459,7 +459,10 @@ wird zu
   [:div.viewer-markdown
    {:style {:max-width 500}}
    [inspect* (viewer @md)]]
-  {::dc/state "### Lists with a single level are rendered without paragraphs
+  {::dc/state "### Loose Lists
+
+Lists with more than one paragraph per list item
+
 - List Item 1
 
   with a paragraph inside that should have proper paragraph-like margins around it
@@ -467,10 +470,15 @@ wird zu
   and another paragraph inside that should have proper paragraph-like margins around it
 - List Item 2
 
-### Nested lists that contain more than 1 item are rendered
+### Tight lists
+
+Text in list items is not wrapped in a `<p>`
 
 - List Item 1
   - List Item 1.1
 - List Item 2
   - List item 2.1
-  - List item 2.2"})
+  - List item 2.2
+
+See [Commonmark Spec](https://spec.commonmark.org/0.30/#loose)
+  "})

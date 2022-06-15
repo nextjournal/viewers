@@ -142,5 +142,4 @@
   (do
    (clerk/clear-cache!)
    (fs/delete-tree "build/devdocs")
-   (build! {:paths ["README.md"
-                    "docs/**.{clj,md}"]})))
+   (build! {:paths ["docs/**.{clj,md}"]})))
