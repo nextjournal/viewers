@@ -2,7 +2,8 @@
   (:require ["@codemirror/highlight" :as highlight]
             ["@codemirror/state" :refer [EditorState]]
             ["@codemirror/view" :refer [EditorView]]
-            [nextjournal.clojure-mode :as cm-clj]
+            ;; TODO
+            ;; [nextjournal.clojure-mode :as cm-clj]
             [applied-science.js-interop :as j]))
 
 (def cm6-theme
@@ -27,7 +28,7 @@
                   ".cm-tooltip > ul > li:first-child" {:border-top-left-radius "3px"
                                                        :border-top-right-radius "3px"}})))
 
-(def ext #js [cm-clj/default-extensions
+(def ext #js [ ;; cm-clj/default-extensions
               highlight/classHighlightStyle
               (.. EditorView -editable (of false))
               cm6-theme])
