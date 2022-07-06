@@ -1,1 +1,0 @@
-{:npm-deps {"w3c-keyname" "2.2.4"}}
