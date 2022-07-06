@@ -10,12 +10,12 @@
            :main-opts ["-m" "shadow.cljs.devtools.cli"]}
   :examples
   {:extra-paths ["examples"]
-   :extra-deps {io.github.nextjournal/devdocs {:local/root "modules/devdocs" :exclusions [io.github.nextjournal/markdown]}
+   :extra-deps {io.github.nextjournal/devdocs {:local/root "modules/devdocs"}
                 metosin/reitit-frontend {:mvn/version "0.5.15"}
                 org.babashka/sci {:mvn/version "0.2.9"}}}
 
   :nextjournal/devdocs
-  {:extra-deps {io.github.nextjournal/devdocs {:local/root "modules/devdocs" :exclusions [io.github.nextjournal/markdown]}}
+  {:extra-deps {io.github.nextjournal/devdocs {:local/root "modules/devdocs"}}
    :exec-fn nextjournal.devdocs/build!
    :exec-args {:paths ["README.md"
                        "docs/**.{clj,md}"]}}}}
