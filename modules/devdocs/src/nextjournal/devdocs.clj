@@ -27,8 +27,8 @@
 #_(path->title "foo/bar_besque.md")
 #_(path->title "foo/bar.md")
 
-;; FIXME: visibility is only assigned when blocks are evaluated
-(defn assign-visibility [{:as doc :keys [visibility]}]
+(defn hide-code-cells [{:as doc :keys [visibility]}]
+  ;; visibility is only assigned when blocks are evaluated
   (update doc
           :blocks
           (partial into []
@@ -40,11 +40,9 @@
                                             (or (try (clerk.parser/->visibility (read-string text)) (catch Exception _ nil))
                                                 visibility)})))))))
 
-(defn doc-info->edn [{:keys [path eval?]}]
+(defn doc-viewer-edn [{:keys [path]}]
   (-> (clerk.parser/parse-file {:doc? true} (fs/file path))
-      (cond->
-        eval? clerk.eval/eval-doc
-        (not eval?) assign-visibility)
+      hide-code-cells
       (->> (clerk.view/doc->viewer {:inline-results? true}))
       clerk.viewer/->edn))
 
@@ -62,7 +60,8 @@
              (if-some [edn-path (guard fs/exists? (doc-path->edn-path path))]
                (do (println "Found cached EDN doc at" edn-path (str "(size: " (fs/size edn-path) ")"))
                    (slurp edn-path))
-               (doc-info->edn {:path path :eval? false})))))
+               (do (println (str "No EDN data found for notebook: '" path "'. Falling back to notebook viewer data with no cell results."))
+                   (doc-viewer-edn {:path path}))))))
 
 #_(file->doc-info "docs/clerk/clerk.clj")
 #_(file->doc-info "docs/clerk/missing_title.clj")
