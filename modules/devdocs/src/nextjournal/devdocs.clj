@@ -5,7 +5,9 @@
             [clojure.stacktrace :as stacktrace]
             [clojure.string :as str]
             [nextjournal.clerk :as clerk]
-            [nextjournal.clerk.hashing :as clerk.hashing]
+            [nextjournal.clerk.builder :as clerk.builder]
+            [nextjournal.clerk.eval :as clerk.eval]
+            [nextjournal.clerk.parser :as clerk.parser]
             [nextjournal.clerk.view :as clerk.view]
             [nextjournal.clerk.viewer :as clerk.viewer]))
 
@@ -25,8 +27,8 @@
 #_(path->title "foo/bar_besque.md")
 #_(path->title "foo/bar.md")
 
-;; FIXME: visibility is only assigned when blocks are evaluated
-(defn assign-visibility [{:as doc :keys [visibility]}]
+(defn hide-code-cells [{:as doc :keys [visibility]}]
+  ;; visibility is only assigned when blocks are evaluated
   (update doc
           :blocks
           (partial into []
@@ -35,14 +37,12 @@
                             (= :code type)
                             (assoc :result {:nextjournal/viewer :hide-result
                                             ::clerk/visibility
-                                            (or (try (clerk.hashing/->visibility (read-string text)) (catch Exception _ nil))
+                                            (or (try (clerk.parser/->visibility (read-string text)) (catch Exception _ nil))
                                                 visibility)})))))))
 
-(defn doc-info->edn [{:keys [path eval?]}]
-  (-> (clerk/parse-file (fs/file path))
-      (cond->
-        eval? clerk/eval-doc
-        (not eval?) assign-visibility)
+(defn doc-viewer-edn [{:keys [path]}]
+  (-> (clerk.parser/parse-file {:doc? true} (fs/file path))
+      hide-code-cells
       (->> (clerk.view/doc->viewer {:inline-results? true}))
       clerk.viewer/->edn))
 
@@ -50,7 +50,7 @@
 (defn assoc-when-missing [m k v] (cond-> m (not (contains? m k)) (assoc k v)))
 
 (defn file->doc-info [path]
-  (-> (clerk/parse-file (fs/file path))
+  (-> (clerk.parser/parse-file {:doc? true} (fs/file path))
       (select-keys [:title :doc])
       (assoc-when-missing :title (path->title path))
       (assoc :path (str path)
@@ -60,7 +60,8 @@
              (if-some [edn-path (guard fs/exists? (doc-path->edn-path path))]
                (do (println "Found cached EDN doc at" edn-path (str "(size: " (fs/size edn-path) ")"))
                    (slurp edn-path))
-               (doc-info->edn {:path path :eval? false})))))
+               (do (println (str "No EDN data found for notebook: '" path "'. Falling back to notebook viewer data with no cell results."))
+                   (doc-viewer-edn {:path path}))))))
 
 #_(file->doc-info "docs/clerk/clerk.clj")
 #_(file->doc-info "docs/clerk/missing_title.clj")
@@ -133,8 +134,8 @@
 (defn build!
   "Expand paths and evals resulting notebooks with clerk. Persists EDN results to fs at conventional path (see `doc-path->cached-edn-path`)."
   [{:keys [paths ignore-cache? throw-exceptions?] :or {throw-exceptions? true}}]
-  (with-redefs [clerk/write-static-app! write-edn-results]
-    (clerk/build-static-app! {:paths (expand-paths paths)})))
+  (with-redefs [clerk.builder/write-static-app! write-edn-results]
+    (clerk.builder/build-static-app! {:paths (expand-paths paths)})))
 
 (comment
   (shadow.cljs.devtools.api/repl :browser)
