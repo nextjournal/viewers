@@ -10,7 +10,7 @@
             [reagent.ratom :as ratom]
             [reagent.dom :as rdom]
             [nextjournal.view.context :as context]
-            [re-frame.context :as rf]
+            [re-frame.core :as rf]
             [sci.core :as sci]))
 
 (defn notebook [xs]

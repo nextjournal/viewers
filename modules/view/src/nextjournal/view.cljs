@@ -1,7 +1,7 @@
 (ns nextjournal.view
   (:require [applied-science.js-interop :as j]
-            [re-frame.context :as re-frame]
-            [re-frame.frame :as frame]
+            [re-frame.core :as re-frame]
+            #_[re-frame.frame :as frame]
             [reagent.core :as r]
             [reagent.impl.component :as c]
             [reagent.ratom :as ratom])
