@@ -5,11 +5,11 @@
             [clojure.stacktrace :as stacktrace]
             [clojure.string :as str]
             [nextjournal.clerk :as clerk]
-            [nextjournal.clerk.builder :as clerk.builder]
-            [nextjournal.clerk.eval :as clerk.eval]
-            [nextjournal.clerk.parser :as clerk.parser]
-            [nextjournal.clerk.view :as clerk.view]
-            [nextjournal.clerk.viewer :as clerk.viewer]))
+            [nextjournal.clerk.builder :as builder]
+            [nextjournal.clerk.eval :as eval]
+            [nextjournal.clerk.parser :as parser]
+            [nextjournal.clerk.view :as view]
+            [nextjournal.clerk.viewer :as viewer]))
 
 (defn doc-path->edn-path [path]
   (str "build/devdocs/" (str/replace (str path) fs/file-separator "|") ".edn"))
@@ -37,20 +37,20 @@
                             (= :code type)
                             (assoc :result {:nextjournal/viewer :hide-result
                                             ::clerk/visibility
-                                            (or (try (clerk.parser/->visibility (read-string text)) (catch Exception _ nil))
+                                            (or (try (parser/->visibility (read-string text)) (catch Exception _ nil))
                                                 visibility)})))))))
 
 (defn doc-viewer-edn [{:keys [path]}]
-  (-> (clerk.parser/parse-file {:doc? true} (fs/file path))
+  (-> (parser/parse-file {:doc? true} (fs/file path))
       hide-code-cells
-      (->> (clerk.view/doc->viewer {:inline-results? true}))
-      clerk.viewer/->edn))
+      (->> (view/doc->viewer {:inline-results? true}))
+      viewer/->edn))
 
 (defn guard [p? val] (when (p? val) val))
 (defn assoc-when-missing [m k v] (cond-> m (not (contains? m k)) (assoc k v)))
 
 (defn file->doc-info [path]
-  (-> (clerk.parser/parse-file {:doc? true} (fs/file path))
+  (-> (parser/parse-file {:doc? true} (fs/file path))
       (select-keys [:title :doc])
       (assoc-when-missing :title (path->title path))
       (assoc :path (str path)
@@ -129,13 +129,13 @@
   (doseq [{:as _doc :keys [viewer file]} docs]
     (let [edn-path (doc-path->edn-path file)]
       (when-not (fs/exists? (fs/parent edn-path)) (fs/create-dirs (fs/parent edn-path)))
-      (spit edn-path (clerk.viewer/->edn viewer)))))
+      (spit edn-path (viewer/->edn viewer)))))
 
 (defn build!
   "Expand paths and evals resulting notebooks with clerk. Persists EDN results to fs at conventional path (see `doc-path->cached-edn-path`)."
   [{:keys [paths ignore-cache? throw-exceptions?] :or {throw-exceptions? true}}]
-  (with-redefs [clerk.builder/write-static-app! write-edn-results]
-    (clerk.builder/build-static-app! {:paths (expand-paths paths)})))
+  (with-redefs [builder/write-static-app! write-edn-results]
+    (builder/build-static-app! {:paths (expand-paths paths)})))
 
 (comment
   (shadow.cljs.devtools.api/repl :browser)
