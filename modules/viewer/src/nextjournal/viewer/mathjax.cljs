@@ -1,7 +1,6 @@
 (ns nextjournal.viewer.mathjax
   (:require [applied-science.js-interop :as j]
             ["d3-require" :as d3]
-            [nextjournal.util.cljs-extensions]
             [reagent.core :as r]))
 
 (def output-format

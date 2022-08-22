@@ -13,8 +13,7 @@
             [lambdaisland.deja-fu :as deja-fu]
             [nextjournal.clerk.sci-viewer :as sci-viewer]
             [reagent.core :as reagent]
-            [reitit.frontend.easy :as rfe])
-  (:require-macros [nextjournal.util.macros :refer [for!]]))
+            [reitit.frontend.easy :as rfe]))
 
 (goog-define contentsTitle "contents")
 (goog-define logoImage "https://cdn.nextjournal.com/images/nextjournal-logo-white.svg")
@@ -64,7 +63,8 @@
    (when title
      [:h3 {:style {:margin-top "2rem" :margin-bottom "1rem"}} title])
    (into [:div]
-         (for! [item items] [item-view item]))])
+         (map (fn [item] [item-view item]))
+         items)])
 
 (defn collection-view [collection]
   [:div.overflow-y-auto.bg-white.flex-auto.pb-12.font-sans

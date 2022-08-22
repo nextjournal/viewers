@@ -3,7 +3,6 @@
             [goog.functions :as gf]
             [nextjournal.log :as log]
             [nextjournal.ui.components.d3-require :as d3-require]
-            [nextjournal.util.cljs-extensions]
             [reagent.core :as r]))
 
 (def default-layout
