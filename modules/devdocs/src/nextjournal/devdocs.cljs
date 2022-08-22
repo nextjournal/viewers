@@ -13,8 +13,7 @@
             [lambdaisland.deja-fu :as deja-fu]
             [nextjournal.clerk.sci-viewer :as sci-viewer]
             [reagent.core :as reagent]
-            [reitit.frontend.easy :as rfe])
-  (:require-macros [nextjournal.util.macros :refer [for!]]))
+            [reitit.frontend.easy :as rfe]))
 
 (goog-define contentsTitle "contents")
 (goog-define logoImage "https://cdn.nextjournal.com/images/nextjournal-logo-white.svg")
@@ -64,7 +63,44 @@
    (when title
      [:h3 {:style {:margin-top "2rem" :margin-bottom "1rem"}} title])
    (into [:div]
-         (for! [item items] [item-view item]))])
+         (map (fn [item] [item-view item]))
+         items)])
+
+(comment
+
+  (js/console.log (first js/document.childNodes))
+  (seqable? js/document.childNodes)
+  js/document.childNodes
+
+
+  (->> (.. js/document (querySelectorAll ".font-bold.mt-6"))
+       (map #(.-innerHTML %)))
+
+  (js/console.log (js/Object.keys (first (.. js/document (querySelectorAll ".font-bold.mt-6")))))
+
+  (defmacro for!
+    "Like [[for]], but eager.
+
+    Supports additional key `:into` to coerce into a target collection.
+
+    ```
+    (for! [v [:x :y :z]]
+      v)
+    ;;=> (:x :y :z)
+    ```
+    "
+    {:style/indent 1}
+    [binding & body]
+    (let [pairs (partition 2 binding)
+          coll (some #(when (= :into (first %))
+                        (second %))
+                     pairs)
+          binding (into [] cat (remove #(= :into (first %)) pairs))]
+      (if coll
+        `(into ~coll (for ~binding ~@body))
+        `(doall
+          (for ~binding
+            ~@body))))))
 
 (defn collection-view [collection]
   [:div.overflow-y-auto.bg-white.flex-auto.pb-12.font-sans

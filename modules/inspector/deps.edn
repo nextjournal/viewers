@@ -1,3 +1,2 @@
 {:deps {io.github.nextjournal/command-bar     {:local/root "../command-bar"}
-        io.github.nextjournal/cljs-extensions {:local/root "../cljs-extensions"}
         io.github.nextjournal/log             {:local/root "../log"}}}
