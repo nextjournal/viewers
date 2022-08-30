@@ -1,8 +1,8 @@
 (ns nextjournal.ui.components
   (:require [nextjournal.devcards :as dc]
-            #?(:cljs [nextjournal.commands.core :as keybind])
+            #?@(:cljs [[nextjournal.commands.core :as keybind]
+                       [nextjournal.ui.components.navbar]])
             [nextjournal.ui.components.icon :as icon]
-            [nextjournal.ui.components.navbar]
             [clojure.string :as str]
             [reagent.core :as r]))
 
@@ -54,7 +54,7 @@
       [command-button {:show-binding? true} command])))
 
 (dc/defcard command-button
-  "Takes a command and renders a text button. If the command has a keybinding, it will prepend the binding. 
+  "Takes a command and renders a text button. If the command has a keybinding, it will prepend the binding.
    Renders a text button showing a chevron next to it. Inherits colors, text styles; adjusts chevron color automatically."
   [:div.inter.text-xs.flex.items-center
    [:div.mr-4
