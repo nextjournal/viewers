@@ -1,10 +1,10 @@
 (ns nextjournal.ui.components
   (:require [nextjournal.devcards :as dc]
             #?@(:cljs [[nextjournal.commands.core :as keybind]
+                       [nextjournal.commands.state :as commands.state]
                        [nextjournal.ui.components.navbar]])
             [nextjournal.ui.components.icon :as icon]
-            [clojure.string :as str]
-            [reagent.core :as r]))
+            [clojure.string :as str]))
 
 (def theme
   {:code-cell {:background "#eff1f5"}
@@ -59,7 +59,9 @@
   [:div.inter.text-xs.flex.items-center
    [:div.mr-4
     [command-button (keybind/get-command :run/run)]]
-   [bar [command-button (keybind/get-command :run/run)]]])
+   [bar [command-button (keybind/get-command :run/run)]]]
+  (-> (commands.state/empty-db!)
+      (keybind/register {:run/run {:action identity}})))
 
 (def status-colors
   {:green "green-500"
