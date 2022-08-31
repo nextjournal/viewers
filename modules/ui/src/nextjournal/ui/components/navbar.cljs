@@ -1,6 +1,6 @@
 (ns nextjournal.ui.components.navbar
   (:require [nextjournal.devcards :as dc]
-            [nextjournal.viewer :as v]
+            #_[nextjournal.viewer :as v] ;; commented out to keep it out of Clerk build
             [nextjournal.ui.components.icon :as icon]
             [nextjournal.ui.components.localstorage :as ls]
             [nextjournal.ui.components.motion :as motion]
@@ -219,6 +219,7 @@
               {:class (theme-class theme :toggle)}])
            content])]])))
 
+#_ ;; commented out to keep nextjournal.viewer out of the Clerk build
 (dc/when-enabled
   (def toc-pendulum
     [{:path "#top"
