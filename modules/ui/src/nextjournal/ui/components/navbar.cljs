@@ -343,6 +343,7 @@ Lagrangian with the familiar form of `T - V`.")]]
            {:xmlns "http://www.w3.org/2000/svg" :fill "none" :viewBox "0 0 24 24" :stroke "currentColor"}
            [:path {:stroke-linecap "round" :stroke-linejoin "round" :stroke-width "2" :d "M6 18L18 6M6 6l12 12"}]]]]]])))
 
+#_
 (dc/defcard navbars
   (r/with-let [!state-long (r/atom navbar-long)
                !state-toc (r/atom (assoc navbar-long :toc toc-pendulum))
