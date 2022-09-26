@@ -112,7 +112,7 @@
      (if (or (nil? path) (contains? #{"" "/"} path))
        [collection-view @registry]
        (let [{:as node :keys [edn-doc]} (lookup @registry path)]
-         (when edn-doc [devdoc-view node])))]))
+         (when edn-doc ^{:key path} [devdoc-view node])))]))
 
 (defn devdoc-commands
   "For use with the commands/command-bar API"
