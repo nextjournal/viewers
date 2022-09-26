@@ -10,6 +10,7 @@
                                 {:back "text-[12px] text-slate-300 hover:bg-white/10 font-normal px-5 py-1"
                                  :icon "text-slate-400"}))
 
+
 (defonce router (rf/router ["/docs" ["/*path" {:name :devdocs/show}]]))
 
 (defn view [match]
