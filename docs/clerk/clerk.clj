@@ -1,7 +1,6 @@
-^{:nextjournal.clerk/visibility :hide-ns}
-(ns notebooks.clerk)
-
 ;; # A Clerk Notebook
+^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+(ns notebooks.clerk)
 
 ;; This is a Clerk notebook, it is written as Clojure plus comments like this
 ;; one.

@@ -27,22 +27,23 @@
 #_(path->title "foo/bar_besque.md")
 #_(path->title "foo/bar.md")
 
-(defn hide-code-cells [{:as doc :keys [visibility]}]
-  ;; visibility is only assigned when blocks are evaluated
+(defn hide-results [doc]
+  ;; respect visibility also when falling back to just parse
   (update doc
           :blocks
           (partial into []
                    (map (fn [{:as b :keys [type text]}]
                           (cond-> b
                             (= :code type)
-                            (assoc :result {:nextjournal/viewer :hide-result
-                                            ::clerk/visibility
-                                            (or (try (parser/->visibility (read-string text)) (catch Exception _ nil))
-                                                visibility)})))))))
+                            (assoc :visibility
+                                   (merge (try (parser/->visibility (read-string text)) (catch Exception _ nil))
+                                          {:result :hide}))))))))
+
+#_ (nextjournal.clerk.eval/eval-file "docs/clerk/clerk.clj")
 
 (defn doc-viewer-edn [{:keys [path]}]
   (-> (parser/parse-file {:doc? true} (fs/file path))
-      hide-code-cells
+      hide-results
       (->> (view/doc->viewer {:inline-results? true}))
       viewer/->edn))
 

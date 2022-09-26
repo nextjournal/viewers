@@ -1,11 +1,11 @@
 # 📇 A Devcards Notebook
 ```clojure
-^{:nextjournal.clerk/visibility :hide}
 (ns notebooks.devcards
+  {:nextjournal.clerk/visibility {:code :hide}}
   (:require [nextjournal.clerk.viewer :as viewer]
             [nextjournal.clerk :as clerk]))
 
-^{::clerk/viewer :hide-result}
+^{::clerk/visibility {:result :hide}}
 (clerk/add-viewers! [{:pred #(and (map? %) (contains? % :nextjournal.devcards/id))
                       :transform-fn (fn [{:as wrapped-value {:nextjournal/keys [width] :nextjournal.devcards/keys [id]} :nextjournal/value}]
                                       (-> wrapped-value 
@@ -22,13 +22,14 @@ This notebook relies on an [extension](https://github.com/nextjournal/viewers/bl
 By default, devcards will be displayed with a wide layout
 
 ```clojure
-{:nextjournal.devcards/id 'nextjournal.clerk.sci-viewer/inspect-paginated-more}
+{:nextjournal.devcards/id 'nextjournal.ui.components/disclose-button}
 ```
 
 but you can also customize their width.
 
 ```clojure
-{:nextjournal.devcards/id 'nextjournal.clerk.sci-viewer/inspect-paginated-more :nextjournal/width :normal}
+{:nextjournal.devcards/id 'nextjournal.ui.components/circle-spinner
+ :nextjournal/width :normal}
 ```
 
 ```clojure
