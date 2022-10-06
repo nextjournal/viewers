@@ -21,7 +21,7 @@
   just before a section instead of having it glued to the top of
   the viewport."
   [!state anchor]
-  (let [{:keys [mobile? scroll-animation scroll-el visible?]} @!state
+  (let [{:keys [mobile? scroll-animation scroll-el set-hash? visible?]} @!state
         scroll-top (.-scrollTop scroll-el)
         offset 40]
     (when scroll-animation
@@ -29,12 +29,13 @@
     (when scroll-el
       (swap! !state assoc
              :scroll-animation (motion/animate
-                                 scroll-top
-                                 (+ scroll-top (.. (js/document.getElementById (subs anchor 1)) getBoundingClientRect -top))
-                                 {:onUpdate #(j/assoc! scroll-el :scrollTop (- % offset))
-                                  :type :spring
-                                  :duration 0.4
-                                  :bounce 0.15})
+                                scroll-top
+                                (+ scroll-top (.. (js/document.getElementById (subs anchor 1)) getBoundingClientRect -top))
+                                {:onUpdate #(j/assoc! scroll-el :scrollTop (- % offset))
+                                 :onComplete #(when set-hash? (.pushState js/history #js {} "" anchor))
+                                 :type :spring
+                                 :duration 0.4
+                                 :bounce 0.15})
              :visible? (if mobile? false visible?)))))
 
 (defn theme-class [theme key]
