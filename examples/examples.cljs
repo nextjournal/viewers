@@ -1,5 +1,6 @@
 (ns examples
-  (:require [clojure.string :as str]
+  (:require ["react-dom/client" :as react-client]
+            [clojure.string :as str]
             [nextjournal.devcards.routes :as devcards.routes]
             [nextjournal.devdocs.demo :as devdocs.demo]
             [nextjournal.devcards-ui :as devcards-ui]
@@ -78,7 +79,11 @@
                            (update m :path #(str (str/replace prefix #"/\*$" "") %))))))
             (r/match-by-name router name params))))))
 
+(defonce react-root
+  (when-let [el (and (exists? js/document) (js/document.getElementById "app"))]
+    (react-client/createRoot el)))
+
 (defn ^:export ^:dev/after-load init []
   (re-frame/dispatch-sync [:init-commands (commands.state/empty-db!)])
   (rfe/start! router #(reset! match %1) {:use-fragment true})
-  (rdom/render [view] (js/document.getElementById "app")))
+  (.render react-root (reagent/as-element [view])))
