@@ -11,7 +11,7 @@
             [nextjournal.ui.components.navbar :as navbar]
             [nextjournal.ui.components.localstorage :as ls]
             [lambdaisland.deja-fu :as deja-fu]
-            [nextjournal.clerk.sci-viewer :as sci-viewer]
+            [nextjournal.clerk.render :as render]
             [reagent.core :as reagent]
             [reitit.frontend.easy :as rfe]))
 
@@ -78,11 +78,11 @@
            fragment (assoc :ref #(scroll-to-fragment fragment)))
    [:div.absolute.left-4.md:right-0.md:left-auto.top-0.p-4
     [:div.text-gray-400.text-xs.font-mono.float-right (:path doc)]]
-   [sci-viewer/inspect-presented (try
-                                   (sci-viewer/read-string edn-doc)
-                                   (catch :default e
-                                     (js/console.error :clerk.sci-viewer/read-error e)
-                                     "Parse error..."))]])
+   [render/inspect-presented (try
+                               (render/read-string edn-doc)
+                               (catch :default e
+                                 (js/console.error :clerk.sci-viewer/read-error e)
+                                 "Parse error..."))]])
 
 (defn navbar-items [items]
   (mapv (fn [{:as item :keys [items path]}]

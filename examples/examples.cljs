@@ -4,8 +4,7 @@
             [nextjournal.devcards.routes :as devcards.routes]
             [nextjournal.devdocs.demo :as devdocs.demo]
             [nextjournal.devcards-ui :as devcards-ui]
-            [nextjournal.clerk.sci-viewer :as clerk-sci-viewer]
-            [nextjournal.clerk-sci-env]
+            [nextjournal.clerk-sci-env] ;; sets up clerk sci env extensions
             [nextjournal.clerk.static-app :as clerk-static-app]
             [nextjournal.ui.components.icon :as icon]
             [reagent.dom :as rdom]
