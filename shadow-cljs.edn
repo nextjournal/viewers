@@ -1,5 +1,6 @@
 {:deps {:aliases [:shadow :examples]}
  :dev-http {7779 {:roots ["classpath:public" "public"]}}
+ :cache-blockers #{sci.impl.cljs}
  :builds {:browser {:target :browser
                     :output-to "public/js/viewer.js"
                     :output-dir "public/js"
