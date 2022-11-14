@@ -79,10 +79,10 @@
    [:div.absolute.left-4.md:right-0.md:left-auto.top-0.p-4
     [:div.text-gray-400.text-xs.font-mono.float-right (:path doc)]]
    [render/inspect-presented (try
-                                   (render/read-string edn-doc)
-                                   (catch :default e
-                                     (js/console.error :clerk.sci-viewer/read-error e)
-                                     "Parse error..."))]])
+                               (render/read-string edn-doc)
+                               (catch :default e
+                                 (js/console.error :clerk.sci-viewer/read-error e)
+                                 "Parse error..."))]])
 
 (defn navbar-items [items]
   (mapv (fn [{:as item :keys [items path]}]
