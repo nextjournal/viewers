@@ -1,5 +1,5 @@
 (ns nextjournal.clerk-sci-env
-  (:require [nextjournal.clerk.sci-viewer :as sv]
+  (:require [nextjournal.clerk.sci-env :as sci-env]
             [nextjournal.devcards :as dc]
             [nextjournal.devcards-ui]
             [reagent.core]
@@ -17,4 +17,4 @@
 
 (js/console.log :merge-opts sci-namespaces)
 
-(sci/merge-opts @sv/!sci-ctx {:namespaces sci-namespaces})
+(swap! sci-env/!sci-ctx sci/merge-opts {:namespaces sci-namespaces})

@@ -13,9 +13,9 @@
                                           (assoc :nextjournal/width (or width :wide))
                                           viewer/mark-presented))
                       :render-fn '(fn [{:nextjournal.devcards/keys [registry-path]}]
-                                    (v/html [nextjournal.devcards-ui/show-card (assoc (get-in @nextjournal.devcards/registry registry-path)
+                                    [nextjournal.devcards-ui/show-card (assoc (get-in @nextjournal.devcards/registry registry-path)
                                                                                       :nextjournal.devcards/title? false
-                                                                                      :nextjournal.devcards/description? false)]))}])
+                                                                                      :nextjournal.devcards/description? false)])}])
 ```
 This notebook relies on an [extension](https://github.com/nextjournal/viewers/blob/main/examples/nextjournal/clerk_sci_env.cljs) of Clerk's default browser environment to make the devcards available.
 

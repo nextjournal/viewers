@@ -1,15 +1,11 @@
 {:path ["src"]
- :deps {io.github.nextjournal/clerk {:git/sha "496f8cc274acd1ea9ac86425619d27af176542b6"}
+ :deps {io.github.nextjournal/clerk {:git/sha "3eb3987b08bb706c338561392ec1917943f0d9dc"}
 
-        ;; clerk cljs deps
-        applied-science/js-interop {:mvn/version "0.3.3"}
-        org.babashka/sci {:mvn/version "0.3.5"}
-        reagent/reagent {:mvn/version "1.1.0"}
-        io.github.babashka/sci.configs {:git/sha "fcd367c6a6115c5c4e41f3a08ee5a8d5b3387a18"}
+        io.github.nextjournal/clerk.render {:git/url "https://github.com/nextjournal/clerk"
+                                            :git/sha "3eb3987b08bb706c338561392ec1917943f0d9dc"
+                                            :deps/root "render"
+                                            :deps/manifest :deps}
 
-        ;; devdocs views deps
         re-frame/re-frame {:git/url "https://github.com/nextjournal/freerange"
                            :git/sha "8cf68c30722a4c6f8f948a134c900d7a656ecad4"}
-
-        metosin/reitit-frontend {:mvn/version "0.5.15"}
         com.lambdaisland/deja-fu {:mvn/version "0.3.33"}}}
