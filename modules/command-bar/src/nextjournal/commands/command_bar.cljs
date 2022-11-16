@@ -243,7 +243,8 @@
          (reset! !unlisten
                  (commands/listen! {:element element
                                     :get-registry state/get-registry}))
-         (some-> ^js @!unlisten .call))))))
+         (some-> ^js @!unlisten .call))
+       js/undefined))))
 
 (v/defview view
   {:context-type     re-frame/frame-context
