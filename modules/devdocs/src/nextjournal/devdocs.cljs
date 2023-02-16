@@ -67,16 +67,16 @@
          items)])
 
 (defn collection-view [collection]
-  [:div.overflow-y-auto.bg-white.flex-auto.pb-12.font-sans
+  [:div.overflow-y-auto.bg-white.dark:bg-gray-900.flex-auto.pb-12.font-sans
    [:div.w-full.max-w-prose.px-8.mx-auto
     [:h1.pt-8 "Devdocs"]
     [collection-inner-view collection]]])
 
 (defn devdoc-view [{:as doc :keys [edn-doc fragment]}]
-  [:div.overflow-y-auto.bg-white.flex-auto.relative.font-sans
+  [:div.overflow-y-auto.bg-white.dark:bg-gray-900.flex-auto.relative.font-sans
    (cond-> {:style {:padding-top 45 :padding-bottom 70}}
-           fragment (assoc :ref #(scroll-to-fragment fragment)))
-   [:div.absolute.left-4.md:right-0.md:left-auto.top-0.p-4
+     fragment (assoc :ref #(scroll-to-fragment fragment)))
+   [:div.absolute.left-7.md:right-6.md:left-auto.top-0.p-3
     [:div.text-gray-400.text-xs.font-mono.float-right (:path doc)]]
    [render/inspect-presented (try
                                (render/read-string edn-doc)
@@ -107,7 +107,7 @@
        [icon/menu {:size 20}]
        [:span.uppercase.tracking-wider.ml-1.font-bold
         {:class "text-[12px]"} "Nav"]]
-      {:class "z-10 fixed right-2 top-2 md:right-auto md:left-3 md:top-3 text-slate-400 font-sans text-xs hover:underline cursor-pointer flex items-center bg-white py-1 px-3 md:p-0 rounded-full md:rounded-none border md:border-0 border-slate-200 shadow md:shadow-none"}]
+      {:class "z-10 fixed right-2 top-2 md:right-auto md:left-3 md:top-3 text-slate-400 font-sans text-xs hover:underline cursor-pointer flex items-center bg-white dark:bg-gray-900 py-1 px-3 md:p-0 rounded-full border md:border-0 border-slate-200 shadow md:shadow-none"}]
      [navbar/panel !state [navbar/navbar !state]]
      (if (or (nil? path) (contains? #{"" "/"} path))
        [collection-view @registry]
