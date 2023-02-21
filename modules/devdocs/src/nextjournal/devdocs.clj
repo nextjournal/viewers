@@ -2,11 +2,8 @@
   "Embedded (pre-built) Clerk notebooks."
   (:require [babashka.fs :as fs]
             [clojure.java.shell :as sh]
-            [clojure.stacktrace :as stacktrace]
             [clojure.string :as str]
-            [nextjournal.clerk :as clerk]
             [nextjournal.clerk.builder :as builder]
-            [nextjournal.clerk.eval :as eval]
             [nextjournal.clerk.parser :as parser]
             [nextjournal.clerk.view :as view]
             [nextjournal.clerk.viewer :as viewer]))
@@ -39,13 +36,14 @@
                                    (merge (try (parser/->visibility (read-string text)) (catch Exception _ nil))
                                           {:result :hide}))))))))
 
-#_ (nextjournal.clerk.eval/eval-file "docs/clerk/clerk.clj")
+#_ (do (require '[nextjournal.clerk.eval])
+       (nextjournal.clerk.eval/eval-file "docs/clerk/clerk.clj"))
 
 (defn doc-viewer-edn [{:keys [path]}]
-  (-> (parser/parse-file {:doc? true} (fs/file path))
-      hide-results
-      (->> (view/doc->viewer {:inline-results? true}))
-      viewer/->edn))
+  (->> (parser/parse-file {:doc? true} (fs/file path))
+       hide-results
+       (view/doc->viewer {:inline-results? true})
+       viewer/->edn))
 
 (defn guard [p? val] (when (p? val) val))
 (defn assoc-when-missing [m k v] (cond-> m (not (contains? m k)) (assoc k v)))
@@ -137,6 +135,7 @@
 
   ;; build devdocs for results to appear in notebooks
   (do
-   (clerk/clear-cache!)
-   (fs/delete-tree "build/devdocs")
-   (build! {:paths ["docs/**.{clj,md}"]})))
+    (require '[nextjournal.clerk :as clerk])
+    (clerk/clear-cache!)
+    (fs/delete-tree "build/devdocs")
+    (build! {:paths ["docs/**.{clj,md}"]})))
