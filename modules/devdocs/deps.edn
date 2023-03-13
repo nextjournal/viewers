@@ -1,7 +1,7 @@
 {:path ["src"]
- :deps {io.github.nextjournal/clerk {:git/sha "3eb3987b08bb706c338561392ec1917943f0d9dc"}
+ :deps {io.github.nextjournal/clerk {:git/sha "711a1b2fae3c212d2c8c2323cf4d53c178766114"}
         io.github.nextjournal/clerk.render {:git/url "https://github.com/nextjournal/clerk"
-                                            :git/sha "3eb3987b08bb706c338561392ec1917943f0d9dc"
+                                            :git/sha "711a1b2fae3c212d2c8c2323cf4d53c178766114"
                                             :deps/root "render"
                                             :deps/manifest :deps}
         io.github.nextjournal/cas-client {:git/sha "84ab35c3321c1e51a589fddbeee058aecd055bf8"}

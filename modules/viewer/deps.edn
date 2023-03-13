@@ -5,7 +5,7 @@
          io.github.nextjournal/log             {:local/root "../log"}
          io.github.nextjournal/devcards        {:local/root "../devcards"}
 
-         org.babashka/sci            {:mvn/version "0.5.35"}
+         org.babashka/sci {:git/sha "4ab93c2530f174491a03083b0f15b76f8a176178" :git/url "https://github.com/babashka/sci"}
          applied-science/js-interop  {:mvn/version "0.2.6"}
          com.cognitect/transit-cljs  {:mvn/version "0.8.264"}}
 
