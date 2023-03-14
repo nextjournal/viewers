@@ -42,10 +42,11 @@
 
 (declare collection-inner-view)
 
-(defn item-view [{:as item :keys [title edn-doc path last-modified items]}]
+(defn item-view [{:as item :keys [title edn-cas-url edn-doc path last-modified items]}]
   [:div
    (cond
-     edn-doc                                                ;; doc
+     ;; doc
+     (or edn-cas-url edn-doc)
      [:div.mb-2
       [:a.hover:underline.font-bold
        {:href (when edn-doc (rfe/href :devdocs/show {:path path})) :title path}
@@ -55,7 +56,8 @@
          (-> last-modified
              deja-fu/local-date-time
              (deja-fu/format "MMM dd yyyy, HH:mm"))])]
-     (seq items)                                            ;; collection
+     ;; collection
+     (seq items)
      [collection-inner-view item])])
 
 (defn collection-inner-view [{:keys [title items level]}]
