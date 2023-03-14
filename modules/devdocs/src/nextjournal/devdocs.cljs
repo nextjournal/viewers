@@ -49,7 +49,7 @@
      (or edn-cas-url edn-doc)
      [:div.mb-2
       [:a.hover:underline.font-bold
-       {:href (when edn-doc (rfe/href :devdocs/show {:path path})) :title path}
+       {:href (rfe/href :devdocs/show {:path path}) :title path}
        title]
       (when last-modified
         [:p.text-xs.text-gray-500.mt-1
