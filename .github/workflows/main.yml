@@ -20,12 +20,12 @@ jobs:
       - name: Install java
         uses: actions/setup-java@v1
         with:
-          java-version: '11.0.7'
+          java-version: '18'
 
       - name: Install clojure
         uses: DeLaGuardo/setup-clojure@master
         with:
-          cli: '1.10.3.943'
+          cli: '1.11.1.1208'
           bb: '1.2.174'
 
       - name: maven cache
