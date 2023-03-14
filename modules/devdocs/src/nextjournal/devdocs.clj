@@ -1,9 +1,11 @@
 (ns nextjournal.devdocs
   "Embedded (pre-built) Clerk notebooks."
   (:require [babashka.fs :as fs]
+            [clojure.edn]
             [clojure.java.shell :as sh]
             [clojure.stacktrace :as stacktrace]
             [clojure.string :as str]
+            [nextjournal.cas-client :as cas]
             [nextjournal.clerk :as clerk]
             [nextjournal.clerk.builder :as builder]
             [nextjournal.clerk.eval :as eval]
@@ -11,11 +13,15 @@
             [nextjournal.clerk.view :as view]
             [nextjournal.clerk.viewer :as viewer]))
 
+
+(def build-path "build/devdocs")
 (defn doc-path->edn-path [path]
-  (str "build/devdocs/" (str/replace (str path) fs/file-separator "|") ".edn"))
+  (str build-path "/" (str/replace (str path) fs/file-separator "|") ".edn"))
 
 #_(doc-path->edn-path "docs/clerk/clerk.md")
 #_(doc-path->edn-path "docs/clerk/clerk.clj")
+#_(doc-path->edn-path "manifest")
+#_(str (fs/relativize build-path (doc-path->edn-path "docs/clerk/clerk.clj")))
 
 (defn path->title [path]
   (-> path fs/file-name (str/replace #"\.(clj(c?)|md)$" "") (str/split #"_")
@@ -50,19 +56,18 @@
 (defn guard [p? val] (when (p? val) val))
 (defn assoc-when-missing [m k v] (cond-> m (not (contains? m k)) (assoc k v)))
 
-(defn file->doc-info [path]
+(defn file->doc-info [{:keys [cas-manifest]} path]
   (-> (parser/parse-file {:doc? true} (fs/file path))
       (select-keys [:title :doc])
       (assoc-when-missing :title (path->title path))
       (assoc :path (str path)
              :last-modified (when-some [ts (-> (sh/sh "git" "log" "-1" "--format=%ct" (str path)) :out str/trim not-empty)]
-                              (* (Long/parseLong ts) 1000))
-             :edn-doc
-             (if-some [edn-path (guard fs/exists? (doc-path->edn-path path))]
-               (do (println "Found cached EDN doc at" edn-path (str "(size: " (fs/size edn-path) ")"))
-                   (slurp edn-path))
-               (do (println (str "No EDN data found for notebook: '" path "'. Falling back to notebook viewer data with no cell results."))
-                   (doc-viewer-edn {:path path}))))))
+                              (* (Long/parseLong ts) 1000)))
+      (as-> info
+        (if-some [cas-url (get cas-manifest (str (fs/relativize build-path (doc-path->edn-path path))))]
+          (assoc info :edn-cas-url cas-url)
+          (do (println (str "No EDN data url found for notebook: '" path "'. Falling back to notebook viewer data with no cell results."))
+              (assoc info :edn-doc (doc-viewer-edn {:path path})))))))
 
 #_(file->doc-info "docs/clerk/clerk.clj")
 #_(file->doc-info "docs/clerk/missing_title.clj")
@@ -104,12 +109,14 @@
 (defmacro build-registry
   "Populates a nested registry of parsed notebooks given a set of paths."
   [{:keys [paths]}]
-  (->> paths
-       expand-paths
-       (map file->doc-info)
-       (group-by (comp str fs/parent :path))
-       (sort-by first)
-       (reduce add-collection {})))
+  (let [cas-manifest (when (fs/exists? (doc-path->edn-path "manifest"))
+                       (clojure.edn/read-string (slurp (doc-path->edn-path "manifest"))))]
+    (->> paths
+         expand-paths
+         (map (partial file->doc-info {:cas-manifest cas-manifest}))
+         (group-by (comp str fs/parent :path))
+         (sort-by first)
+         (reduce add-collection {}))))
 
 #_(letfn [(strip-edn [coll] (-> coll
                                 (update :devdocs (partial into [] (map #(dissoc % :edn-doc))))
@@ -127,16 +134,25 @@
 
 (defn build!
   "Expand paths and evals resulting notebooks with clerk. Persists EDN results to fs at conventional path (see `doc-path->cached-edn-path`)."
-  [{:keys [paths ignore-cache? throw-exceptions?] :or {throw-exceptions? true}}]
+  [{:as opts :keys [paths]}]
   (with-redefs [builder/write-static-app! write-edn-results]
-    (builder/build-static-app! {:paths (expand-paths paths)})))
+    (builder/build-static-app! {:paths (expand-paths paths)}))
+  ;; store in CAS
+  (let [{:as response :strs [manifest]} (cas/put (-> opts (select-keys [:cas-host]) (assoc :path build-path)))]
+    (when-not manifest
+      (throw (ex-info "Unable to upload to CAS" {:response response})))
+    (spit (doc-path->edn-path "manifest") (pr-str manifest))))
 
 (comment
   (shadow.cljs.devtools.api/repl :browser)
   (fs/delete-tree "build/devdocs")
-
+  (fs/list-dir "build/devdocs")
+  (cas/put {:path "build/devdocs"})
+  ;; get manifest
+  (clojure.edn/read-string (slurp (doc-path->edn-path "manifest")))
+  (clerk/clear-cache!)
   ;; build devdocs for results to appear in notebooks
-  (do
-   (clerk/clear-cache!)
-   (fs/delete-tree "build/devdocs")
-   (build! {:paths ["docs/**.{clj,md}"]})))
+  (build! {:paths ["docs/**.{clj,md}"]})
+
+  ;; registry
+  (build-registry {:paths ["docs/**.{clj,md}"]}))

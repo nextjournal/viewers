@@ -20,18 +20,13 @@ jobs:
       - name: Install java
         uses: actions/setup-java@v1
         with:
-          java-version: '11.0.7'
+          java-version: '18'
 
       - name: Install clojure
         uses: DeLaGuardo/setup-clojure@master
         with:
-          cli: '1.10.3.943'
-
-      - name: Install babashka
-        run: |
-          curl -sLO https://raw.githubusercontent.com/babashka/babashka/master/install
-          chmod +x install
-          ./install
+          cli: '1.11.1.1208'
+          bb: '1.2.174'
 
       - name: maven cache
         uses: actions/cache@v2
@@ -39,9 +34,8 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
-          key: ${{ runner.os }}-maven-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+            ~/.deps.clj
+          key: ${{ runner.os }}-maven-build-${{ hashFiles('deps.edn') }}
 
       - name: npm cache
         uses: actions/cache@v2

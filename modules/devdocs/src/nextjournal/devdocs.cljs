@@ -12,6 +12,7 @@
             [nextjournal.ui.components.localstorage :as ls]
             [lambdaisland.deja-fu :as deja-fu]
             [nextjournal.clerk.render :as render]
+            [nextjournal.clerk.render.hooks :as render.hooks]
             [reagent.core :as reagent]
             [reitit.frontend.easy :as rfe]))
 
@@ -41,10 +42,11 @@
 
 (declare collection-inner-view)
 
-(defn item-view [{:as item :keys [title edn-doc path last-modified items]}]
+(defn item-view [{:as item :keys [title edn-cas-url edn-doc path last-modified items]}]
   [:div
    (cond
-     edn-doc                                                ;; doc
+     ;; doc
+     (or edn-cas-url edn-doc)
      [:div.mb-2
       [:a.hover:underline.font-bold
        {:href (when edn-doc (rfe/href :devdocs/show {:path path})) :title path}
@@ -54,7 +56,8 @@
          (-> last-modified
              deja-fu/local-date-time
              (deja-fu/format "MMM dd yyyy, HH:mm"))])]
-     (seq items)                                            ;; collection
+     ;; collection
+     (seq items)
      [collection-inner-view item])])
 
 (defn collection-inner-view [{:keys [title items level]}]
@@ -72,17 +75,24 @@
     [:h1.pt-8 "Devdocs"]
     [collection-inner-view collection]]])
 
-(defn devdoc-view [{:as doc :keys [edn-doc fragment]}]
-  [:div.overflow-y-auto.bg-white.dark:bg-gray-900.flex-auto.relative.font-sans
-   (cond-> {:style {:padding-top 45 :padding-bottom 70}}
-     fragment (assoc :ref #(scroll-to-fragment fragment)))
-   [:div.absolute.left-7.md:right-6.md:left-auto.top-0.p-3
-    [:div.text-gray-400.text-xs.font-mono.float-right (:path doc)]]
-   [render/inspect-presented (try
-                               (render/read-string edn-doc)
-                               (catch :default e
-                                 (js/console.error :clerk.sci-viewer/read-error e)
-                                 "Parse error..."))]])
+(defn devdoc-view [{:as doc :keys [edn-doc edn-cas-url fragment]}]
+  (let [edn (render.hooks/use-promise
+             (if edn-cas-url
+               (.then (js/fetch edn-cas-url) #(.text %))
+               (js/Promise.resolve edn-doc)))]
+    [:div.overflow-y-auto.bg-white.dark:bg-gray-900.flex-auto.relative.font-sans
+     (cond-> {:style {:padding-top 45 :padding-bottom 70}}
+       fragment (assoc :ref #(scroll-to-fragment fragment)))
+     [:div.absolute.left-7.md:right-6.md:left-auto.top-0.p-3
+      [:div.text-gray-400.text-xs.font-mono.float-right (:path doc)]]
+     (if-not edn
+       "Loading..."
+       [render/inspect-presented
+        (try
+          (render/read-string edn)
+          (catch :default e
+            (js/console.error :clerk.sci-viewer/read-error e)
+            "Parse error..."))])]))
 
 (defn navbar-items [items]
   (mapv (fn [{:as item :keys [items path]}]
@@ -111,8 +121,9 @@
      [navbar/panel !state [navbar/navbar !state]]
      (if (or (nil? path) (contains? #{"" "/"} path))
        [collection-view @registry]
-       (let [{:as node :keys [edn-doc]} (lookup @registry path)]
-         (when edn-doc ^{:key path} [devdoc-view node])))]))
+       (let [{:as node :keys [edn-doc edn-cas-url]} (lookup @registry path)]
+         (when (or edn-cas-url edn-doc)
+           ^{:key path} [devdoc-view node])))]))
 
 (defn devdoc-commands
   "For use with the commands/command-bar API"
