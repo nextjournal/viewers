@@ -26,7 +26,7 @@ jobs:
         uses: DeLaGuardo/setup-clojure@master
         with:
           cli: '1.10.3.943'
-          bb: latest
+          bb: '1.2.174'
 
       - name: maven cache
         uses: actions/cache@v2
