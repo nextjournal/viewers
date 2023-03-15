@@ -58,7 +58,7 @@
       (select-keys [:title :doc])
       (assoc-when-missing :title (path->title path))
       (assoc :path (str path)
-             :edn-cas-url (doc-path->edn-path path)
+             :edn-url (doc-path->edn-path path)
              :last-modified (when-some [ts (-> (sh/sh "git" "log" "-1" "--format=%ct" (str path)) :out str/trim not-empty)]
                               (* (Long/parseLong ts) 1000)))))
 
@@ -108,14 +108,6 @@
        (group-by (comp str fs/parent :path))
        (sort-by first)
        (reduce add-collection {})))
-
-#_(letfn [(strip-edn [coll] (-> coll
-                                (update :devdocs (partial into [] (map #(dissoc % :edn-doc))))
-                                (update :collections (partial into [] (map strip-edn)))))]
-    (strip-edn
-     (build-registry {:paths ["docs/**/*.{clj,md}"
-                              "README.md"
-                              "modules/devdocs/src/nextjournal/devdocs.clj"]})))
 
 (defn write-edn-results [{:keys [out-path]} docs]
   (doseq [{:as _doc :keys [viewer file]} docs]
