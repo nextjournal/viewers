@@ -21,6 +21,13 @@
 
 (defonce registry (reagent/atom []))
 
+(defn init!
+  ([] (init! {}))
+  ([{:keys [registry-url] :or {registry-url "registry.edn"}}]
+   (.. (js/fetch registry-url)
+       (then #(.text %))
+       (then #(reset! registry (render/read-string %))))))
+
 ;; TODO: maybe compile into reitit router
 (defn find-coll [reg path] (some #(and (str/starts-with? path (:path %)) %) (:items reg)))
 (defn find-doc [{:keys [items]} path] (some #(and (= path (:path %)) %) items))

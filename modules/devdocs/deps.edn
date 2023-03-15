@@ -4,7 +4,6 @@
         io.github.nextjournal/clerk.render {:git/url "https://github.com/nextjournal/clerk"
                                             :git/sha "711a1b2fae3c212d2c8c2323cf4d53c178766114"
                                             :deps/root "render"}
-        io.github.nextjournal/cas-client {:git/sha "84ab35c3321c1e51a589fddbeee058aecd055bf8"}
         re-frame/re-frame {:git/url "https://github.com/nextjournal/freerange"
                            :git/sha "8cf68c30722a4c6f8f948a134c900d7a656ecad4"}
         com.lambdaisland/deja-fu {:mvn/version "0.3.33"}}}
