@@ -1,4 +1,6 @@
-(ns nextjournal.devcards)
+(ns nextjournal.devcards
+  (:require [clojure.java.io :as io]
+            [clojure.string :as str]))
 
 (defmacro when-enabled [& body]
   `(do ~@body))
@@ -32,6 +34,19 @@
   [env]
   (some? (:ns env)))
 
+(defn form-source
+  "Returns source string for (meta &form)"
+  [{:as meta :keys [line end-line column end-column file file-string]}]
+  (let [file-string (or file-string (some-> file io/resource slurp))]
+    (when-let [file-string (or file-string (some-> file io/resource slurp))]
+      (let [line (dec line)
+            column (dec column)]
+        (-> (str/split-lines file-string)
+            (update line #(subs % column))
+            (update (dec end-line) #(subs % 0 (dec end-column)))
+            (subvec line end-line)
+            (->> (str/join \newline)))))))
+
 (defmacro defcard
   {:arglists '([name ?doc ?argv body ?data])}
   [& args]
@@ -45,6 +60,7 @@
       (register-devcard! name
                          {:data `(fn [] ~data)
                           :doc doc
+                          :source (form-source (meta &form))
                           :compile-key (hash data)
                           :main `(fn [] ~main)}))))
 
