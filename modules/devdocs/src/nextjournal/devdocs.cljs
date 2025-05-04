@@ -21,6 +21,13 @@
 
 (defonce registry (reagent/atom []))
 
+(defn init!
+  ([] (init! {}))
+  ([{:keys [registry-url] :or {registry-url "registry.edn"}}]
+   (.. (js/fetch registry-url)
+       (then #(.text %))
+       (then #(reset! registry (render/read-string %))))))
+
 ;; TODO: maybe compile into reitit router
 (defn find-coll [reg path] (some #(and (str/starts-with? path (:path %)) %) (:items reg)))
 (defn find-doc [{:keys [items]} path] (some #(and (= path (:path %)) %) items))
@@ -42,11 +49,11 @@
 
 (declare collection-inner-view)
 
-(defn item-view [{:as item :keys [title edn-cas-url edn-doc path last-modified items]}]
+(defn item-view [{:as item :keys [title edn-url path last-modified items]}]
   [:div
    (cond
      ;; doc
-     (or edn-cas-url edn-doc)
+     edn-url
      [:div.mb-2
       [:a.hover:underline.font-bold
        {:href (rfe/href :devdocs/show {:path path}) :title path}
@@ -75,11 +82,8 @@
     [:h1.pt-8 "Devdocs"]
     [collection-inner-view collection]]])
 
-(defn devdoc-view [{:as doc :keys [edn-doc edn-cas-url fragment]}]
-  (let [edn (render.hooks/use-promise
-             (if edn-cas-url
-               (.then (js/fetch edn-cas-url) #(.text %))
-               (js/Promise.resolve edn-doc)))]
+(defn devdoc-view [{:as doc :keys [edn-url fragment]}]
+  (let [edn (render.hooks/use-promise (.then (js/fetch edn-url) #(.text %)))]
     [:div.overflow-y-auto.bg-white.dark:bg-gray-900.flex-auto.relative.font-sans
      (cond-> {:style {:padding-top 45 :padding-bottom 70}}
        fragment (assoc :ref #(scroll-to-fragment fragment)))
@@ -121,8 +125,8 @@
      [navbar/panel !state [navbar/navbar !state]]
      (if (or (nil? path) (contains? #{"" "/"} path))
        [collection-view @registry]
-       (let [{:as node :keys [edn-doc edn-cas-url]} (lookup @registry path)]
-         (when (or edn-cas-url edn-doc)
+       (let [{:as node :keys [edn-url]} (lookup @registry path)]
+         (when edn-url
            ^{:key path} [devdoc-view node])))]))
 
 (defn devdoc-commands

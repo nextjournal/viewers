@@ -2,6 +2,7 @@
   (:require ["react-dom/client" :as react-client]
             [clojure.string :as str]
             [nextjournal.devcards.routes :as devcards.routes]
+            [nextjournal.devdocs :as devdocs]
             [nextjournal.devdocs.demo :as devdocs.demo]
             [nextjournal.devcards-ui :as devcards-ui]
             [nextjournal.clerk-sci-env] ;; sets up clerk sci env extensions
@@ -83,6 +84,8 @@
     (react-client/createRoot el)))
 
 (defn ^:export ^:dev/after-load init []
-  (re-frame/dispatch-sync [:init-commands (commands.state/empty-db!)])
-  (rfe/start! router #(reset! match %1) {:use-fragment true})
-  (.render react-root (reagent/as-element [view])))
+  (.then (devdocs/init!)
+         (fn [_]
+           (re-frame/dispatch-sync [:init-commands (commands.state/empty-db!)])
+           (rfe/start! router #(reset! match %1) {:use-fragment true})
+           (.render react-root (reagent/as-element [view])))))

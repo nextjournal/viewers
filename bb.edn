@@ -1,6 +1,8 @@
-{:tasks
- {:init (def tailwind-build-cmd "npx tailwindcss --input resources/css/viewer.css --output public/css/viewer.css")
-
+{:deps {io.github.nextjournal/cas-client {:git/sha "e34901f4a29d54954544313ae1a0bb859fe3931f"}}
+ :tasks
+ {:init (do (def tailwind-build-cmd "npx tailwindcss --input resources/css/viewer.css --output public/css/viewer.css")
+            (def devdocs-build-path "build/devdocs"))
+  :requires ([babashka.fs :as fs] [nextjournal.cas-client :as cas])
   yarn-install {:doc "Installs and updates npm dependencies"
                 :task (shell "yarn install")}
 
@@ -16,7 +18,23 @@
              :task (shell tailwind-build-cmd)
              :depends [yarn-install]}
 
-  -dev {:depends [watch:cljs watch:css]}
+  build:copy-assets {:doc "Moves assets into devdocs out path prior to uploading them"
+                     :task (do
+                             (fs/create-dirs (str devdocs-build-path "/js"))
+                             (fs/create-dirs (str devdocs-build-path "/css"))
+                             (fs/copy "public/index.html" (str devdocs-build-path "/index.html") {:replace-existing true})
+                             (fs/copy "public/js/viewer.js" (str devdocs-build-path "/js/") {:replace-existing true})
+                             (fs/copy "public/css/viewer.css" (str devdocs-build-path "/css/") {:replace-existing true}))}
+
+  build:devdocs {:doc "Build Devdocs" :task (clojure "-X:nextjournal/devdocs")}
+
+  build:devdocs:dev {:doc "Build Devdocs to be served by shadow dev http server"
+                     :task (clojure "-X:nextjournal/devdocs :out-path '\"public\"'")}
+
+  devdocs:cas {:doc "Store devdocs into CAS"
+               :task (print (get-in (cas/put {:path devdocs-build-path}) ["manifest" "index.html"]))}
+
+  -dev {:depends [watch:cljs watch:css build:devdocs:dev]}
   dev {:doc "Start app in dev mode, compiles cljs and css, starts an nrepl "
        :task (run '-dev {:parallel true})}
 
